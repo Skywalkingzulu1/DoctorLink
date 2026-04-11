@@ -27,9 +27,10 @@ import base64
 import os
 import uuid
 from datetime import datetime
+import js
 
 # Load persisted database or create new
-stored_db = localStorage.getItem('dl_database')
+stored_db = js.localStorage.getItem('dl_database')
 if stored_db:
     import base64
     db_data = base64.b64decode(stored_db)
@@ -145,9 +146,10 @@ print("Database initialized")
         if (!this.pyodide) return;
         await this.pyodide.runPythonAsync(`
 import base64
+import js
 with open('doctorlink.db', 'rb') as f:
     db_bytes = f.read()
-localStorage.setItem('dl_database', base64.b64encode(db_bytes).decode())
+js.localStorage.setItem('dl_database', base64.b64encode(db_bytes).decode())
 print("Database saved")
         `);
     },
