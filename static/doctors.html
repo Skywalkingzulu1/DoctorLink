@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doctor Search</title>
+<style>
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: 8px; }
+  th { background-color: #f2f2f2; }
+</style>
+</head>
+<body>
+<h1>Doctors</h1>
+<table id="doctors-grid">
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Area</th><th>Specialty</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+async function loadDoctors() {
+  const token = localStorage.getItem('jwt_token');
+  if (!token) {
+    console.error('JWT token not found in localStorage');
+    return;
+  }
+  const url = '/api/doctors/search';
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      console.error('Failed to fetch doctors:', response.status);
+      return;
+    }
+    const doctors = await response.json();
+    const tbody = document.querySelector('#doctors-grid tbody');
+    tbody.innerHTML = '';
+    doctors.forEach(doc => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${doc.id}</td>
+        <td>${doc.name}</td>
+        <td>${doc.area || ''}</td>
+        <td>${doc.specialty || ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error fetching doctors:', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadDoctors);
+</script>
+</body>
+</html>

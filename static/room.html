@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Consultation - DoctorLink</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root { --primary: #0052cc; --accent: #36b37e; --bg: #172b4d; --white: #fff; --danger: #de350b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        header {
+            padding: 0.8rem 1.5rem;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo { font-size: 1.3rem; font-weight: 700; }
+        .logo span { color: var(--accent); }
+        
+        .status { display: flex; align-items: center; gap: 0.5rem; }
+        .status-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+        .status.disconnected .status-dot { background: var(--danger); animation: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .header-actions { display: flex; gap: 0.8rem; }
+        .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-danger { background: var(--danger); color: var(--white); }
+        
+        .main-container { flex: 1; display: flex; padding: 1rem; gap: 1rem; overflow: hidden; }
+        .video-section { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+        .video-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; min-height: 0; }
+        
+        .video-box {
+            background: #253858;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            color: #6b778c;
+            text-align: center;
+        }
+        .placeholder i { font-size: 4rem; }
+        .video-label {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0,0,0,0.6);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: var(--white);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+        .control-btn:hover { background: rgba(255,255,255,0.2); }
+        .control-btn.active { background: var(--accent); }
+        .control-btn.off { background: var(--danger); }
+        
+        .sidebar { width: 300px; background: rgba(0,0,0,0.2); border-radius: 12px; display: flex; flex-direction: column; }
+        .tab-buttons { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: #6b778c;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .tab-btn.active { color: var(--white); border-bottom: 2px solid var(--accent); }
+        
+        .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+        .tab-panel { display: none; flex: 1; flex-direction: column; padding: 1rem; }
+        .tab-panel.active { display: flex; }
+        
+        .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; }
+        .chat-msg { background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 8px; }
+        .chat-msg .meta { font-size: 0.75rem; color: #6b778c; margin-bottom: 0.3rem; }
+        .chat-input { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+        .chat-input input { flex: 1; padding: 0.8rem; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: var(--white); }
+        .chat-input button { padding: 0 1rem; border-radius: 8px; border: none; background: var(--accent); color: var(--white); cursor: pointer; }
+        
+        .notes-panel textarea { flex: 1; padding: 1rem; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: var(--white); resize: none; font-family: inherit; }
+        
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .spinner { width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        
+        .connection-status {
+            font-size: 0.8rem;
+            color: #6b778c;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Check -->
+    <div id="authOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem;">Connecting to consultation...</p>
+    </div>
+    
+    <header>
+        <div class="logo">Doctor<span>Link</span></div>
+        <div class="status" id="connectionStatus">
+            <div class="status-dot"></div>
+            <span id="statusText">Connecting...</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-danger" onclick="endCall()">
+                <i class="fas fa-phone-slash"></i> End Call
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="video-section">
+            <div class="video-grid">
+                <div class="video-box" id="remoteVideoBox">
+                    <div class="placeholder" id="remotePlaceholder">
+                        <i class="fas fa-user-md"></i>
+                        <div id="remoteWaiting">Waiting for participant...</div>
+                    </div>
+                    <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
+                    <div class="video-label" id="remoteLabel">Participant</div>
+                </div>
+                
+                <div class="video-box" id="localVideoBox">
+                    <div class="placeholder" id="localPlaceholder">
+                        <i class="fas fa-user"></i>
+                        <div>Starting camera...</div>
+                    </div>
+                    <video id="localVideo" autoplay playsinline muted></video>
+                    <div class="video-label">You</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn active" id="micBtn" onclick="toggleMic()">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="control-btn active" id="camBtn" onclick="toggleCamera()">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="control-btn" onclick="toggleScreenShare()">
+                    <i class="fas fa-desktop"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('chat')">Chat</button>
+                <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
+            </div>
+            
+            <div class="tab-content">
+                <div id="chatTab" class="tab-panel active">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-msg">
+                            <div class="meta">System</div>
+                            <div class="text">Video consultation started. Use chat to communicate.</div>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="Type message..." onkeypress="if(event.key==='Enter')sendChat()">
+                        <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+                
+                <div id="notesTab" class="tab-panel">
+                    <div class="notes-panel">
+                        <h4 style="margin-bottom: 0.5rem;">Consultation Notes</h4>
+                        <textarea id="consultationNotes" placeholder="Enter consultation notes, symptoms, diagnosis, treatment..."></textarea>
+                        <button class="btn" style="margin-top:0.8rem;background:var(--accent);color:#fff" onclick="saveNotes()">
+                            <i class="fas fa-save"></i> Save Notes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIG ==========
+        const API_BASE = '';
+        let authToken = localStorage.getItem('token');
+        
+        // ========== STATE ==========
+        const urlParams = new URLSearchParams(window.location.search);
+        const appointmentId = parseInt(urlParams.get('appointment_id'));
+        
+        let socket = null;
+        let localStream = null;
+        let peerConnection = null;
+        let currentUser = null;
+        let mySid = null;
+        let isAudioEnabled = true;
+        let isVideoEnabled = true;
+        let remoteStream = null;
+        
+        // ICE Servers for P2P
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        // ========== SOCKET.IO ==========
+        function initSocket() {
+            socket = io(API_BASE, {
+                transports: ['websocket'],
+                autoConnect: true,
+            });
+            
+            socket.on('connect', () => {
+                console.log('Socket connected:', socket.id);
+                mySid = socket.id;
+                updateStatus('connected', 'Connected');
+                
+                // Authenticate
+                socket.emit('authenticate', { token: authToken });
+            });
+            
+            socket.on('authenticated', (data) => {
+                console.log('Authenticated:', data);
+                // Join the appointment room
+                socket.emit('join_room', { appointment_id: appointmentId });
+            });
+            
+            socket.on('room_joined', async (data) => {
+                console.log('Room joined:', data);
+                // If there are existing participants, create offers
+                if (data.participants && data.participants.length > 0) {
+                    for (const peer of data.participants) {
+                        await createOffer(peer.sid);
+                    }
+                }
+            });
+            
+            socket.on('peer_joined', async (data) => {
+                console.log('Peer joined:', data);
+                // Create offer for new peer
+                await createOffer(data.sid);
+            });
+            
+            socket.on('peer_left', (data) => {
+                console.log('Peer left:', data);
+                // Handle peer disconnection
+                if (peerConnection) {
+                    peerConnection.close();
+                    peerConnection = null;
+                }
+                showRemotePlaceholder();
+            });
+            
+            // WebRTC signaling
+            socket.on('offer', async (data) => {
+                console.log('Received offer from:', data.from_sid);
+                await handleOffer(data.from_sid, data.offer);
+            });
+            
+            socket.on('answer', async (data) => {
+                console.log('Received answer from:', data.from_sid);
+                await handleAnswer(data.answer);
+            });
+            
+            socket.on('ice_candidate', async (data) => {
+                console.log('Received ICE from:', data.from_sid);
+                await handleIceCandidate(data.candidate);
+            });
+            
+            // Chat
+            socket.on('chat_message', (data) => {
+                addChatMessage(data.sender, data.message, data.timestamp);
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('Socket disconnected');
+                updateStatus('disconnected', 'Disconnected');
+            });
+            
+            socket.on('connect_error', (error) => {
+                console.error('Socket error:', error);
+                updateStatus('disconnected', 'Connection error');
+            });
+        }
+        
+        function updateStatus(state, text) {
+            const statusEl = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('statusText');
+            statusEl.className = 'status ' + state;
+            statusText.textContent = text;
+        }
+
+        // ========== AUTH ==========
+        async function checkAuth() {
+            if (!authToken) {
+                alert('Please login first');
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            try {
+                const response = await fetch(API_BASE + '/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + authToken }
+                });
+                if (!response.ok) throw new Error('Auth failed');
+                currentUser = await response.json();
+                return true;
+            } catch(e) {
+                alert('Session expired. Please login again.');
+                localStorage.removeItem('token');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        // ========== INITIALIZATION ==========
+        async function init() {
+            const authOk = await checkAuth();
+            if (!authOk) return;
+            
+            if (!appointmentId) {
+                alert('No appointment specified');
+                window.location.href = currentUser.role === 'DOCTOR' ? 'doctor_dashboard.html' : 'index.html';
+                return;
+            }
+            
+            // Get appointment details
+            try {
+                const response = await fetch(API_BASE + '/api/appointments/' + appointmentId, {
+                    headers: { 'Authorization': 'Bearer ' + authToken }
+                });
+                const appt = await response.json();
+                
+                if (!appt || appt.status !== 'ACTIVE') {
+                    alert('Appointment is not active');
+                    window.location.href = currentUser.role === 'DOCTOR' ? 'doctor_dashboard.html' : 'index.html';
+                    return;
+                }
+                
+                const otherName = currentUser.role === 'DOCTOR' ? appt.patient_name : appt.doctor_name;
+                document.getElementById('remoteLabel').textContent = otherName || 'Participant';
+                document.getElementById('remoteWaiting').textContent = 'Waiting for ' + otherName + '...';
+                
+            } catch(err) {
+                alert('Error loading appointment');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.getElementById('authOverlay').classList.add('hidden');
+            
+            // Initialize media and socket
+            await initLocalMedia();
+            initSocket();
+        }
+
+        // ========== LOCAL MEDIA ==========
+        async function initLocalMedia() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 1280, height: 720, facingMode: 'user' },
+                    audio: true
+                });
+                
+                const localVideo = document.getElementById('localVideo');
+                localVideo.srcObject = localStream;
+                localVideo.style.display = 'block';
+                document.getElementById('localPlaceholder').style.display = 'none';
+            } catch(err) {
+                console.error('Camera error:', err);
+                document.getElementById('localPlaceholder').innerHTML = '<i class="fas fa-video-slash"></i><div>Camera not available</div>';
+            }
+        }
+
+        // ========== WEBRTC ==========
+        async function createPeerConnection(peerSid) {
+            peerConnection = new RTCPeerConnection(iceServers);
+            
+            // Add local tracks
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+            
+            // Handle remote stream
+            peerConnection.ontrack = (event) => {
+                console.log('Received remote track');
+                remoteStream = event.streams[0];
+                const remoteVideo = document.getElementById('remoteVideo');
+                remoteVideo.srcObject = remoteStream;
+                remoteVideo.style.display = 'block';
+                document.getElementById('remotePlaceholder').style.display = 'none';
+            };
+            
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice_candidate', {
+                        target_sid: peerSid,
+                        candidate: event.candidate,
+                        appointment_id: appointmentId
+                    });
+                }
+            };
+            
+            peerConnection.onconnectionstatechange = () => {
+                console.log('Connection state:', peerConnection.connectionState);
+                if (peerConnection.connectionState === 'connected') {
+                    updateStatus('connected', 'Connected');
+                }
+            };
+            
+            return peerConnection;
+        }
+        
+        async function createOffer(peerSid) {
+            console.log('Creating offer for:', peerSid);
+            const pc = await createPeerConnection(peerSid);
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            
+            socket.emit('offer', {
+                target_sid: peerSid,
+                offer: offer,
+                appointment_id: appointmentId
+            });
+        }
+        
+        async function handleOffer(peerSid, offer) {
+            console.log('Handling offer from:', peerSid);
+            const pc = await createPeerConnection(peerSid);
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            
+            socket.emit('answer', {
+                target_sid: peerSid,
+                answer: answer,
+                appointment_id: appointmentId
+            });
+        }
+        
+        async function handleAnswer(answer) {
+            console.log('Handling answer');
+            if (peerConnection) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            }
+        }
+        
+        async function handleIceCandidate(candidate) {
+            console.log('Handling ICE candidate');
+            if (peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+        }
+
+        // ========== CONTROLS ==========
+        function toggleMic() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isAudioEnabled = audioTrack.enabled;
+                    document.getElementById('micBtn').classList.toggle('active', isAudioEnabled);
+                    document.getElementById('micBtn').classList.toggle('off', !isAudioEnabled);
+                }
+            }
+        }
+
+        function toggleCamera() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isVideoEnabled = videoTrack.enabled;
+                    document.getElementById('camBtn').classList.toggle('active', isVideoEnabled);
+                    document.getElementById('camBtn').classList.toggle('off', !isVideoEnabled);
+                }
+            }
+        }
+
+        function toggleScreenShare() {
+            alert('Screen sharing coming soon');
+        }
+
+        // ========== TABS ==========
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('.tab-btn[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // ========== CHAT ==========
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // Send via Socket.IO for real-time
+            socket.emit('chat_message', {
+                appointment_id: appointmentId,
+                message: text
+            });
+            
+            // Add to own view
+            addChatMessage('You', text, Date.now());
+            input.value = '';
+        }
+        
+        function addChatMessage(sender, message, timestamp) {
+            const messages = document.getElementById('chatMessages');
+            const time = new Date(parseInt(timestamp)).toLocaleTimeString();
+            messages.innerHTML += `
+                <div class="chat-msg">
+                    <div class="meta">${sender} - ${time}</div>
+                    <div class="text">${message}</div>
+                </div>
+            `;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // ========== NOTES ==========
+        function saveNotes() {
+            const notes = document.getElementById('consultationNotes').value;
+            if (currentUser.role === 'DOCTOR') {
+                fetch(API_BASE + '/api/appointments/' + appointmentId, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ notes: notes })
+                }).then(r => {
+                    if (r.ok) alert('Notes saved!');
+                    else alert('Failed to save notes');
+                });
+            } else {
+                alert('Only doctors can save consultation notes');
+            }
+        }
+
+        // ========== END CALL ==========
+        function endCall() {
+            if (!confirm('End this consultation?')) return;
+            
+            // Notify via socket
+            if (socket) {
+                socket.emit('call_ended', { appointment_id: appointmentId });
+            }
+            
+            // Stop media
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            
+            // Redirect
+            if (currentUser.role === 'DOCTOR') {
+                window.location.href = 'doctor_dashboard.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        function showRemotePlaceholder() {
+            document.getElementById('remoteVideo').style.display = 'none';
+            document.getElementById('remotePlaceholder').style.display = 'flex';
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

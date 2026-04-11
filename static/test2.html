@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorLink</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #0052cc; --accent: #36b37e; }
+        body { font-family: -apple-system, sans-serif; background: #f4f5f7; padding: 2rem; }
+        h1 { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <h1>DoctorLink</h1>
+    <p>Loading...</p>
+    <script>
+        const API_BASE = '';
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+        
+        console.log('Script loaded');
+        
+        async function checkAuth() {
+            if (!authToken) {
+                document.body.innerHTML += '<p>Please login</p>';
+                return;
+            }
+            try {
+                const res = await fetch(API_BASE + '/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + authToken }
+                });
+                if (res.ok) {
+                    currentUser = await res.json();
+                    document.body.innerHTML += '<p>Welcome ' + currentUser.name + '</p>';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        checkAuth();
+    </script>
+</body>
+</html>

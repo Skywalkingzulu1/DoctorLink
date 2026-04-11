@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+passlib[bcrypt]
+bcrypt
+gunicorn
+psycopg2-binary
+python-jose[cryptography]
+stripe
+python-multipart
+python-dotenv
+boto3
+botocore

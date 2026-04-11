@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorLink - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0052cc;
+            --primary-dark: #0747a6;
+            --secondary: #00a3bf;
+            --bg: #f4f5f7;
+            --white: #ffffff;
+            --text: #172b4d;
+            --error: #de350b;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-card {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 { margin: 0 0 0.5rem 0; color: var(--primary); font-weight: 800; }
+        h1 span { color: var(--secondary); }
+        p { color: #6b778c; margin-bottom: 2rem; font-size: 0.95rem; }
+        
+        .form-group { text-align: left; margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.85rem; }
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #dfe1e6;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn:hover { background: var(--primary-dark); }
+        .footer-links { margin-top: 2rem; font-size: 0.85rem; color: #6b778c; }
+        .footer-links a { color: var(--primary); text-decoration: none; font-weight: bold; }
+
+        #error-message {
+            color: var(--error);
+            background: #ffebe6;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Doctor<span>Link</span></h1>
+        <p>South Africa's Trusted Medical Network</p>
+        
+        <div id="error-message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Email Address</label>
+                <input type="email" id="username" required placeholder="john@example.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="********">
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+
+        <div class="footer-links">
+            Don't have an account? <a href="register.html">Register Now</a>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('doctorlink_current_user') || 'null');
+            if (user) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Simple hash function for passwords
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString();
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+
+            errorDiv.style.display = 'none';
+
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('doctorlink_users') || '[]');
+            
+            // Find user by email and check password
+            const user = users.find(u => u.email === email && u.passwordHash === simpleHash(password));
+            
+            if (user) {
+                localStorage.setItem('token', 'loggedin_' + Date.now());
+                localStorage.setItem('doctorlink_current_user', JSON.stringify(user));
+                
+                if (user.role === 'DOCTOR') {
+                    window.location.href = 'doctor_dashboard.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                errorDiv.textContent = 'Invalid email or password';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

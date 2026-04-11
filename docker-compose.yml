@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=doctorlink
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d doctorlink"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/doctorlink
+      - SECRET_KEY=your-secret-key-change-me
+      - ALGORITHM=HS256
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  turnserver:
+    image: coturn/coturn:latest
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+    environment:
+      - TURN_USER=doctorlink:password123
+      - TURN_REALM=doctorlink.co.za
+    command:
+      - "-n"
+      - "--lt-cred-mech"
+      - "--user=doctorlink:password123"
+      - "--realm=doctorlink.co.za"
+      - "--verbose"
+
+volumes:
+  postgres_data:

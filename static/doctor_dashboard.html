@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - DoctorLink</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--light);color:var(--text);line-height:1.5}
+        
+        /* Layout - MATCHES PATIENT PAGE */
+        .app{display:flex;min-height:100vh}
+        .sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto}
+        .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border)}
+        .sidebar-header h1{font-size:1.3rem;color:var(--primary);font-weight:800}
+        .sidebar-header h1 span{color:var(--secondary)}
+        .sidebar-menu{padding:1rem 0}
+        .menu-item{padding:0.8rem 1.5rem;cursor:pointer;display:flex;align-items:center;gap:0.8rem;color:var(--text-light);transition:all 0.2s}
+        .menu-item:hover,.menu-item.active{background:var(--light);color:var(--primary);border-left:3px solid var(--primary)}
+        
+        .main{flex:1;margin-left:260px}
+        .top-bar{background:var(--white);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+        
+        .content{padding:2rem}
+        .page-title{font-size:1.8rem;margin-bottom:1.5rem}
+        
+        /* Cards - SAME AS PATIENT PAGE */
+        .card{background:var(--white);border-radius:12px;padding:1.5rem;margin-bottom:1rem;border:1px solid var(--border)}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+        .card-title{font-size:1.1rem;font-weight:600}
+        
+        /* Buttons */
+        .btn{padding:0.7rem 1.5rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:var(--primary-dark)}
+        .btn-secondary{background:var(--light);color:var(--text);border:1px solid var(--border)}
+        .btn-accent{background:var(--accent);color:#fff}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-sm{padding:0.4rem 0.8rem;font-size:0.85rem}
+        
+        /* Grid */
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+        .stats{grid-template-columns:repeat(4,1fr)}
+        .stat-card{background:var(--white);padding:1.5rem;border-radius:12px;border:1px solid var(--border);text-align:center}
+        .stat-value{font-size:2rem;font-weight:700;color:var(--primary)}
+        .stat-label{color:var(--text-light);font-size:0.85rem}
+        
+        /* Tables */
+        .table{width:100%;border-collapse:collapse}
+        .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
+        .table th{background:var(--light);font-weight:600;color:var(--text-light)}
+        
+        /* Status Pills */
+        .status{padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600}
+        .status-scheduled{background:#eef2ff;color:var(--primary)}
+        .status-active{background:#e3fcef;color:var(--accent)}
+        .status-completed{background:var(--light);color:var(--text-light)}
+        .status-cancelled{background:#ffebe6;color:var(--danger)}
+        
+        /* Online/Offline Badges */
+        .online-badge{background:#36b37e;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
+        .offline-badge{background:#6b778c;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
+        
+        /* Forms */
+        .form-group{margin-bottom:1rem}
+        .form-label{display:block;margin-bottom:0.3rem;font-weight:500;font-size:0.9rem}
+        .form-input,.form-textarea{width:100%;padding:0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.95rem}
+        
+        /* Tabs */
+        .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+        .tab{padding:1rem 1.5rem;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;transition:all 0.2s}
+        .tab:hover,.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        
+        /* Empty State */
+        .empty{text-align:center;padding:2rem;color:var(--text-light)}
+        
+        /* Auth Page */
+        .auth-page{min-height:100vh;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;padding:2rem}
+        .auth-card{background:var(--white);padding:2.5rem;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:400px;text-align:center}
+        .auth-card h1{color:var(--primary);font-size:2rem;margin-bottom:0.5rem}
+        .auth-card h1 span{color:var(--secondary)}
+        .auth-card input{width:100%;padding:0.8rem;margin-bottom:1rem;border:1px solid var(--border);border-radius:8px}
+        .auth-card button{width:100%;padding:1rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+
+        /* Responsive */
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
+    </style>
+</head>
+<body>
+    <!-- AUTH PAGE -->
+    <div id="authPage" class="auth-page">
+        <div class="auth-card">
+            <h1>Doctor<span>Link</span></h1>
+            <p>Doctor Portal</p>
+            <div id="authError" style="color:var(--danger);background:#ffebe6;padding:0.8rem;border-radius:8px;margin-bottom:1rem;display:none"></div>
+            <form id="authForm">
+                <input type="email" id="authEmail" placeholder="Email Address" required>
+                <input type="password" id="authPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <div style="margin-top:1rem;padding:1rem;background:var(--light);border-radius:8px;font-size:0.85rem">
+                <strong>Demo:</strong> doctor@doctorlink.co.za / test123
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="appPage" class="app hidden">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>Doctor<span>Link</span></h1>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</div>
+                <div class="menu-item" data-page="appointments"><i class="fas fa-calendar"></i> Appointments</div>
+                <div class="menu-item" data-page="patients"><i class="fas fa-users"></i> My Patients</div>
+                <div class="menu-item" data-page="schedule"><i class="fas fa-clock"></i> Schedule</div>
+                <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
+                <div class="menu-item" data-page="pricing"><i class="fas fa-tag"></i> Pricing</div>
+                <div class="menu-item" data-page="settings"><i class="fas fa-cog"></i> Settings</div>
+                <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="top-bar">
+                <div style="font-weight:600" id="pageTitle">Dashboard</div>
+                <div style="font-weight:600" id="userName">Dr. Name</div>
+            </div>
+
+            <div class="content">
+                <!-- DASHBOARD -->
+                <div id="page-dashboard">
+                    <div class="stats grid" style="margin-bottom:2rem">
+                        <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Pending</div></div>
+                        <div class="stat-card"><div class="stat-value" id="statActive">0</div><div class="stat-label">Active</div></div>
+                        <div class="stat-card"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Completed</div></div>
+                        <div class="stat-card"><div class="stat-value" id="statEarnings">0</div><div class="stat-label">Credits Earned</div></div>
+                    </div>
+                    
+                    <div id="earningsCard" class="card" style="margin-bottom:1.5rem;background:linear-gradient(135deg,#36b37e,#00a3bf);color:#fff">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <div style="font-size:0.9rem;opacity:0.9">Your Earnings (80%)</div>
+                                <div id="totalEarnings" style="font-size:2rem;font-weight:700">0 credits</div>
+                                <div style="font-size:0.8rem;opacity:0.8">Platform fee (20%): <span id="platformFeeDisplay">0</span> credits</div>
+                            </div>
+                            <div style="text-align:right">
+                                <div style="font-size:0.9rem;opacity:0.9">Pending</div>
+                                <div id="pendingEarnings" style="font-size:1.5rem;font-weight:700">0 credits</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+                            <button id="collectBtn" class="btn" style="flex:1;background:#fff;color:#36b37e" onclick="collectEarnings()">Collect Earnings</button>
+                            <button id="gigModeBtn" class="btn" style="flex:1;background:#fff;color:#0052cc" onclick="toggleGigMode()"><i class="fas fa-power-off"></i> <span id="gigModeText">Go Online</span></button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Pending Requests</div>
+                            </div>
+                            <div id="pendingAppts"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Active Consultations</div>
+                            </div>
+                            <div id="activeAppts"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- APPOINTMENTS -->
+                <div id="page-appointments" class="hidden">
+                    <h2 class="page-title">All Appointments</h2>
+                    <div class="tabs">
+                        <div class="tab active" onclick="filterAppts('all',this)">All</div>
+                        <div class="tab" onclick="filterAppts('SCHEDULED',this)">Pending</div>
+                        <div class="tab" onclick="filterAppts('ACTIVE',this)">Active</div>
+                        <div class="tab" onclick="filterAppts('COMPLETED',this)">Completed</div>
+                    </div>
+                    <div class="card">
+                        <table class="table">
+                            <thead><tr><th>Patient</th><th>Date</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="appointmentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PATIENTS -->
+                <div id="page-patients" class="hidden">
+                    <h2 class="page-title">My Patients</h2>
+                    <div class="card">
+                        <table class="table">
+                            <thead><tr><th>Name</th><th>Email</th><th>Last Visit</th><th>Actions</th></tr></thead>
+                            <tbody id="patientsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SCHEDULE -->
+                <div id="page-schedule" class="hidden">
+                    <h2 class="page-title">Today's Schedule</h2>
+                    <div id="todaySchedule"></div>
+                </div>
+
+                <!-- PRESCRIPTIONS -->
+                <div id="page-prescriptions" class="hidden">
+                    <h2 class="page-title">Write Prescription</h2>
+                    <div class="card">
+                        <div class="form-group">
+                            <label class="form-label">Select Patient/Appointment</label>
+                            <select id="prescriptionAppt" class="form-input">
+                                <option value="">Select appointment...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Medication</label>
+                            <input type="text" id="prescriptionMed" class="form-input" placeholder="Medication name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dosage</label>
+                            <input type="text" id="prescriptionDosage" class="form-input" placeholder="e.g. 500mg twice daily">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Instructions</label>
+                            <textarea id="prescriptionInstructions" class="form-textarea" placeholder="Special instructions..."></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="createPrescription()">Create Prescription</button>
+                    </div>
+                </div>
+
+                <!-- PRICING (GIG ECONOMY) -->
+                <div id="page-pricing" class="hidden">
+                    <h2 class="page-title">Your Pricing</h2>
+                    <div class="card">
+                        <div class="card-title">Service Tier Pricing</div>
+                        <p style="color:var(--text-light);margin-bottom:1rem;font-size:0.9rem">Set your own prices for each service type. Platform takes 20% fee.</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Quick Chat (10 min)</label>
+                            <input type="number" id="priceQuickChat" class="form-input" min="10" step="5" value="50">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Video Call (30 min)</label>
+                            <input type="number" id="priceVideoCall" class="form-input" min="50" step="10" value="150">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Full Consultation (60 min)</label>
+                            <input type="number" id="priceFullConsult" class="form-input" min="100" step="10" value="250">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Prescription Review</label>
+                            <input type="number" id="pricePrescription" class="form-input" min="30" step="10" value="80">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Report Analysis</label>
+                            <input type="number" id="priceReport" class="form-input" min="50" step="10" value="120">
+                        </div>
+                        
+                        <div class="form-group" style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+                            <label class="form-label">Peak Pricing Multiplier</label>
+                            <select id="peakMultiplier" class="form-input">
+                                <option value="1.0">Normal pricing</option>
+                                <option value="1.25">25% increase (peak hours)</option>
+                                <option value="1.5">50% increase (busy hours)</option>
+                            </select>
+                            <small style="color:var(--text-light)">Increase prices during busy times</small>
+                        </div>
+                        
+                        <button class="btn btn-primary" style="width:100%" onclick="savePricing()">Save Pricing</button>
+                    </div>
+                    
+                    <div class="card" style="margin-top:1rem">
+                        <div class="card-title">Preview</div>
+                        <div id="pricePreview" style="font-size:0.9rem"></div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div id="page-settings" class="hidden">
+                    <h2 class="page-title">Doctor Settings</h2>
+                    <div id="verificationBanner" style="margin-bottom:1rem;padding:1rem;border-radius:8px;display:none"></div>
+                    <div class="card">
+                        <div class="form-group">
+                            <label class="form-label">Your Name</label>
+                            <input type="text" id="docName" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Specialty</label>
+                            <select id="docSpecialty" class="form-input">
+                                <option value="">Select Specialty</option>
+                                <option value="General Practitioner">General Practitioner</option>
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Dermatology">Dermatology</option>
+                                <option value="Pediatrics">Pediatrics</option>
+                                <option value="Psychiatry">Psychiatry</option>
+                                <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
+                                <option value="Orthopedics">Orthopedics</option>
+                                <option value="Neurology">Neurology</option>
+                                <option value="Internal Medicine">Internal Medicine</option>
+                                <option value="Family Medicine">Family Medicine</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Area / Location</label>
+                            <input type="text" id="docArea" class="form-input" placeholder="e.g., Sandton, Johannesburg">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Consultation Fee (Credits)</label>
+                            <input type="number" id="docFee" class="form-input" min="50" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">HPCSA Number (Optional - for full verification)</label>
+                            <input type="text" id="docHpcsa" class="form-input" placeholder="e.g., MP12345">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveDoctorSettings()">Save Profile</button>
+                        <button class="btn btn-secondary" onclick="requestVerification()" style="margin-left:0.5rem">Request Verification</button>
+                    </div>
+                    <div class="card" style="margin-top:1rem">
+                        <div class="card-title">Verification Status</div>
+                        <div id="verificationStatus" style="margin-top:0.5rem"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== API CONFIG ==========
+        const API_BASE = '';
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+
+        // ========== API HELPERS ==========
+        async function apiCall(endpoint, options = {}) {
+            const url = API_BASE + endpoint;
+            const headers = { 'Content-Type': 'application/json' };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            
+            try {
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) { logout(); throw new Error('Session expired'); }
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'API error');
+                return data;
+            } catch (e) {
+                console.error('API Error:', e);
+                throw e;
+            }
+        }
+
+        // ========== AUTH ==========
+        document.getElementById('authForm').onsubmit = async e => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const err = document.getElementById('authError');
+            err.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('username', email);
+                formData.append('password', password);
+                
+                const response = await fetch(API_BASE + '/api/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const data = await response.json();
+                    err.textContent = data.detail || 'Invalid credentials';
+                    err.style.display = 'block';
+                    return;
+                }
+                
+                const data = await response.json();
+                authToken = data.access_token;
+                currentUser = data.user;
+                localStorage.setItem('token', authToken);
+                
+                if (currentUser.role !== 'DOCTOR') {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                showApp();
+            } catch (e) {
+                err.textContent = 'Connection error';
+                err.style.display = 'block';
+            }
+        };
+
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('token');
+            window.location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.name;
+            
+            // Check if doctor profile is incomplete - redirect to settings
+            loadDoctorProfile();
+        }
+        
+        async function loadDoctorProfile() {
+            try {
+                const profile = await apiCall('/api/profile/doctor');
+                
+                // Show verification badge in header
+                let badge = '';
+                if (profile.verification_status === 'verified') {
+                    badge = ' <span style="color:#36b37e;font-size:0.8rem">✓★ Verified</span>';
+                } else if (profile.verification_status === 'basic') {
+                    badge = ' <span style="color:#0052cc;font-size:0.8rem">✓ Verified</span>';
+                } else if (!profile.profile_completed) {
+                    badge = ' <span style="color:#ffab00;font-size:0.8rem">⚠ Incomplete</span>';
+                }
+                
+                // Add gig mode status
+                const gigStatus = profile.is_online !== false ? 
+                    ' <span class="online-badge" style="margin-left:0.5rem"><i class="fas fa-circle" style="font-size:0.5rem"></i> Online</span>' :
+                    ' <span class="offline-badge" style="margin-left:0.5rem">Offline</span>';
+                
+                document.getElementById('userName').innerHTML = currentUser.name + badge + gigStatus;
+                
+                // Update gig mode button
+                const isOnline = profile.is_online !== false;
+                document.getElementById('gigModeText').textContent = isOnline ? 'Go Offline' : 'Go Online';
+                
+                // Update platform fee display
+                const earnings = profile.total_earnings || 0;
+                const platformFee = Math.round(earnings * 0.25); // 20% of what patients paid = 25% of doctor earnings
+                document.getElementById('platformFeeDisplay').textContent = platformFee;
+                
+                // Update verification status display
+                updateVerificationDisplay(profile);
+                
+                // If profile not completed, force settings page
+                if (!profile.profile_completed) {
+                    alert('Please complete your doctor profile to receive patients.');
+                    document.getElementById('docName').value = profile.name || '';
+                    document.getElementById('docSpecialty').value = profile.specialty || '';
+                    document.getElementById('docArea').value = profile.area || '';
+                    document.getElementById('docFee').value = profile.consultation_fee || 150;
+                    navTo('settings');
+                    return;
+                }
+                
+                // Load profile data into settings form
+                document.getElementById('docName').value = profile.name || '';
+                document.getElementById('docSpecialty').value = profile.specialty || '';
+                document.getElementById('docArea').value = profile.area || '';
+                document.getElementById('docFee').value = profile.consultation_fee || 150;
+                document.getElementById('docHpcsa').value = profile.hpcsa_number || '';
+                
+                initDashboard();
+            } catch(e) {
+                console.error('Profile load error:', e);
+                initDashboard();
+            }
+        }
+
+        // ========== NAVIGATION ==========
+        document.querySelectorAll('.menu-item[data-page]').forEach(item => {
+            item.onclick = () => navTo(item.dataset.page);
+        });
+
+        function navTo(page) {
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+            document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + page)?.classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            
+            if (page === 'appointments') loadAppointments();
+            if (page === 'patients') loadPatients();
+            if (page === 'prescriptions') loadPrescriptionsForm();
+            if (page === 'pricing') loadPricingPage();
+        }
+
+        // ========== DASHBOARD ==========
+        async function initDashboard() {
+            try {
+                const appts = await apiCall('/api/appointments');
+                
+                const pending = appts.filter(a => a.status === 'SCHEDULED').length;
+                const active = appts.filter(a => a.status === 'ACTIVE').length;
+                const completed = appts.filter(a => a.status === 'COMPLETED').length;
+                const patients = [...new Set(appts.map(a => a.patient_id))].length;
+                
+                document.getElementById('statPending').textContent = pending;
+                document.getElementById('statActive').textContent = active;
+                document.getElementById('statCompleted').textContent = completed;
+                document.getElementById('statEarnings').textContent = completed * 150; // Estimate
+                
+                // Load earnings
+                try {
+                    const earnings = await apiCall('/api/credits/doctor/earnings');
+                    document.getElementById('totalEarnings').textContent = earnings.total_earnings + ' credits';
+                    document.getElementById('pendingEarnings').textContent = earnings.pending_earnings + ' credits';
+                    
+                    const collectBtn = document.getElementById('collectBtn');
+                    if (earnings.pending_earnings > 0) {
+                        collectBtn.textContent = 'Collect ' + earnings.pending_earnings + ' Credits';
+                        collectBtn.style.display = 'block';
+                    } else {
+                        collectBtn.textContent = 'No Pending Earnings';
+                        collectBtn.style.opacity = '0.5';
+                    }
+                } catch(e) {
+                    console.log('Earnings not available');
+                }
+                
+                // Pending requests
+                const pendingContainer = document.getElementById('pendingAppts');
+                const pendingAppts = appts.filter(a => a.status === 'SCHEDULED');
+                if (pendingAppts.length === 0) {
+                    pendingContainer.innerHTML = '<div class="empty">No pending requests</div>';
+                } else {
+                    pendingContainer.innerHTML = pendingAppts.map(a => `
+                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                            <strong>${a.patient_name || 'Patient'}</strong><br>
+                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
+                            <div style="margin-top:0.5rem">
+                                <button class="btn btn-sm btn-accent" onclick="acceptAppt(${a.id})">Accept</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectAppt(${a.id})">Reject</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                // Active consultations
+                const activeContainer = document.getElementById('activeAppts');
+                const activeAppts = appts.filter(a => a.status === 'ACTIVE');
+                if (activeAppts.length === 0) {
+                    activeContainer.innerHTML = '<div class="empty">No active consultations</div>';
+                } else {
+                    activeContainer.innerHTML = activeAppts.map(a => `
+                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                            <strong>${a.patient_name || 'Patient'}</strong><br>
+                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
+                            <button class="btn btn-sm btn-accent" style="margin-top:0.5rem" onclick="startCall(${a.id})">Start Call</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Dashboard error:', e);
+            }
+        }
+
+        // ========== APPOINTMENTS ==========
+        async function loadAppointments(filter = 'all') {
+            try {
+                const url = filter === 'all' ? '/api/appointments' : `/api/appointments?status_filter=${filter}`;
+                const appts = await apiCall(url);
+                
+                const tbody = document.getElementById('appointmentsTable');
+                if (!appts.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = appts.map(a => {
+                    const isScheduled = a.status === 'SCHEDULED';
+                    const isActive = a.status === 'ACTIVE';
+                    
+                    let actionButtons = '';
+                    if (isActive) {
+                        actionButtons = `<button class="btn btn-sm btn-accent" onclick="startCall(${a.id})">Start Call</button>`;
+                    } else if (isScheduled) {
+                        actionButtons = `<button class="btn btn-sm btn-accent" onclick="acceptToWaitingRoom(${a.id})">Admit to Waiting Room</button>`;
+                    }
+                    
+                    return `
+                    <tr>
+                        <td>${a.patient_name || 'Patient'}</td>
+                        <td>${new Date(a.timestamp).toLocaleDateString()}</td>
+                        <td>${a.appointment_type}</td>
+                        <td><span class="status status-${a.status.toLowerCase()}">${a.status}</span></td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `}).join('');
+            } catch (e) {
+                console.error('Load appointments error:', e);
+            }
+        }
+
+        function filterAppts(status, tab) {
+            document.querySelectorAll('#page-appointments .tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            loadAppointments(status);
+        }
+
+        async function acceptAppt(id) {
+            try {
+                await apiCall(`/api/appointments/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: 'ACTIVE' })
+                });
+                alert('Appointment accepted!');
+                initDashboard();
+                loadAppointments();
+            } catch (e) {
+                alert('Failed: ' + e.message);
+            }
+        }
+        
+        async function acceptToWaitingRoom(id) {
+            try {
+                // Use waiting room API to admit patient
+                const result = await apiCall(`/api/waiting-room/admit/${id}`, { method: 'POST' });
+                alert('Patient admitted to video call!');
+                initDashboard();
+                loadAppointments();
+            } catch (e) {
+                // Fallback to direct activation if waiting room fails
+                await apiCall(`/api/appointments/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: 'ACTIVE' })
+                });
+                alert('Appointment activated for video call!');
+                initDashboard();
+                loadAppointments();
+            }
+        }
+
+        async function rejectAppt(id) {
+            if (!confirm('Reject this appointment?')) return;
+            try {
+                await apiCall(`/api/appointments/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: 'CANCELLED' })
+                });
+                initDashboard();
+            } catch (e) {
+                alert('Failed: ' + e.message);
+            }
+        }
+
+        function startCall(id) {
+            window.location.href = 'room.html?appointment_id=' + id;
+        }
+
+        // ========== PATIENTS ==========
+        async function loadPatients() {
+            try {
+                const appts = await apiCall('/api/appointments');
+                const uniquePatients = {};
+                appts.forEach(a => {
+                    if (!uniquePatients[a.patient_id]) {
+                        uniquePatients[a.patient_id] = { name: a.patient_name, lastVisit: a.timestamp, email: 'patient@email.com' };
+                    }
+                });
+                
+                const tbody = document.getElementById('patientsTable');
+                const patients = Object.entries(uniquePatients);
+                
+                if (!patients.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No patients</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = patients.map(([id, p]) => `
+                    <tr>
+                        <td>${p.name || 'Patient'}</td>
+                        <td>${p.email}</td>
+                        <td>${new Date(p.lastVisit).toLocaleDateString()}</td>
+                        <td><button class="btn btn-sm btn-secondary">View History</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load patients error:', e);
+            }
+        }
+
+        // ========== PRESCRIPTIONS ==========
+        async function loadPrescriptionsForm() {
+            try {
+                const appts = await apiCall('/api/appointments?status_filter=ACTIVE');
+                const select = document.getElementById('prescriptionAppt');
+                select.innerHTML = '<option value="">Select appointment...</option>' + 
+                    appts.map(a => `<option value="${a.id}">${a.patient_name} - ${new Date(a.timestamp).toLocaleDateString()}</option>`).join('');
+            } catch (e) {
+                console.error('Load form error:', e);
+            }
+        }
+
+        async function createPrescription() {
+            const apptId = document.getElementById('prescriptionAppt').value;
+            const medication = document.getElementById('prescriptionMed').value;
+            const dosage = document.getElementById('prescriptionDosage').value;
+            const instructions = document.getElementById('prescriptionInstructions').value;
+            
+            if (!apptId || !medication || !dosage) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            try {
+                await apiCall('/api/prescriptions', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        appointment_id: parseInt(apptId),
+                        medication,
+                        dosage,
+                        instructions
+                    })
+                });
+                alert('Prescription created!');
+                document.getElementById('prescriptionMed').value = '';
+                document.getElementById('prescriptionDosage').value = '';
+                document.getElementById('prescriptionInstructions').value = '';
+            } catch (e) {
+                alert('Failed: ' + e.message);
+            }
+        }
+
+        // ========== SETTINGS ==========
+        async function saveDoctorSettings() {
+            try {
+                const name = document.getElementById('docName').value.trim();
+                const specialty = document.getElementById('docSpecialty').value.trim();
+                const area = document.getElementById('docArea').value.trim();
+                const fee = parseInt(document.getElementById('docFee').value) || 150;
+                
+                if (!name || !specialty || !area) {
+                    alert('Please fill in name, specialty, and area.');
+                    return;
+                }
+                
+                const profile = await apiCall('/api/profile/doctor', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name: name,
+                        specialty: specialty,
+                        area: area,
+                        consultation_fee: fee
+                    })
+                });
+                
+                alert('Profile saved! Verification status: ' + profile.verification_status);
+                
+                // Refresh profile to show new badge
+                loadDoctorProfile();
+            } catch(e) {
+                alert('Failed to save: ' + e.message);
+            }
+        }
+
+        // ========== VERIFICATION ==========
+        async function requestVerification() {
+            try {
+                const result = await apiCall('/api/profile/doctor/request-verification', {
+                    method: 'POST'
+                });
+                alert(result.message);
+                loadDoctorProfile();
+            } catch(e) {
+                alert('Verification error: ' + e.message);
+            }
+        }
+
+        // ========== EARNINGS ==========
+        async function collectEarnings() {
+            try {
+                const result = await apiCall('/api/credits/doctor/collect', {
+                    method: 'POST'
+                });
+                alert('Collected! New balance: ' + result.new_balance + ' credits');
+                initDashboard();
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // ========== GIG MODE ==========
+        async function toggleGigMode() {
+            try {
+                const profile = await apiCall('/api/profile/doctor');
+                const newStatus = !profile.is_online;
+                await apiCall('/api/profile/doctor/gig-mode', {
+                    method: 'POST',
+                    body: JSON.stringify({ is_online: newStatus })
+                });
+                alert('You are now ' + (newStatus ? 'ONLINE' : 'OFFLINE'));
+                loadDoctorProfile();
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // ========== PRICING ==========
+        async function loadPricingPage() {
+            try {
+                const pricing = await apiCall('/api/profile/doctor/pricing');
+                document.getElementById('priceQuickChat').value = pricing.quick_chat_price;
+                document.getElementById('priceVideoCall').value = pricing.video_call_price;
+                document.getElementById('priceFullConsult').value = pricing.full_consultation_price;
+                document.getElementById('pricePrescription').value = pricing.prescription_review_price;
+                document.getElementById('priceReport').value = pricing.report_analysis_price;
+                document.getElementById('peakMultiplier').value = pricing.peak_pricing_multiplier;
+                updatePricePreview();
+            } catch(e) {
+                console.log('Pricing not set yet');
+            }
+        }
+
+        function updatePricePreview() {
+            const qc = parseInt(document.getElementById('priceQuickChat').value) || 50;
+            const vc = parseInt(document.getElementById('priceVideoCall').value) || 150;
+            const fc = parseInt(document.getElementById('priceFullConsult').value) || 250;
+            const pr = parseInt(document.getElementById('pricePrescription').value) || 80;
+            const ra = parseInt(document.getElementById('priceReport').value) || 120;
+            const mult = parseFloat(document.getElementById('peakMultiplier').value) || 1.0;
+            
+            const preview = 'Effective prices (with ' + Math.round((mult-1)*100) + '% peak): ' +
+                '<br>Quick Chat: ' + Math.round(qc*mult) + ' (you get ' + Math.round(qc*mult*0.8) + ')' +
+                '<br>Video Call: ' + Math.round(vc*mult) + ' (you get ' + Math.round(vc*mult*0.8) + ')' +
+                '<br>Full Consult: ' + Math.round(fc*mult) + ' (you get ' + Math.round(fc*mult*0.8) + ')';
+            
+            document.getElementById('pricePreview').innerHTML = preview;
+        }
+
+        async function savePricing() {
+            try {
+                const pricing = {
+                    quick_chat_price: parseInt(document.getElementById('priceQuickChat').value),
+                    video_call_price: parseInt(document.getElementById('priceVideoCall').value),
+                    full_consultation_price: parseInt(document.getElementById('priceFullConsult').value),
+                    prescription_review_price: parseInt(document.getElementById('pricePrescription').value),
+                    report_analysis_price: parseInt(document.getElementById('priceReport').value),
+                    peak_pricing_multiplier: parseFloat(document.getElementById('peakMultiplier').value)
+                };
+                
+                await apiCall('/api/profile/doctor/pricing', {
+                    method: 'POST',
+                    body: JSON.stringify(pricing)
+                });
+                
+                alert('Pricing saved! 20% platform fee will be applied to each transaction.');
+                updatePricePreview();
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // Update verification status display
+        function updateVerificationDisplay(profile) {
+            const statusDiv = document.getElementById('verificationStatus');
+            const bannerDiv = document.getElementById('verificationBanner');
+            
+            let statusHtml = '';
+            let bannerHtml = '';
+            
+            if (profile.verification_status === 'verified') {
+                statusHtml = '<span style="color:#36b37e;font-weight:600">★ Fully Verified</span> - Your credentials have been verified.';
+                bannerHtml = 'background:#e3fcef;color:#36b37e;border:1px solid #36b37e';
+            } else if (profile.verification_status === 'basic') {
+                statusHtml = '<span style="color:#0052cc;font-weight:600">✓ Basic Verified</span> - Email and phone verified. Add HPCSA number for full verification.';
+                bannerHtml = 'background:#eef2ff;color:#0052cc;border:1px solid #0052cc';
+            } else if (!profile.profile_completed) {
+                statusHtml = '<span style="color:#ffab00;font-weight:600">⚠ Profile Incomplete</span> - Complete your profile to get verified.';
+                bannerHtml = 'background:#fff4e6;color:#ffab00;border:1px solid #ffab00';
+            } else {
+                statusHtml = '<span style="color:#6b778c;font-weight:600">⏳ Pending</span> - Verification request submitted.';
+                bannerHtml = 'background:var(--light);color:var(--text-light);border:1px solid var(--border)';
+            }
+            
+            if (statusDiv) statusDiv.innerHTML = statusHtml;
+            if (bannerDiv) {
+                bannerDiv.style.display = 'block';
+                bannerDiv.style.padding = '1rem';
+                bannerDiv.style.borderRadius = '8px';
+                bannerDiv.style = bannerHtml;
+                bannerDiv.innerHTML = statusHtml;
+            }
+        }
+
+        // Check session on load
+        if (authToken) {
+            apiCall('/api/auth/me').then(user => {
+                currentUser = user;
+                if (user.role !== 'DOCTOR') {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                showApp();
+            }).catch(() => {
+                localStorage.removeItem('token');
+            });
+        }
+    </script>
+</body>
+</html>
