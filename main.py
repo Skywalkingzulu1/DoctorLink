@@ -31,6 +31,7 @@ from api.waiting_room import router as waiting_room_router
 from api.chat import router as chat_router
 from api.tips import router as tips_router
 from api.storage import router as storage_router, ensure_bucket_exists
+from api.telehealth import router as telehealth_router
 
 # Create SocketIO server
 sio = socketio.AsyncServer(
@@ -71,6 +72,7 @@ app.include_router(availability_router, prefix="")
 app.include_router(waiting_room_router, prefix="")
 app.include_router(chat_router, prefix="")
 app.include_router(tips_router, prefix="")
+app.include_router(telehealth_router, prefix="")
 app.include_router(storage_router, prefix="/api/storage")
 
 

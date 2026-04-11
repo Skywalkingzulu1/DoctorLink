@@ -71,6 +71,12 @@ class EscrowStatus(str, Enum):
     REFUNDED = "REFUNDED"  # Cancelled/no-show, patient refunded
 
 
+class RoomStatus(str, Enum):
+    WAITING = "WAITING"
+    LIVE = "LIVE"
+    ENDED = "ENDED"
+
+
 # Models
 class User(Base):
     __tablename__ = "users"
@@ -107,6 +113,7 @@ class User(Base):
     prescriptions = relationship("Prescription", back_populates="patient")
     medical_records = relationship("MedicalRecord", back_populates="patient")
     transactions = relationship("Transaction", back_populates="user")
+    history_records = relationship("History", back_populates="patient")
 
 
 class Doctor(Base):
@@ -197,6 +204,7 @@ class Appointment(Base):
     )
     doctor = relationship("Doctor", back_populates="appointments")
     prescriptions = relationship("Prescription", back_populates="appointment")
+    history = relationship("History", back_populates="appointment", uselist=False)
 
 
 class Prescription(Base):
@@ -252,8 +260,26 @@ class Transaction(Base):
     user = relationship("User", back_populates="transactions")
 
 
+class History(Base):
+    __tablename__ = "history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    visit_summary = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    patient = relationship("User", back_populates="history_records")
+    appointment = relationship("Appointment", back_populates="history")
+
+
 # Create tables
 def init_db():
+    # Add history relationship to Appointment dynamically if needed, 
+    # but we can also do it in the class definition if we move things around.
+    # For now, let's just make sure the relationship exists.
     Base.metadata.create_all(bind=engine)
 
 

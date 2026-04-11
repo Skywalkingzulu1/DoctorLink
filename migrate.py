@@ -7,7 +7,7 @@ This script uses SQLAlchemy's metadata to create all tables defined in
 `DATABASE_URL` environment variable points to a PostgreSQL instance).
 """
 
-from .database import engine, Base
+from database import engine, Base
 
 def run_migrations() -> None:
     """Create all tables in the database.

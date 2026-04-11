@@ -3,14 +3,14 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
-import jwt
+from jose import jwt
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+# If you need the current directory in path, use:
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from projects.DoctorLink.main import app
-from projects.DoctorLink.database import SessionLocal, Base, engine
-from projects.DoctorLink.models import User, Doctor, AppointmentStatus
-from projects.DoctorLink.auth import SECRET_KEY, ALGORITHM
+from main import app
+from database import SessionLocal, Base, engine, User, Doctor, AppointmentStatus, UserRole
+from config import settings
 
 client = TestClient(app)
 
@@ -19,19 +19,24 @@ def setup_db():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     
-    patient = User(name="Test Patient", email="test@patient.com", credits=500)
-    doctor_user = User(name="Test Doctor", email="test@doctor.com", credits=0)
+    # Use UserRole enum if available, or just string if it's a string column
+    # database.py uses SQLEnum(UserRole)
+    patient = User(name="Test Patient", email="test@patient.com", credits=500, role=UserRole.PATIENT, password_hash="hash")
+    doctor_user = User(name="Test Doctor", email="test@doctor.com", credits=0, role=UserRole.DOCTOR, password_hash="hash")
     db.add(patient)
     db.add(doctor_user)
-    db.flush()
+    db.commit()
+    db.refresh(patient)
+    db.refresh(doctor_user)
     
-    doc = Doctor(id=1, name="Dr. Test", specialty="Testing")
+    doc = Doctor(user_id=doctor_user.id, name="Dr. Test", specialty="Testing", area="Test Area", is_online=True)
     db.add(doc)
     db.commit()
+    db.refresh(doc)
     
     # Return patient token, doctor token, doctor id
-    p_token = jwt.encode({"user_id": patient.id, "exp": datetime.utcnow() + timedelta(days=1)}, SECRET_KEY, algorithm=ALGORITHM)
-    d_token = jwt.encode({"user_id": doctor_user.id, "exp": datetime.utcnow() + timedelta(days=1)}, SECRET_KEY, algorithm=ALGORITHM)
+    p_token = jwt.encode({"sub": str(patient.id), "user_id": patient.id, "exp": datetime.utcnow() + timedelta(days=1)}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    d_token = jwt.encode({"sub": str(doctor_user.id), "user_id": doctor_user.id, "exp": datetime.utcnow() + timedelta(days=1)}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return p_token, d_token, doc.id, patient.id, doctor_user.id
 
 def test_full_flow():
@@ -41,49 +46,58 @@ def test_full_flow():
     d_headers = {"Authorization": f"Bearer {d_token}"}
     
     # 1. Check me
-    res = client.get("/appointments/me", headers=p_headers)
-    assert res.status_code == 200, f"Failed GET /appointments/me: {res.text}"
+    res = client.get("/api/auth/me", headers=p_headers)
+    assert res.status_code == 200, f"Failed GET /api/auth/me: {res.text}"
     assert res.json()["credits"] == 500
     print("✅ Get /me successful")
     
-    # 2. Book appointment
+    # 2. Book appointment (should deduct credits immediately)
     future_time = (datetime.utcnow() + timedelta(days=1)).isoformat()
-    res = client.post("/appointments/", json={
+    res = client.post("/api/appointments", json={
         "doctor_id": doc_id,
         "timestamp": future_time,
-        "price_credits": 150
+        "service_tier": "VIDEO_CALL",
+        "appointment_type": "VIDEO"
     }, headers=p_headers)
-    assert res.status_code == 201, f"Failed POST /appointments/: {res.text}"
+    assert res.status_code == 201, f"Failed POST /api/appointments: {res.text}"
     appt_id = res.json()["id"]
     print("✅ Appointment booked successfully")
     
-    # 3. Update status to ACTIVE (should deduct credits)
-    res = client.patch(f"/appointments/{appt_id}", json={"status": "ACTIVE"}, headers=p_headers)
-    assert res.status_code == 200, f"Failed PATCH /appointments: {res.text}"
-    print("✅ Appointment status updated to ACTIVE")
+    # 2b. Verify credit deduction
+    res = client.get("/api/auth/me", headers=p_headers)
+    assert res.json()["credits"] == 350, f"Credits not deducted! Got {res.json()['credits']}"
+    print("✅ Credits automatically deducted upon booking.")
     
-    # 4. Verify credit deduction
-    res = client.get("/appointments/me", headers=p_headers)
-    assert res.json()["credits"] == 350, "Credits not deducted!"
-    print("✅ Wallet Hardening working! Credits automatically deducted.")
+    # 3. Update status to ACTIVE (Doctor does this)
+    res = client.patch(f"/api/appointments/{appt_id}", json={"status": "ACTIVE"}, headers=d_headers)
+    assert res.status_code == 200, f"Failed PATCH /api/appointments: {res.text}"
+    print("✅ Appointment status updated to ACTIVE by doctor")
     
-    # 5. Telehealth signal exchange
-    res = client.post(f"/telehealth/rooms/{appt_id}/signals", json={
+    # 4. Telehealth signal exchange
+    res = client.post(f"/api/telehealth/rooms/{appt_id}/signals", json={
         "target_id": d_id,
         "signal_data": "offer"
     }, headers=p_headers)
     assert res.status_code == 200, f"Failed POST signals: {res.text}"
     print("✅ WebRTC Signal Exchange endpoint successful")
     
-    # 6. Upload Meeting Summary
-    res = client.post(f"/telehealth/summary", json={
+    # 5. Upload Meeting Summary
+    res = client.post(f"/api/telehealth/summary", json={
         "appointment_id": appt_id,
         "summary": "Patient is doing great. No issues."
     }, headers=d_headers)
     assert res.status_code == 201, f"Failed POST summary: {res.text}"
     print("✅ Meeting summary uploaded successfully")
 
-    print("🚀 All E2E Tests Passed! System is stable, robust, and 500-error free.")
+    # 6. Verify status is COMPLETED
+    res = client.get(f"/api/appointments/{appt_id}", headers=p_headers)
+    assert res.json()["status"] == "COMPLETED"
+    print("✅ Appointment status is COMPLETED")
+
+    print("🚀 All E2E Tests Passed!")
+
+def f(s):
+    return s.format() # Just a helper for f-strings if I forgot some
 
 if __name__ == "__main__":
     test_full_flow()
