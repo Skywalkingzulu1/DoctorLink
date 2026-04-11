@@ -100,28 +100,18 @@
         </div>
     </div>
 
+    <script src="supabase.js"></script>
     <script>
         // Check if already logged in
-        const token = localStorage.getItem('token');
-        if (token) {
-            const user = JSON.parse(localStorage.getItem('doctorlink_current_user') || 'null');
+        const savedUser = localStorage.getItem('dl_current_user');
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
             if (user) {
-                window.location.href = 'index.html';
+                window.location.href = user.role === 'DOCTOR' ? 'doctor_dashboard.html' : 'index_v2.html';
             }
         }
 
-        // Simple hash function for passwords
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return hash.toString();
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -129,23 +119,21 @@
 
             errorDiv.style.display = 'none';
 
-            // Get users from localStorage
-            const users = JSON.parse(localStorage.getItem('doctorlink_users') || '[]');
-            
-            // Find user by email and check password
-            const user = users.find(u => u.email === email && u.passwordHash === simpleHash(password));
-            
-            if (user) {
-                localStorage.setItem('token', 'loggedin_' + Date.now());
-                localStorage.setItem('doctorlink_current_user', JSON.stringify(user));
+            try {
+                // Use Supabase client
+                const { data, error } = await supabase.signIn(email, password);
                 
+                if (error) throw error;
+                
+                // Redirect based on role
+                const user = data.user;
                 if (user.role === 'DOCTOR') {
                     window.location.href = 'doctor_dashboard.html';
                 } else {
-                    window.location.href = 'index.html';
+                    window.location.href = 'index_v2.html';
                 }
-            } else {
-                errorDiv.textContent = 'Invalid email or password';
+            } catch (err) {
+                errorDiv.textContent = err.message || 'Invalid email or password';
                 errorDiv.style.display = 'block';
             }
         });

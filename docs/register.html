@@ -112,6 +112,7 @@
         </div>
     </div>
 
+    <script src="supabase.js"></script>
     <script>
         // Simple hash function for passwords
         function simpleHash(str) {
@@ -124,7 +125,7 @@
             return hash.toString();
         }
 
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
@@ -134,8 +135,22 @@
 
             errorDiv.style.display = 'none';
 
-            // Get existing users
-            const users = JSON.parse(localStorage.getItem('doctorlink_users') || '[]');
+            try {
+                // Use Supabase client for registration
+                const { data, error } = await supabase.signUp(email, password, { 
+                    name: name,
+                    role: role
+                });
+                
+                if (error) throw error;
+                
+                alert('Registration successful! You can now login.');
+                window.location.href = 'login.html';
+            } catch (err) {
+                errorDiv.textContent = err.message || 'Registration failed. Try again.';
+                errorDiv.style.display = 'block';
+            }
+        });
             
             // Check if email already exists
             if (users.find(u => u.email === email)) {
