@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+<h1>Testing Login</h1>
+<button onclick="testLogin()">Test Login</button>
+<div id="result"></div>
+<script>
+async function testLogin() {
+    const formData = new FormData();
+    formData.append('username', 'test3@test.com');
+    formData.append('password', 'pass');
+    
+    const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        body: formData
+    });
+    
+    document.getElementById('result').innerHTML = 
+        'Status: ' + response.status + '<br>' + 
+        'Headers: ' + JSON.stringify([...response.headers.entries()]) + '<br>' +
+        'Body: ' + await response.text();
+}
+</script>
+</body>
+</html>

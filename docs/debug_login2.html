@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Login 2</title>
+</head>
+<body>
+    <h1>Debug Login 2 - Different URL</h1>
+    <input id="email" value="test3@test.com">
+    <input id="password" value="pass">
+    <button onclick="test()">Login</button>
+    <pre id="out"></pre>
+    <script>
+    async function test() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const out = document.getElementById('out');
+        
+        // Exact same code as index.html
+        const formData = new FormData();
+        formData.append('username', email);
+        formData.append('password', password);
+        
+        out.textContent = 'FormData entries: ';
+        for (let [k, v] of formData) out.textContent += k + '=' + v + ', ';
+        
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                body: formData
+            });
+            
+            out.textContent += '\nStatus: ' + response.status;
+            if (response.ok) {
+                const data = await response.json();
+                out.textContent += '\nSuccess: ' + JSON.stringify(data);
+            } else {
+                out.textContent += '\nError: ' + await response.text();
+            }
+        } catch(e) {
+            out.textContent += '\nFetch error: ' + e.message;
+        }
+    }
+    </script>
+</body>
+</html>
