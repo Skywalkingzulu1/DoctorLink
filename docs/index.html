@@ -409,7 +409,8 @@
             document.getElementById('page-' + page)?.classList.remove('hidden');
             document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
             
-            if (page === 'appointments') loadAppointments();
+            if (page === 'appointments') loadAppointmentsPage();
+            if (page === 'doctors') loadDoctorsPage();
             if (page === 'records') loadRecords();
             if (page === 'prescriptions') loadPrescriptions();
             if (page === 'payments') loadPayments();
@@ -445,23 +446,11 @@
             
             // Recent records - placeholder
             const recordsContainer = document.getElementById('dashboardRecords');
-                if (records.length === 0) {
-                    recordsContainer.innerHTML = '<div class="empty"><p>No medical records</p></div>';
-                } else {
-                    recordsContainer.innerHTML = records.slice(0, 3).map(r => `
-                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
-                            <strong>Visit Summary</strong><br>
-                            <small>${r.summary.substring(0, 50)}...</small>
-                        </div>
-                    `).join('');
-                }
-            } catch (e) {
-                console.error('Dashboard error:', e);
-            }
+            recordsContainer.innerHTML = '<div class="empty"><p>No medical records</p></div>';
         }
 
         // ========== DOCTORS ==========
-        async function loadDoctors() {
+        async function loadDoctorsPage() {
             const doctors = await loadDoctors();
             renderDoctors(doctors);
             
@@ -514,8 +503,8 @@
         }
 
         // ========== APPOINTMENTS ==========
-        async function loadAppointments(filter = 'all') {
-            let appts = await loadAppointments();
+        async function loadAppointmentsPage(filter = 'all') {
+            let appts = await loadAppointments(filter);
             if (filter !== 'all') {
                 appts = appts.filter(a => a.status === filter);
             }
@@ -556,8 +545,7 @@
 
         async function cancelAppt(id) {
             if (!confirm('Cancel this appointment?')) return;
-            // TODO: Implement cancellation
-            loadAppointments();
+            loadAppointmentsPage();
         }
 
         function joinCall(id) {
