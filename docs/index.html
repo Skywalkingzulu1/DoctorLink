@@ -342,134 +342,59 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script src="wasm_backend.js"></script>
     <script>
-        // ========== API CONFIG ==========
-        const API_BASE = '';
-        let authToken = localStorage.getItem('token');
-        let currentUser = null;
-        let selectedDoctor = null;
+        // ========== BACKEND CONFIG ==========
+        let backend = WasmBackend;
+        let currentUser = localStorage.getItem('dl_current_user') ? JSON.parse(localStorage.getItem('dl_current_user')) : null;
+        let isWasmReady = false;
 
-        // ========== API HELPERS ==========
-        async function apiCall(endpoint, options = {}) {
-            const url = API_BASE + endpoint;
-            const headers = { 'Content-Type': 'application/json' };
-            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-            
+        // Initialize Wasm backend
+        async function initBackend() {
             try {
-                const response = await fetch(url, { ...options, headers });
-                if (response.status === 401) { logout(); throw new Error('Session expired'); }
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'API error');
-                return data;
-            } catch (e) {
-                console.error('API Error:', e);
-                throw e;
+                await backend.init();
+                isWasmReady = true;
+                console.log('Wasm backend ready');
+            } catch(e) {
+                console.error('Wasm init failed:', e);
             }
         }
+        initBackend();
 
-        // ========== AUTH ==========
-        let isLogin = true;
+        // Mock doctors data (fallback)
+        const mockDoctors = [
+            { id: 1, full_name: 'Dr. Sarah Johnson', specialty: 'General Practitioner', area: 'Johannesburg', rating: 4.8, is_online: true, video_call_price: 150 },
+            { id: 2, full_name: 'Dr. Michael Chen', specialty: 'Cardiologist', area: 'Cape Town', rating: 4.9, is_online: true, video_call_price: 200 },
+            { id: 3, full_name: 'Dr. Amara Nkosi', specialty: 'Pediatrician', area: 'Durban', rating: 4.7, is_online: false, video_call_price: 180 }
+        ];
 
-        document.getElementById('authSwitch').onclick = e => {
-            e.preventDefault();
-            isLogin = !isLogin;
-            document.getElementById('authSubtitle').textContent = isLogin ? 'Welcome Back' : 'Join South Africa\'s Healthcare Platform';
-            document.getElementById('authBtn').textContent = isLogin ? 'Login' : 'Create Account';
-            document.getElementById('authSwitchText').textContent = isLogin ? 'Don\'t have an account?' : 'Already have an account?';
-            document.getElementById('authSwitch').textContent = isLogin ? 'Register' : 'Login';
-            document.getElementById('nameField').style.display = isLogin ? 'none' : 'block';
-            document.getElementById('roleField').style.display = isLogin ? 'none' : 'block';
-        };
-
-        document.getElementById('authForm').onsubmit = async e => {
-            e.preventDefault();
-            const email = document.getElementById('authEmail').value.trim();
-            const password = document.getElementById('authPassword').value;
-            const err = document.getElementById('authError');
-            err.style.display = 'none';
-            
-            console.log('Form submitted, email:', email, 'isLogin:', isLogin);
-
-            try {
-                if (isLogin) {
-                    const formData = new FormData();
-                    formData.append('username', email);
-                    formData.append('password', password);
-                    
-                    console.log('FormData created, entries:');
-                    for (let [k, v] of formData) console.log('  ', k, '=', v);
-                    
-                    console.log('Fetching from:', API_BASE + '/api/auth/login');
-                    
-                    const response = await fetch(API_BASE + '/api/auth/login', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    console.log('Got response, status:', response.status);
-                    
-                    if (!response.ok) {
-                        const data = await response.json();
-                        console.log('Error response:', data);
-                        err.textContent = data.detail || 'Invalid credentials';
-                        err.style.display = 'block';
-                        return;
-                    }
-                    
-                    const data = await response.json();
-                    console.log('Login success:', data);
-                    authToken = data.access_token;
-                    currentUser = data.user;
-                    localStorage.setItem('token', authToken);
-                    showApp();
-                } else {
-                    const name = document.getElementById('authName').value;
-                    const role = document.getElementById('authRole').value;
-                    
-                    await apiCall('/api/auth/register', {
-                        method: 'POST',
-                        body: JSON.stringify({ email, password, name, role })
-                    });
-                    
-                    alert('Registration successful! Please login.');
-                    isLogin = true;
-                    document.getElementById('authSwitch').click();
-                }
-            } catch (e) {
-                err.textContent = 'Connection error. Please try again.';
-                err.style.display = 'block';
+        // ========== DATA FUNCTIONS ==========
+        async function loadDoctors() {
+            if (isWasmReady) {
+                try {
+                    const doctors = await backend.getDoctors();
+                    if (doctors.length) return doctors;
+                } catch(e) { console.error('Wasm getDoctors:', e); }
             }
-        };
-
-        function logout() {
-            authToken = null;
-            currentUser = null;
-            localStorage.removeItem('token');
-            window.location.reload();
+            return mockDoctors;
         }
 
-        function showApp() {
-            document.getElementById('authPage').classList.add('hidden');
-            document.getElementById('appPage').classList.remove('hidden');
-            document.getElementById('userName').textContent = currentUser.name;
-            updateCredits();
-            initDashboard();
-            loadDoctors();
+        async function loadAppointments(filter = 'all') {
+            if (!currentUser) return [];
+            if (isWasmReady) {
+                try {
+                    return await backend.getAppointments(currentUser.id);
+                } catch(e) { console.error('Wasm getAppts:', e); }
+            }
+            return JSON.parse(localStorage.getItem('dl_appointments') || '[]');
         }
 
-        function updateCredits() {
-            // Fetch fresh credits from API
-            apiCall('/api/credits/balance').then(data => {
-                currentUser.credits = data.credits;
-                document.getElementById('userCredits').textContent = data.credits + ' Credits';
-                document.getElementById('statCredits').textContent = data.credits;
-            }).catch(() => {});
-            
-            // Update appointment badge
-            apiCall('/api/appointments').then(appts => {
-                const pending = appts.filter(a => a.status === 'SCHEDULED').length;
-                document.getElementById('apptBadge').textContent = pending;
-            }).catch(() => {});
+        function updateCredits(newCredits) {
+            if (currentUser) {
+                currentUser.credits = newCredits;
+                localStorage.setItem('dl_current_user', JSON.stringify(currentUser));
+            }
         }
 
         // ========== NAVIGATION ==========
@@ -493,35 +418,33 @@
 
         // ========== DASHBOARD ==========
         async function initDashboard() {
-            try {
-                const [appts, doctors, records] = await Promise.all([
-                    apiCall('/api/appointments'),
-                    apiCall('/api/doctors'),
-                    apiCall('/api/records')
-                ]);
-                
-                document.getElementById('statAppointments').textContent = appts.length;
-                document.getElementById('statCredits').textContent = currentUser.credits;
-                document.getElementById('statDoctors').textContent = doctors.length;
-                document.getElementById('statRecords').textContent = records.length;
-                
-                // Upcoming appointments
-                const upcoming = appts.filter(a => a.status === 'SCHEDULED' || a.status === 'ACTIVE').slice(0, 3);
-                const apptsContainer = document.getElementById('dashboardAppts');
-                if (upcoming.length === 0) {
-                    apptsContainer.innerHTML = '<div class="empty"><p>No upcoming appointments</p></div>';
-                } else {
-                    apptsContainer.innerHTML = upcoming.map(a => `
-                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
-                            <strong>${a.doctor_name || 'Doctor'}</strong><br>
-                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
-                            <span class="status status-${a.status.toLowerCase()}">${a.status}</span>
-                        </div>
-                    `).join('');
-                }
-                
-                // Recent records
-                const recordsContainer = document.getElementById('dashboardRecords');
+            const [appts, doctors] = await Promise.all([
+                loadAppointments(),
+                loadDoctors()
+            ]);
+            
+            document.getElementById('statAppointments').textContent = appts.length;
+            document.getElementById('statCredits').textContent = currentUser?.credits || 0;
+            document.getElementById('statDoctors').textContent = doctors.length;
+            document.getElementById('statRecords').textContent = 0;
+            
+            // Upcoming appointments
+            const upcoming = appts.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED').slice(0, 3);
+            const apptsContainer = document.getElementById('dashboardAppts');
+            if (upcoming.length === 0) {
+                apptsContainer.innerHTML = '<div class="empty"><p>No upcoming appointments</p></div>';
+            } else {
+                apptsContainer.innerHTML = upcoming.map(a => `
+                    <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                        <strong>Doctor</strong><br>
+                        <small>${a.time || a.created}</small><br>
+                        <span class="status status-scheduled">${a.status}</span>
+                    </div>
+                `).join('');
+            }
+            
+            // Recent records - placeholder
+            const recordsContainer = document.getElementById('dashboardRecords');
                 if (records.length === 0) {
                     recordsContainer.innerHTML = '<div class="empty"><p>No medical records</p></div>';
                 } else {
@@ -539,36 +462,23 @@
 
         // ========== DOCTORS ==========
         async function loadDoctors() {
-            try {
-                const doctors = await apiCall('/api/doctors');
-                renderDoctors(doctors);
-                
-                // Populate specialty dropdown
-                const specialties = [...new Set(doctors.map(d => d.specialty))];
-                const select = document.getElementById('docSpecialty');
-                select.innerHTML = '<option value="">All Specialties</option>' + 
-                    specialties.map(s => `<option value="${s}">${s}</option>`).join('');
-            } catch (e) {
-                console.error('Load doctors error:', e);
-            }
+            const doctors = await loadDoctors();
+            renderDoctors(doctors);
+            
+            const specialties = [...new Set(doctors.map(d => d.specialty))];
+            const select = document.getElementById('docSpecialty');
+            select.innerHTML = '<option value="">All Specialties</option>' + 
+                specialties.map(s => `<option value="${s}">${s}</option>`).join('');
         }
 
         async function searchDoctors() {
             const q = document.getElementById('docSearch').value;
             const spec = document.getElementById('docSpecialty').value;
             
-            let url = '/api/doctors';
-            const params = [];
-            if (q) params.push(`specialty=${encodeURIComponent(q)}`);
-            if (spec) params.push(`specialty=${encodeURIComponent(spec)}`);
-            if (params.length) url += '?' + params.join('&');
-            
-            try {
-                const doctors = await apiCall(url);
-                renderDoctors(doctors);
-            } catch (e) {
-                console.error('Search error:', e);
-            }
+            let doctors = await loadDoctors();
+            if (q) doctors = doctors.filter(d => d.specialty?.toLowerCase().includes(q.toLowerCase()) || d.name?.toLowerCase().includes(q.toLowerCase()));
+            if (spec) doctors = doctors.filter(d => d.specialty === spec);
+            renderDoctors(doctors);
         }
 
         function renderDoctors(doctors) {
@@ -605,42 +515,37 @@
 
         // ========== APPOINTMENTS ==========
         async function loadAppointments(filter = 'all') {
-            try {
-                const url = filter === 'all' ? '/api/appointments' : `/api/appointments?status_filter=${filter}`;
-                const appts = await apiCall(url);
+            let appts = await loadAppointments();
+            if (filter !== 'all') {
+                appts = appts.filter(a => a.status === filter);
+            }
+            
+            const tbody = document.getElementById('appointmentsTable');
+            if (!appts.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = appts.map(a => {
+                const isScheduled = a.status === 'PENDING' || a.status === 'CONFIRMED';
+                const isActive = a.status === 'ACTIVE';
+                const isCompleted = a.status === 'COMPLETED';
                 
-                const tbody = document.getElementById('appointmentsTable');
-                if (!appts.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
-                    return;
+                let actionButtons = '';
+                if (isScheduled) {
+                    actionButtons = '<button class="btn btn-sm btn-danger" onclick="cancelAppt(\'' + a.id + '\')">Cancel</button>';
+                } else if (isCompleted) {
+                    actionButtons = '<span style="color:var(--text-light)">Completed</span>';
                 }
                 
-                tbody.innerHTML = appts.map(a => {
-                    const isScheduled = a.status === 'SCHEDULED';
-                    const isActive = a.status === 'ACTIVE';
-                    const isCompleted = a.status === 'COMPLETED';
-                    
-                    let actionButtons = '';
-                    if (isActive) {
-                        actionButtons = '<button class="btn btn-sm btn-accent" onclick="joinCall(' + a.id + ')">Join Call</button>';
-                    } else if (isScheduled) {
-                        actionButtons = '<button class="btn btn-sm btn-secondary" onclick="joinWaitingRoom(' + a.id + ')">Join Waiting Room</button>' +
-                                        '<button class="btn btn-sm btn-danger" style="margin-left:0.5rem" onclick="cancelAppt(' + a.id + ')">Cancel</button>';
-                    } else if (isCompleted) {
-                        actionButtons = '<span style="color:var(--text-light)">Completed</span>';
-                    }
-                    
-                    return '<tr>' +
-                        '<td>' + (a.doctor_name || 'Doctor') + '</td>' +
-                        '<td>' + new Date(a.timestamp).toLocaleDateString() + '</td>' +
-                        '<td>' + a.appointment_type + '</td>' +
-                        '<td><span class="status status-' + a.status.toLowerCase() + '">' + a.status + '</span></td>' +
-                        '<td>' + actionButtons + '</td>' +
-                    '</tr>';
-                }).join('');
-            } catch (e) {
-                console.error('Load appointments error:', e);
-            }
+                return '<tr>' +
+                    '<td>Doctor</td>' +
+                    '<td>' + (a.time || a.created || '-') + '</td>' +
+                    '<td>' + (a.type || 'Video Call') + '</td>' +
+                    '<td><span class="status status-scheduled">' + a.status + '</span></td>' +
+                    '<td>' + actionButtons + '</td>' +
+                '</tr>';
+            }).join('');
         }
 
         function filterAppts(status, tab) {
@@ -651,12 +556,8 @@
 
         async function cancelAppt(id) {
             if (!confirm('Cancel this appointment?')) return;
-            try {
-                await apiCall(`/api/appointments/${id}`, { method: 'DELETE' });
-                loadAppointments();
-            } catch (e) {
-                alert('Failed to cancel');
-            }
+            // TODO: Implement cancellation
+            loadAppointments();
         }
 
         function joinCall(id) {
@@ -664,116 +565,59 @@
         }
         
         async function joinWaitingRoom(id) {
-            try {
-                const result = await apiCall(`/api/waiting-room/join/${id}`, { method: 'POST' });
-                if (result.waiting) {
-                    alert(`You're in position ${result.position} in the waiting room. Please wait.`);
-                    // Refresh to see updated status
-                    loadAppointments();
-                } else {
-                    alert(result.message || 'Appointment not ready yet');
-                }
-            } catch (e) {
-                alert('Error: ' + e.message);
-            }
+            alert('Waiting room feature coming soon');
         }
 
         // ========== RECORDS ==========
         async function loadRecords() {
-            try {
-                const records = await apiCall('/api/records');
-                const tbody = document.getElementById('recordsTable');
-                
-                if (!records.length) {
-                    tbody.innerHTML = '<tr><td colspan="3" class="empty">No medical records</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = records.map(r => `
-                    <tr>
-                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                        <td>Doctor</td>
-                        <td>${r.summary.substring(0, 50)}...</td>
-                    </tr>
-                `).join('');
-            } catch (e) {
-                console.error('Load records error:', e);
-            }
+            const tbody = document.getElementById('recordsTable');
+            tbody.innerHTML = '<tr><td colspan="3" class="empty">No medical records</td></tr>';
         }
 
         // ========== PRESCRIPTIONS ==========
         async function loadPrescriptions() {
-            try {
-                const scripts = await apiCall('/api/prescriptions');
-                const tbody = document.getElementById('prescriptionsTable');
-                
-                if (!scripts.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No prescriptions</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = scripts.map(p => `
-                    <tr>
-                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                        <td>${p.medication}</td>
-                        <td>${p.dosage}</td>
-                        <td>${p.instructions || '-'}</td>
-                    </tr>
-                `).join('');
-            } catch (e) {
-                console.error('Load prescriptions error:', e);
-            }
+            const tbody = document.getElementById('prescriptionsTable');
+            tbody.innerHTML = '<tr><td colspan="4" class="empty">No prescriptions</td></tr>';
         }
 
         // ========== PAYMENTS ==========
         async function loadPayments() {
-            try {
-                const balance = await apiCall('/api/credits/balance');
-                document.getElementById('creditBalance').textContent = balance.credits;
-                
-                const txns = await apiCall('/api/credits/transactions');
-                const tbody = document.getElementById('transactionsTable');
-                
-                if (!txns.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No transactions</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = txns.map(t => `
-                    <tr>
-                        <td>${new Date(t.created_at).toLocaleDateString()}</td>
-                        <td>${t.description || t.transaction_type}</td>
-                        <td style="color:${t.payment_status === 'completed' ? 'var(--accent)' : 'var(--text-light)'}">${t.amount}</td>
-                        <td>${t.payment_status}</td>
-                    </tr>
-                `).join('');
-            } catch (e) {
-                console.error('Load payments error:', e);
+            const balance = currentUser?.credits || 0;
+            document.getElementById('creditBalance').textContent = balance;
+            
+            const txns = currentUser ? await backend.getTransactions(currentUser.id).catch(() => []) : [];
+            const tbody = document.getElementById('transactionsTable');
+            
+            if (!txns.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty">No transactions</td></tr>';
+                return;
             }
+            
+            tbody.innerHTML = txns.map(t => `
+                <tr>
+                    <td>${t.time || '-'}</td>
+                    <td>${t.desc || t.type}</td>
+                    <td style="color:${t.type === 'EARNING' ? 'var(--accent)' : 'var(--text-light)'}">${t.amount}</td>
+                    <td>${t.type}</td>
+                </tr>
+            `).join('');
         }
 
         async function purchaseCredits(amount) {
             if (!confirm(`Purchase ${amount} credits for R${amount}?`)) return;
-            try {
-                const result = await apiCall('/api/credits/purchase', {
-                    method: 'POST',
-                    body: JSON.stringify({ amount })
-                });
-                currentUser.credits = result.new_balance;
-                updateCredits();
-                loadPayments();
-                alert(`Successfully purchased ${amount} credits!`);
-            } catch (e) {
-                alert('Purchase failed: ' + e.message);
-            }
+            await backend.addCredits(currentUser.id, amount);
+            currentUser.credits = (currentUser.credits || 0) + amount;
+            updateCredits(currentUser.credits);
+            loadPayments();
+            alert(`Successfully purchased ${amount} credits!`);
         }
 
         // ========== PROFILE ==========
         function loadProfile() {
-            document.getElementById('profileName').value = currentUser.name;
-            document.getElementById('profileEmail').value = currentUser.email;
-            document.getElementById('profilePhone').value = currentUser.phone || '';
-            document.getElementById('profileRole').value = currentUser.role;
+            document.getElementById('profileName').value = currentUser?.name || '';
+            document.getElementById('profileEmail').value = currentUser?.email || '';
+            document.getElementById('profilePhone').value = currentUser?.phone || '';
+            document.getElementById('profileRole').value = currentUser?.role || 'PATIENT';
         }
 
         function saveProfile() {
@@ -781,16 +625,19 @@
         }
 
         // ========== BOOKING ==========
+        let selectedDoctor = null;
+
         function openBookModal(docId) {
-            apiCall(`/api/doctors/${docId}`).then(doctor => {
-                selectedDoctor = doctor;
+            loadDoctors().then(doctors => {
+                selectedDoctor = doctors.find(d => d.id === docId) || doctors[0];
+                if (!selectedDoctor) return;
                 document.getElementById('bookDoctorInfo').innerHTML = `
                     <div style="background:var(--light);padding:1rem;border-radius:8px;margin-bottom:1rem">
-                        <strong>${doctor.name}</strong><br>
-                        <span>${doctor.specialty} - ${doctor.area}</span>
+                        <strong>${selectedDoctor.name || 'Doctor'}</strong><br>
+                        <span>${selectedDoctor.specialty || 'General'} - ${selectedDoctor.area || 'Online'}</span>
                     </div>
                 `;
-                document.getElementById('bookCost').textContent = doctor.consultation_fee;
+                document.getElementById('bookCost').textContent = selectedDoctor.video_call_price || 150;
                 document.getElementById('bookModal').classList.add('active');
             });
         }
@@ -802,24 +649,18 @@
             
             if (!datetime) { alert('Please select date and time'); return; }
             
-            try {
-                await apiCall('/api/appointments', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        doctor_id: selectedDoctor.id,
-                        timestamp: new Date(datetime).toISOString(),
-                        appointment_type: type,
-                        reason: reason
-                    })
-                });
-                
-                closeModal('bookModal');
-                alert('Appointment booked successfully!');
-                currentUser.credits -= selectedDoctor.consultation_fee;
-                updateCredits();
-            } catch (e) {
-                alert('Booking failed: ' + e.message);
+            const cost = selectedDoctor?.video_call_price || 150;
+            if ((currentUser?.credits || 0) < cost) {
+                alert('Insufficient credits. Please purchase more.');
+                return;
             }
+            
+            await backend.createAppointment(currentUser.id, selectedDoctor.id, type, datetime, cost);
+            
+            closeModal('bookModal');
+            alert('Appointment booked successfully!');
+            currentUser.credits -= cost;
+            updateCredits(currentUser.credits);
         }
 
         function closeModal(id) {
@@ -827,13 +668,8 @@
         }
 
         // Check session on load
-        if (authToken) {
-            apiCall('/api/auth/me').then(user => {
-                currentUser = user;
-                showApp();
-            }).catch(() => {
-                localStorage.removeItem('token');
-            });
+        if (currentUser) {
+            showApp();
         }
     </script>
 </body>

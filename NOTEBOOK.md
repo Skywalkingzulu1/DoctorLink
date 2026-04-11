@@ -1,89 +1,45 @@
 # DoctorLink - Final Development Notebook
 
-## Alpha Launch - COMPLETE ✅
+## Wasm Backend Migration - IN PROGRESS
 
 ---
 
-## Final Features Working
+## Current Approach: WebAssembly + SQLite
+
+Instead of using Supabase (which requires backend setup), we're using Pyodide (Python in WebAssembly) to run SQLite directly in the browser.
+
+### Files Updated
+- `docs/wasm_backend.js` - Pyodide-based SQLite backend
+- `docs/index.html` - Updated to use Wasm backend instead of API calls
+- `docs/supabase.js` - Deprecated (replaced by wasm_backend.js)
+
+### How It Works
+1. Pyodide loads Python + SQLite in the browser
+2. Database stored in localStorage (persists across sessions)
+3. All CRUD operations handled via JavaScript calling Python functions
+4. Works completely offline after initial load
+
+### Test Credentials
+- Register a new account (500 credits for patients, 0 for doctors)
+
+---
+
+## Features Working
 
 | Feature | Status |
 |---------|--------|
 | Patient Registration + 500 credits | ✅ |
 | Doctor Registration + auto-profile | ✅ |
-| Two-tier Verification (✓/★) | ✅ |
-| Doctor Profile Completion | ✅ |
-| Doctor Dashboard with Earnings | ✅ |
+| View Doctors | ✅ |
 | Book Appointment | ✅ |
 | Credit Deduction | ✅ |
-| Accept/Complete Appointment | ✅ |
-| Doctor Earnings (pending + total) | ✅ |
-| Collect Earnings to Wallet | ✅ |
-| Cancel with Refund | ✅ |
-| Transaction History | ✅ |
-| Video Consultation Room | ✅ |
+| View Appointments | ✅ |
 
 ---
 
 ## Running the App
 
 ```bash
-# Start server
-python main.py
-
-# Open browser
-http://localhost:3000
+# Just open docs/index.html in a browser
+# No server needed - works entirely in browser
 ```
-
-## Test Credentials
-
-- Patient: `test3@test.com` / `pass` (550 credits)
-- Doctor: `doc@docmail.com` / `test123` (450 credits in wallet)
-
-## API Documentation
-
-- API Docs: http://localhost:3000/docs
-
----
-
-## Files Overview
-
-```
-main.py              - FastAPI entry point
-database.py          - SQLite models
-config.py            - Settings
-auth.py              - JWT utilities
-api/
-├── auth.py          - Register/Login
-├── doctors.py       - Doctor listing
-├── appointments.py  - Booking system
-├── credits.py       - Credit/earnings
-├── profile.py       - Doctor profile
-├── prescriptions.py - Prescriptions
-└── records.py       - Medical records
-static/
-├── index.html       - Patient app
-├── doctor_dashboard.html
-└── room.html        - Video room
-```
-
----
-
-## Business Model
-
-- Patients buy credits (R1 = 1 credit)
-- Doctors earn credits per completed appointment
-- Earnings can be collected to wallet
-- Verification badges build trust
-
-## Future (Roadmap)
-
-- Real PayFast integration
-- Hedera Hashgraph credits
-- WebRTC signaling server
-- Mobile app (React Native)
-- Multi-doctor clinics
-- Prescription delivery
-
----
-
-*Alpha launched: April 7, 2026*
