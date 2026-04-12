@@ -190,8 +190,8 @@ class Prescription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     medication = Column(String, nullable=False)
     dosage = Column(String, nullable=False)
     instructions = Column(Text, nullable=True)
@@ -207,8 +207,8 @@ class MedicalRecord(Base):
     __tablename__ = "medical_records"
 
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=True)
     summary = Column(Text, nullable=False)
     diagnosis = Column(Text, nullable=True)
@@ -223,7 +223,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
     amount = Column(Integer, nullable=False)
     transaction_type = Column(
         String, nullable=False
@@ -243,8 +243,8 @@ class History(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     visit_summary = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -277,7 +277,7 @@ class ChatMessage(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    sender_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -286,7 +286,7 @@ class DoctorSchedule(Base):
     __tablename__ = "doctor_schedules"
 
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     day_of_week = Column(Integer, nullable=False)  # 0=Monday, 6=Sunday
     start_time = Column(String, nullable=False)  # "09:00"
     end_time = Column(String, nullable=False)  # "17:00"
@@ -299,7 +299,7 @@ class TimeSlot(Base):
     __tablename__ = "time_slots"
 
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     date = Column(Date, nullable=False)
     start_time = Column(String, nullable=False)
     end_time = Column(String, nullable=False)
@@ -316,8 +316,8 @@ class Tip(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     amount = Column(Integer, nullable=False)  # 100% goes to doctor
     created_at = Column(DateTime, default=datetime.utcnow)
 
