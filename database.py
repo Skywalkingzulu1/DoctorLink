@@ -94,6 +94,15 @@ class User(Base):
     credits = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
+    appointments = relationship(
+        "Appointment", back_populates="patient", foreign_keys="Appointment.patient_id"
+    )
+    prescriptions = relationship("Prescription", back_populates="patient")
+    medical_records = relationship("MedicalRecord", back_populates="patient")
+    transactions = relationship("Transaction", back_populates="user")
+    history_records = relationship("History", back_populates="patient")
+
 class Doctor(Base):
     __tablename__ = "Doctors"
 
