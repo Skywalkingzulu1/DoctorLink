@@ -94,7 +94,7 @@ class User(Base):
     phone = Column(String, nullable=True)
     credits = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
-    is_active = Column(Boolean, default=TRUE)
+    is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime, nullable=True)
 
