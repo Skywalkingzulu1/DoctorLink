@@ -86,7 +86,7 @@ class RoomStatus(str, Enum):
 class User(Base):
     __tablename__ = "Profiles"
 
-    id = Column(String, primary_key=True, index=True) # Supabase uses UUID strings for Auth IDs
+    id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     # password_hash is managed by Supabase Auth, but we can keep it if we do hybrid
     name = Column(String, nullable=False)
@@ -98,7 +98,7 @@ class Doctor(Base):
     __tablename__ = "Doctors"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("Profiles.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=True)
     name = Column(String, nullable=False)
     specialty = Column(String, nullable=False)
     area = Column(String, nullable=False)
@@ -152,7 +152,7 @@ class Appointment(Base):
     __tablename__ = "appointments"
 
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     timestamp = Column(DateTime, nullable=False)
     appointment_type = Column(SQLEnum(AppointmentType), default=AppointmentType.VIDEO)
@@ -190,7 +190,7 @@ class Prescription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     medication = Column(String, nullable=False)
     dosage = Column(String, nullable=False)
@@ -207,7 +207,7 @@ class MedicalRecord(Base):
     __tablename__ = "medical_records"
 
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=True)
     summary = Column(Text, nullable=False)
@@ -223,7 +223,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     amount = Column(Integer, nullable=False)
     transaction_type = Column(
         String, nullable=False
@@ -243,7 +243,7 @@ class History(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     visit_summary = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -277,7 +277,7 @@ class ChatMessage(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    sender_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -316,7 +316,7 @@ class Tip(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=False)
-    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    patient_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     amount = Column(Integer, nullable=False)  # 100% goes to doctor
     created_at = Column(DateTime, default=datetime.utcnow)
