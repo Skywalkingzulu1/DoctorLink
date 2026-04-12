@@ -93,6 +93,14 @@ class User(Base):
     role = Column(String, nullable=False, default="PATIENT")
     credits = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
+
+    # Verification
+    email_verified = Column(Boolean, default=False)
+    phone_verified = Column(Boolean, default=False)
+    verification_level = Column(String, default="none")  # none, basic, verified
 
     # Relationships
     appointments = relationship(
