@@ -44,7 +44,7 @@ async def sign_up(email: str, password: str, user_metadata: dict = None, redirec
 
     # Default redirect for email confirmation
     # Should point back to the frontend deployment
-    options = {"email_redirect_to": redirect_url or "http://localhost:8000/"}
+    options = {"email_redirect_to": redirect_url or f"{settings.BASE_URL}/"}
 
     if user_metadata:
         options["data"] = user_metadata
