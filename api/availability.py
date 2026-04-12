@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator, ConfigDict
 
 from database import get_db, Doctor, User, DoctorSchedule, TimeSlot
 from auth import get_current_user
@@ -23,13 +23,15 @@ class ScheduleCreate(BaseModel):
     start_time: str
     end_time: str
 
-    @validator("day_of_week")
+    @field_validator("day_of_week")
+    @classmethod
     def validate_day(cls, v):
         if not 0 <= v <= 6:
             raise ValueError("Day must be 0-6 (Monday-Sunday)")
         return v
 
-    @validator("start_time")
+    @field_validator("start_time")
+    @classmethod
     def validate_time(cls, v):
         if len(v) != 5 or v[2] != ":":
             raise ValueError("Time must be HH:MM format")
@@ -43,8 +45,7 @@ class ScheduleResponse(BaseModel):
     end_time: str
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TimeSlotResponse(BaseModel):

@@ -5,17 +5,16 @@ Manages connection to Supabase for Auth, Database, and optional Storage.
 
 import os
 from dotenv import load_dotenv
+from config import settings
 
 load_dotenv()
 
 from supabase import create_client, Client
 
 # Supabase Configuration
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://jvsfhrekkkhijneqngax.supabase.co")
-SUPABASE_ANON_KEY = os.getenv(
-    "SUPABASE_ANON_KEY", "sb_publishable_nFnWeQyQCy47pZVhyIXrlA_PiGYK36I"
-)
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")  # For admin operations
+SUPABASE_URL = settings.SUPABASE_URL
+SUPABASE_ANON_KEY = settings.SUPABASE_ANON_KEY
+SUPABASE_SERVICE_KEY = settings.SUPABASE_SERVICE_KEY
 
 # Global client instance
 _supabase_client: Client | None = None
@@ -39,11 +38,13 @@ def get_service_client() -> Client:
 # ==================== AUTH HELPERS ====================
 
 
-async def sign_up(email: str, password: str, user_metadata: dict = None):
+async def sign_up(email: str, password: str, user_metadata: dict = None, redirect_url: str = None):
     """Register a new user."""
     client = get_supabase_client()
 
-    options = {"email_redirect_to": "https://skywalkingzulu1.github.io/DoctorLink/"}
+    # Default redirect for email confirmation
+    # Should point back to the frontend deployment
+    options = {"email_redirect_to": redirect_url or "http://localhost:8000/"}
 
     if user_metadata:
         options["data"] = user_metadata

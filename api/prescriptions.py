@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from database import get_db, Prescription, Appointment, Doctor, User
 from auth import get_current_user, require_role
@@ -27,8 +27,7 @@ class PrescriptionResponse(BaseModel):
     dosage: str
     instructions: str | None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CreatePrescriptionRequest(BaseModel):

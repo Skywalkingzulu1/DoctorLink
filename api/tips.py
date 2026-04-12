@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from database import get_db, Tip, Appointment, Doctor, User
 from auth import get_current_user
@@ -33,8 +33,7 @@ class TipResponse(BaseModel):
     doctor_id: int
     amount: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TipBreakdownResponse(BaseModel):
@@ -45,8 +44,7 @@ class TipBreakdownResponse(BaseModel):
     tip_amount: int
     total_to_doctor: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.post("", response_model=TipResponse, status_code=status.HTTP_201_CREATED)

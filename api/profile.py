@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from database import get_db, Doctor, User
 from auth import get_current_user
@@ -69,8 +69,7 @@ class DoctorProfileResponse(BaseModel):
     is_online: bool | None = None
     gig_mode_enabled: bool | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DoctorPricingResponse(BaseModel):
@@ -82,8 +81,7 @@ class DoctorPricingResponse(BaseModel):
     peak_pricing_multiplier: float
     effective_prices: dict
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("/doctor", response_model=DoctorProfileResponse)

@@ -21,11 +21,13 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
+from config import settings
+
 # Filebase configuration
-FILEBASE_ACCESS_KEY = os.getenv("FILEBASE_ACCESS_KEY")
-FILEBASE_SECRET_KEY = os.getenv("FILEBASE_SECRET_KEY")
-BUCKET_NAME = "skyhealth"
-S3_ENDPOINT = "https://s3.filebase.com"
+FILEBASE_ACCESS_KEY = settings.FILEBASE_ACCESS_KEY
+FILEBASE_SECRET_KEY = settings.FILEBASE_SECRET_KEY
+BUCKET_NAME = settings.FILEBASE_BUCKET
+S3_ENDPOINT = settings.FILEBASE_ENDPOINT
 
 if not FILEBASE_ACCESS_KEY or not FILEBASE_SECRET_KEY:
     print("WARNING: Filebase credentials not configured. Storage API will not work.")

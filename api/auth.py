@@ -14,44 +14,25 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 import boto3
 from botocore.config import Config
 
 from database import get_db, User, UserRole, Doctor
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from config import settings
+from api.storage import get_public_url, object_exists
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-# Filebase config
-FILEBASE_BUCKET = "skyhealth"
-FILEBASE_ENDPOINT = "https://s3.filebase.com"
-
-# Lazy-loaded S3 client
-_s3_client = None
-
-
-def _get_s3_client():
-    global _s3_client
-    if _s3_client is None:
-        _s3_client = boto3.client(
-            "s3",
-            endpoint_url=FILEBASE_ENDPOINT,
-            aws_access_key_id=os.getenv("FILEBASE_ACCESS_KEY"),
-            aws_secret_access_key=os.getenv("FILEBASE_SECRET_KEY"),
-            config=Config(region_name="us-east-1", signature_version="s3v4"),
-        )
-    return _s3_client
 
 
 def get_avatar_url(user_id: int, role: str = "PATIENT") -> str | None:
     """Get avatar URL from Filebase bucket if exists."""
     key = f"avatars/{user_id}.jpg"
     try:
-        s3 = _get_s3_client()
-        s3.head_object(Bucket=FILEBASE_BUCKET, Key=key)
-        return f"{FILEBASE_ENDPOINT}/{FILEBASE_BUCKET}/{key}"
+        if object_exists(key):
+            return get_public_url(key)
+        return None
     except:
         return None
 
@@ -69,8 +50,7 @@ class UserResponse(BaseModel):
     verification_level: str = "none"
     avatar_url: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RegisterRequest(BaseModel):

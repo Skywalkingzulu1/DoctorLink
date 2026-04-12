@@ -20,14 +20,19 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from enum import Enum
 
+from config import settings
+
 # Database path
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'doctorlink.db')}"
+DATABASE_URL = settings.DATABASE_URL
 
 # Create engine
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}, echo=False
-)
+# If it's a sqlite database, we need the check_same_thread=False argument
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        DATABASE_URL, connect_args={"check_same_thread": False}, echo=False
+    )
+else:
+    engine = create_engine(DATABASE_URL, echo=False)
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -79,48 +84,21 @@ class RoomStatus(str, Enum):
 
 # Models
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "Profiles"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True) # Supabase uses UUID strings for Auth IDs
     email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
+    # password_hash is managed by Supabase Auth, but we can keep it if we do hybrid
     name = Column(String, nullable=False)
-    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.PATIENT)
-    phone = Column(String, nullable=True)
+    role = Column(String, nullable=False, default="PATIENT")
     credits = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
-    is_active = Column(Boolean, default=True)
-    is_deleted = Column(Boolean, default=False)
-    deleted_at = Column(DateTime, nullable=True)
-
-    # Verification
-    email_verified = Column(Boolean, default=False)
-    phone_verified = Column(Boolean, default=False)
-    verification_level = Column(String, default="none")  # none, basic, verified
-
-    # Hashgraph
-    hashgraph_account_id = Column(String, nullable=True)
-
-    # Inconvenience Discount (applied to next booking)
-    inconvenience_discount_amount = Column(Integer, default=0)
-    inconvenience_discount_active = Column(Boolean, default=False)
-    inconvenience_discount_reason = Column(String, nullable=True)
-
-    # Relationships
-    appointments = relationship(
-        "Appointment", back_populates="patient", foreign_keys="Appointment.patient_id"
-    )
-    prescriptions = relationship("Prescription", back_populates="patient")
-    medical_records = relationship("MedicalRecord", back_populates="patient")
-    transactions = relationship("Transaction", back_populates="user")
-    history_records = relationship("History", back_populates="patient")
-
 
 class Doctor(Base):
-    __tablename__ = "doctors"
+    __tablename__ = "Doctors"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user_id = Column(String, ForeignKey("Profiles.id"), nullable=True)
     name = Column(String, nullable=False)
     specialty = Column(String, nullable=False)
     area = Column(String, nullable=False)
@@ -174,8 +152,8 @@ class Appointment(Base):
     __tablename__ = "appointments"
 
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    patient_id = Column(String, ForeignKey("Profiles.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
     timestamp = Column(DateTime, nullable=False)
     appointment_type = Column(SQLEnum(AppointmentType), default=AppointmentType.VIDEO)
     status = Column(SQLEnum(AppointmentStatus), default=AppointmentStatus.SCHEDULED)

@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
 pydantic
 pydantic-settings
@@ -14,3 +14,6 @@ python-dotenv
 boto3
 botocore
 supabase
+python-socketio
+aiofiles
+jinja2

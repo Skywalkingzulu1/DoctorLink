@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from sqlalchemy.orm import Session
 
 # Project imports
@@ -47,7 +47,8 @@ class ReviewBase(BaseModel):
     rating: int = Field(..., ge=1, le=5)
     comment: Optional[str] = None
 
-    @validator("rating")
+    @field_validator("rating")
+    @classmethod
     def rating_range(cls, v):
         if not (1 <= v <= 5):
             raise ValueError("Rating must be between 1 and 5")
@@ -62,7 +63,8 @@ class ReviewUpdate(BaseModel):
     rating: Optional[int] = Field(default=None, ge=1, le=5)
     comment: Optional[str] = None
 
-    @validator("rating")
+    @field_validator("rating")
+    @classmethod
     def rating_range(cls, v):
         if v is not None and not (1 <= v <= 5):
             raise ValueError("Rating must be between 1 and 5")
@@ -74,8 +76,7 @@ class ReviewResponse(ReviewBase):
     user_id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ----------------------------------------------------------------------

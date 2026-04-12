@@ -12,7 +12,7 @@ import hashlib
 import urllib.parse
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from database import get_db, User, Transaction, Doctor
 from auth import get_current_user
@@ -33,8 +33,7 @@ class TransactionResponse(BaseModel):
     payment_status: str
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PurchaseCreditsRequest(BaseModel):

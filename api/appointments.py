@@ -12,7 +12,7 @@ from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from database import (
     get_db,
@@ -25,42 +25,27 @@ from database import (
     EscrowStatus,
 )
 from auth import get_current_user, require_role
+from api.storage import get_public_url, get_presigned_url, object_exists
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
 PLATFORM_FEE_PERCENT = 20
 
-# Filebase config
-FILEBASE_BUCKET = "skyhealth"
-FILEBASE_ENDPOINT = "https://s3.filebase.com"
-
-
-def _get_s3_client():
-    """Get S3 client."""
-    import boto3
-    from botocore.config import Config
-    import os
-    from dotenv import load_dotenv
-
-    load_dotenv()
-
-    return boto3.client(
-        "s3",
-        endpoint_url=FILEBASE_ENDPOINT,
-        aws_access_key_id=os.getenv("FILEBASE_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("FILEBASE_SECRET_KEY"),
-        config=Config(region_name="us-east-1", signature_version="s3v4"),
-    )
-
 
 def get_appointment_report_url(appointment_id: int) -> str | None:
     """Get report URL for appointment from Filebase."""
-    return f"{FILEBASE_ENDPOINT}/{FILEBASE_BUCKET}/reports/{appointment_id}_report.pdf"
+    key = f"reports/{appointment_id}_report.pdf"
+    if object_exists(key):
+        return get_presigned_url(key)
+    return None
 
 
 def get_appointment_prescription_url(appointment_id: int) -> str | None:
     """Get prescription URL for appointment from Filebase."""
-    return f"{FILEBASE_ENDPOINT}/{FILEBASE_BUCKET}/prescriptions/{appointment_id}.jpg"
+    key = f"prescriptions/{appointment_id}.jpg"
+    if object_exists(key):
+        return get_presigned_url(key)
+    return None
 
 
 def get_appointment_avatar_url(doctor_id: int, db_session) -> str | None:
@@ -115,8 +100,7 @@ class AppointmentResponse(BaseModel):
     doctor_earnings: int | None = None
     escrow_status: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AppointmentDetailResponse(AppointmentResponse):
@@ -128,8 +112,7 @@ class AppointmentDetailResponse(AppointmentResponse):
     prescription_url: str | None = None
     avatar_url: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CreateAppointmentRequest(BaseModel):
