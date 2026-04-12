@@ -88,7 +88,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    # password_hash is managed by Supabase Auth, but we can keep it if we do hybrid
+    password_hash = Column(String, nullable=True) # Allow null for Supabase-only users
     name = Column(String, nullable=False)
     role = Column(String, nullable=False, default="PATIENT")
     credits = Column(Integer, default=0)
