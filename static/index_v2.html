@@ -269,10 +269,14 @@
         const err = document.getElementById('authError');
         err.style.display = 'none';
         try {
-            const formData = new FormData();
-            formData.append('username', email);
-            formData.append('password', password);
-            const response = await fetch(API_BASE + '/api/auth/login', { method: 'POST', body: formData });
+            const params = new URLSearchParams();
+            params.append('username', email);
+            params.append('password', password);
+            const response = await fetch(API_BASE + '/api/auth/login', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params 
+            });
             if (!response.ok) throw new Error('Login failed');
             const data = await response.json();
             authToken = data.access_token;
