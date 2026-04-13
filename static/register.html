@@ -113,18 +113,7 @@
     </div>
 
     <script>
-        // Simple hash function for passwords
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return hash.toString();
-        }
-
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
@@ -134,32 +123,24 @@
 
             errorDiv.style.display = 'none';
 
-            // Get existing users
-            const users = JSON.parse(localStorage.getItem('doctorlink_users') || '[]');
-            
-            // Check if email already exists
-            if (users.find(u => u.email === email)) {
-                errorDiv.textContent = 'Email already registered';
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Registration failed');
+                }
+                
+                alert('Registration successful! Please login.');
+                window.location.href = 'index_v2.html';
+            } catch (e) {
+                errorDiv.textContent = e.message;
                 errorDiv.style.display = 'block';
-                return;
             }
-            
-            // Create new user
-            const newUser = {
-                id: Date.now(),
-                name: name,
-                email: email,
-                passwordHash: simpleHash(password),
-                role: role,
-                credits: role === 'PATIENT' ? 500 : 0, // Patients get 500 credits
-                createdAt: new Date().toISOString()
-            };
-            
-            users.push(newUser);
-            localStorage.setItem('doctorlink_users', JSON.stringify(users));
-            
-            alert('Registration successful! Please login.');
-            window.location.href = 'login.html';
         });
     </script>
 </body>
