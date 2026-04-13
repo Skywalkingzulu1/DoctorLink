@@ -67,3 +67,7 @@ tmp/
 temp/
 *.tmp
 nul
+
+# Local-only markdown files (not for GitHub)
+*.md
+docs/PLATFORM_RESEARCH.md
