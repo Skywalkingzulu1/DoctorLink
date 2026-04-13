@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorLink - Patient Pre-Launch</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg, var(--primary-dark), var(--primary));color:var(--white);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+        .container{max-width:500px;width:100%;background:var(--white);padding:3rem;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);color:var(--text)}
+        h1{color:var(--primary);font-size:2rem;margin-bottom:0.5rem;text-align:center}
+        h1 span{color:var(--secondary)}
+        p.subtitle{text-align:center;color:var(--text-light);margin-bottom:2rem;font-size:1rem}
+        .form-group{margin-bottom:1.2rem}
+        .form-label{display:block;margin-bottom:0.4rem;font-weight:600;font-size:0.85rem}
+        .form-input,.form-textarea{width:100%;padding:0.9rem;border:1px solid var(--border);border-radius:10px;font-size:1rem;font-family:inherit}
+        .btn-submit{width:100%;padding:1rem;background:var(--primary);color:var(--white);border:none;border-radius:10px;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:1rem}
+        .btn-submit:hover{background:var(--primary-dark);transform:translateY(-2px)}
+        .success-message{display:none;text-align:center;padding:2rem}
+        .success-message i{font-size:4rem;color:var(--accent);margin-bottom:1rem}
+        .footer-links{margin-top:2rem;text-align:center;font-size:0.85rem;color:var(--text-light)}
+        .footer-links a{color:var(--primary);text-decoration:none}
+        .badge{background:#eef2ff;color:var(--primary);padding:0.5rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:700;display:inline-block;margin-bottom:1rem}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="waitlistForm">
+            <div style="text-align:center"><span class="badge">PATIENT PRE-LAUNCH</span></div>
+            <h1>Doctor<span>Link</span></h1>
+            <p class="subtitle">Be the first to get access to healthcare when we launch. Your health, your schedule.</p>
+            
+            <form id="submissionForm">
+                <input type="hidden" id="role" value="PATIENT">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="name" class="form-input" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" class="form-input" placeholder="+27...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">What healthcare are you looking for?</label>
+                    <textarea id="message" class="form-textarea" rows="2" placeholder="e.g. Quick prescriptions, general checkups"></textarea>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">Get Early Access</button>
+            </form>
+            <div class="footer-links"><a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a></div>
+        </div>
+
+        <div id="successView" class="success-message">
+            <i class="fas fa-check-circle"></i>
+            <h2>You're In!</h2>
+            <p>We'll notify you as soon as DoctorLink goes live in your area.</p>
+            <button class="btn-submit" onclick="location.href='/'" style="margin-top:2rem">Back to Home</button>
+        </div>
+    </div>
+
+    <script src="filebase_upload.js"></script>
+    <script>
+        document.getElementById('submissionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                role: 'PATIENT',
+                message: document.getElementById('message').value
+            };
+
+            try {
+                await FilebaseUploader.uploadToFilebase(data, 'PATIENT', data.email);
+                document.getElementById('waitlistForm').style.display = 'none';
+                document.getElementById('successView').style.display = 'block';
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Something went wrong. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Early Access';
+            }
+        });
+    </script>
+</body>
+</html>
