@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     BASE_URL: str = "http://localhost:8000"
 
     # Security
-    SECRET_KEY: str = "doctorlink-secret-key-change-in-production"
+    SECRET_KEY: str = "EDl0AWauTZ6wPbkcqhmydRpHMXFits2exINC4KzOf9o85vjn"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 

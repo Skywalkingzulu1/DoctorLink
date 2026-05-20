@@ -6,4 +6,4 @@
 //
 // For local dev: leave empty (same origin, served by uvicorn)
 // -------------------------------------------------------
-window.API_BASE_URL = '';
+window.API_BASE_URL = 'https://doctorlink-knmy.onrender.com';
