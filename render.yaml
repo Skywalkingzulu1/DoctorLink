@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: doctorlink
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: FILEBASE_ACCESS_KEY
+        sync: false
+      - key: FILEBASE_SECRET_KEY
+        sync: false
+      - key: FILEBASE_BUCKET
+        value: skyhealth
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SOMNIA_RPC_URL
+        value: https://api.infra.testnet.somnia.network
+      - key: SOMNIA_CHAIN_ID
+        value: "50312"
+      - key: SOMNIA_PLATFORM_CONTRACT
+        value: "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+      - key: SOMNIA_ESCROW_CONTRACT
+        sync: false
+      - key: SOMNIA_PRIVATE_KEY
+        sync: false
+      - key: SOMNIA_SPONSOR_CONTRACT
+        sync: false
+      - key: T800_CONTRACT_ADDRESS
+        sync: false
+      - key: BASE_URL
+        value: https://doctorlink.onrender.com

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DoctorLink - South Africa's Healthcare Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
@@ -106,6 +107,123 @@
         /* Loading */
         .loading{text-align:center;padding:2rem;color:var(--text-light)}
         
+        /* Skeleton */
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .skeleton{background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:6px;}
+        .skeleton-line{height:14px;margin:8px 0;width:100%}.skeleton-line.short{width:50%}.skeleton-line.med{width:75%}
+        .skeleton-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+        .skeleton-card{min-height:100px}
+        .skeleton-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+
+        /* Spinner */
+        .btn .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
+        .btn.loading .spinner{display:inline-block}
+        .btn.loading .btn-text{display:none}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* Toast */
+        .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+        .toast{pointer-events:auto;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:280px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.15);animation:toastIn 0.3s ease both;display:flex;align-items:center;gap:10px;font-size:0.88rem}
+        .toast.toast-out{animation:toastOut 0.3s ease both}
+        @keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
+        .toast-icon{font-size:1.2rem;flex-shrink:0}
+        .toast-msg{flex:1;color:var(--text)}
+        .toast-close{background:none;border:none;font-size:1rem;cursor:pointer;color:var(--text-light);padding:0 4px}
+        .toast-close:hover{color:var(--text)}
+        .toast.success{border-left:3px solid var(--accent)}.toast.success .toast-icon{color:var(--accent)}
+        .toast.error{border-left:3px solid var(--danger)}.toast.error .toast-icon{color:var(--danger)}
+        .toast.info{border-left:3px solid var(--primary)}.toast.info .toast-icon{color:var(--primary)}
+        .toast.warning{border-left:3px solid var(--warning)}.toast.warning .toast-icon{color:var(--warning)}
+
+        /* Poll progress */
+        .poll-progress{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+        .poll-progress-fill{height:100%;background:var(--primary);border-radius:2px;transition:width 0.5s ease}
+
+        /* Wallet disconnect */
+        .wallet-dropdown{position:relative;display:inline-block}
+        .wallet-dropdown-menu{display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:200;margin-top:4px}
+        .wallet-dropdown-menu.show{display:block}
+        .wallet-dropdown-item{padding:8px 14px;cursor:pointer;font-size:0.85rem;color:var(--text);display:flex;align-items:center;gap:8px}
+        .wallet-dropdown-item:hover{background:var(--light)}
+        .wallet-dropdown-item.danger{color:var(--danger)}
+
+        /* ── UI OVERHAUL: ANIMATIONS + MODERN DESIGN ── */
+
+        /* Smooth page transitions */
+        .page-enter{animation:pageSlideIn 0.35s ease both}
+        @keyframes pageSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+        /* Card hover lift */
+        .card{transition:transform 0.25s ease,box-shadow 0.25s ease, border-color 0.25s ease}
+        .card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.08)}
+        .card:active{transform:translateY(0)}
+
+        /* Gradient text headings */
+        .gradient-text{background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .gradient-text-accent{background:linear-gradient(135deg,var(--accent),#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        /* Glass card */
+        .glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+
+        /* Glow accent */
+        .glow{animation:glowPulse 2s ease-in-out infinite}
+        @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,130,204,0.2)}50%{box-shadow:0 0 20px rgba(0,130,204,0.4)}}
+
+        /* Stat count-up */
+        .stat-count{display:inline-block;animation:countFade 0.5s ease both}
+
+        /* Button micro-interactions */
+        .btn{position:relative;overflow:hidden;transition:transform 0.15s ease,box-shadow 0.15s ease}
+        .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+        .btn:active{transform:translateY(0) scale(0.98)}
+        .btn::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,0.2),transparent 60%);opacity:0;transition:opacity 0.3s;pointer-events:none}
+        .btn:hover::after{opacity:1}
+
+        /* Sidebar active indicator animation */
+        .menu-item{position:relative;transition:all 0.25s ease}
+        .menu-item::before{content:'';position:absolute;left:0;top:50%;width:3px;height:0;background:var(--primary);border-radius:0 3px 3px 0;transition:all 0.25s ease;transform:translateY(-50%)}
+        .menu-item.active::before{height:60%}
+        .menu-item.active{background:linear-gradient(90deg,rgba(0,82,204,0.06),transparent)}
+
+        /* Hover card glow for buy credits */
+        .buy-card{cursor:pointer;transition:all 0.3s ease;border:2px solid var(--border)!important}
+        .buy-card:hover{border-color:var(--primary)!important;transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,82,204,0.15)!important}
+        .buy-card:hover .buy-price{color:var(--accent)}
+        .buy-card .buy-price{transition:color 0.3s ease}
+
+        /* Escrow badge variants */
+        .status-released{background:#e3fcef;color:var(--accent)}
+        .status-funded{background:#eef2ff;color:var(--primary)}
+        .status-pending{background:#fff3e0;color:#e65100}
+
+        /* Fade-in sections */
+        .fade-section{animation:fadeUp 0.5s ease both}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        /* Pulse dot */
+        .pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.5s ease-in-out infinite}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+        /* Shimmer button */
+        .shimmer-btn{background:linear-gradient(135deg,var(--primary),var(--secondary));background-size:200% 200%;animation:shimmerBg 3s ease infinite}
+        @keyframes shimmerBg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+        /* Scrollbar */
+        ::-webkit-scrollbar{width:6px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        ::-webkit-scrollbar-thumb:hover{background:var(--text-light)}
+
+        /* Top bar accent */
+        .top-bar{border-bottom:2px solid transparent;background-clip:padding-box}
+        .top-bar::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));opacity:0.6}
+
+        /* Sidebar brand */
+        .sidebar-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));position:relative;overflow:hidden}
+        .sidebar-header h1,.sidebar-header h1 span{-webkit-text-fill-color:#fff}
+        .sidebar-header::after{content:'';position:absolute;top:-50%;right:-30%;width:100px;height:200px;background:rgba(255,255,255,0.05);transform:rotate(25deg)}
+
         @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
     </style>
 </head>
@@ -139,7 +257,7 @@
                 <a href="#" id="authSwitch" style="color:var(--primary);font-weight:600">Register</a>
             </div>
             <div style="text-align:center;margin-top:1rem;padding:1rem;background:var(--light);border-radius:8px;font-size:0.85rem">
-                <strong>Demo:</strong> patient@doctorlink.co.za / test123
+                <strong>Demo:</strong> test3@test.com / pass (has T800 + credits)
             </div>
         </div>
     </div>
@@ -156,7 +274,8 @@
                 <div class="menu-item" data-page="appointments"><i class="fas fa-calendar"></i> Appointments <span class="menu-badge" id="apptBadge">0</span></div>
                 <div class="menu-item" data-page="records"><i class="fas fa-file-medical"></i> Medical Records</div>
                 <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
-                <div class="menu-item" data-page="payments"><i class="fas fa-credit-card"></i> Credits & Payments</div>
+                <div class="menu-item" data-page="health-tools"><i class="fas fa-robot"></i> Health Tools</div>
+                <div class="menu-item" data-page="payments"><i class="fas fa-credit-card"></i> Credits & T-800</div>
                 <div class="menu-item" data-page="profile"><i class="fas fa-user"></i> My Profile</div>
                 <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
             </div>
@@ -166,6 +285,20 @@
             <div class="top-bar">
                 <div style="font-weight:600" id="pageTitle">Dashboard</div>
                 <div class="user-info">
+                    <div id="somniaWalletInfo" style="text-align:right;margin-right:1rem;font-size:0.8rem;color:var(--text-light)">
+                        <div id="userAddress" style="font-family:monospace;cursor:pointer;" onclick="mmAccount ? copyAddress() : null" title="Click to copy address">0x...</div>
+                        <div id="userSttBalance" style="color:var(--accent);font-weight:700">0.00 STT</div>
+                        <span id="connectMmBtnWrapper">
+                            <button id="connectMmBtn" onclick="connectMetaMask()" style="background:var(--secondary);color:#fff;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px">Connect MetaMask</button>
+                        </span>
+                        <span id="walletDropdownWrapper" class="wallet-dropdown" style="display:none;">
+                            <button onclick="showWalletDropdown()" style="background:var(--accent);color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px;display:flex;align-items:center;gap:4px"><span id="walletAddressDisplay">0x...</span> ▾</button>
+                            <div class="wallet-dropdown-menu" id="walletDropdownMenu">
+                                <div class="wallet-dropdown-item" onclick="copyAddress()">📋 Copy Address</div>
+                                <div class="wallet-dropdown-item danger" onclick="disconnectWallet()">✕ Disconnect</div>
+                            </div>
+                        </span>
+                    </div>
                     <span id="userName">User</span>
                     <span class="wallet" id="userCredits">0 Credits</span>
                 </div>
@@ -245,33 +378,138 @@
                     </div>
                 </div>
 
-                <!-- PAYMENTS -->
-                <div id="page-payments" class="hidden">
-                    <h2 class="page-title">Credits & Payments</h2>
-                    <div class="grid" style="margin-bottom:2rem">
-                        <div class="card" style="text-align:center">
-                            <div style="font-size:3rem;color:var(--accent);margin-bottom:1rem"><i class="fas fa-coins"></i></div>
-                            <div style="font-size:2.5rem;font-weight:700" id="creditBalance">0</div>
-                            <div style="color:var(--text-light)">Current Balance</div>
+                <!-- HEALTH TOOLS -->
+                <div id="page-health-tools" class="hidden">
+                    <h2 class="page-title">AI Health Tools</h2>
+                    <p style="color:var(--text-light);margin-bottom:1.5rem">Powered by Somnia LLM Inference Agents</p>
+                    <div id="sttCostBadge" style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-light);display:none;">
+                        <span style="background:#059669;color:white;padding:2px 8px;border-radius:4px;font-weight:bold;">STT</span>
+                        <span id="sttCostText">Loading cost...</span>
+                    </div>
+
+                    <div class="grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-stethoscope" style="color:var(--primary)"></i> Symptom Checker</div>
+                            </div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Describe your symptoms for an AI analysis</p>
+                            <div class="form-group">
+                                <textarea id="symptomInput" class="form-textarea" placeholder="E.g., I have a headache, fever, and cough..." rows="3"></textarea>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="runSymptomCheck()"><i class="fas fa-search"></i> Check Symptoms (5 credits)</button>
+                            <button class="btn btn-outline" onclick="runSymptomCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            </div>
+                            <div id="symptomResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;white-space:pre-wrap"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-pills" style="color:var(--warning)"></i> Drug Interaction Check</div>
+                            </div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Check interactions between your medications</p>
+                            <div class="form-group">
+                                <input type="text" id="drugInput" class="form-input" placeholder="E.g., Aspirin, Ibuprofen, Warfarin">
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="runDrugCheck()"><i class="fas fa-flask"></i> Check Interactions (5 credits)</button>
+                            <button class="btn btn-outline" onclick="runDrugCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            </div>
+                            <div id="drugResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#fefce8;border-radius:8px;border:1px solid #fde68a;white-space:pre-wrap"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-lightbulb" style="color:var(--accent)"></i> Health Tips</div>
+                            </div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Get AI-generated health education content</p>
+                            <div class="form-group">
+                                <input type="text" id="tipsInput" class="form-input" placeholder="E.g., diabetes, hypertension, exercise">
+                            </div>
+                            <button class="btn btn-accent" onclick="runHealthTips()"><i class="fas fa-book-medical"></i> Generate Tips (3 credits)</button>
+                            <div id="tipsResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;white-space:pre-wrap"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-file-prescription" style="color:var(--secondary)"></i> Visit Summary</div>
+                            </div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Auto-generate a structured visit summary</p>
+                            <div class="form-group">
+                                <textarea id="summaryInput" class="form-textarea" placeholder="Paste consultation notes here..." rows="3"></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="runGenerateSummary()"><i class="fas fa-file-alt"></i> Generate Summary (5 credits)</button>
+                            <div id="summaryResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#eef2ff;border-radius:8px;border:1px solid #c7d2fe;white-space:pre-wrap"></div>
                         </div>
                     </div>
-                    
+
+                    <div class="card" style="margin-top:1.5rem">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-coins" style="color:#f59e0b"></i> Credit Costs</div>
+                        </div>
+                        <div id="creditCostsList" class="loading">Loading credit costs...</div>
+                    </div>
+                </div>
+
+                <!-- PAYMENTS -->
+                <div id="page-payments" class="hidden">
+                    <h2 class="page-title gradient-text">Credits & Payments</h2>
+                    <div class="grid" style="margin-bottom:2rem">
+                        <div class="card glass" style="text-align:center">
+                            <div style="font-size:3rem;color:var(--accent);margin-bottom:1rem"><i class="fas fa-coins"></i></div>
+                            <div style="font-size:2.5rem;font-weight:700" id="creditBalance" class="stat-count">0</div>
+                            <div style="color:var(--text-light)">Credits Balance</div>
+                        </div>
+                        <div class="card glass" style="text-align:center;border:2px solid #059669">
+                            <div style="font-size:3rem;color:#059669;margin-bottom:1rem"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23059669' width='48' height='48'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E" style="width:48px;height:48px" alt="T800"></div>
+                            <div style="font-size:2.5rem;font-weight:700" id="t800Balance" class="stat-count">0</div>
+                            <div style="color:var(--text-light)">T800 Balance</div>
+                            <div id="t800Address" style="font-size:0.7rem;color:var(--text-light);margin-top:4px;word-break:break-all"></div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-title">Buy Credits</div>
                         <div class="grid" style="margin-top:1rem">
-                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--primary)" onclick="purchaseCredits(100)">
-                                <div style="font-size:1.5rem;font-weight:700">100</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R99</div>
+                            <div class="card buy-card" onclick="purchaseCredits(100)">
+                                <div style="font-size:1.5rem;font-weight:700">100</div><div>Credits</div><div class="buy-price" style="color:var(--accent);margin-top:0.5rem">R99</div>
                             </div>
-                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--border)" onclick="purchaseCredits(250)">
-                                <div style="font-size:1.5rem;font-weight:700">250</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R199</div>
+                            <div class="card buy-card" onclick="purchaseCredits(250)">
+                                <div style="font-size:1.5rem;font-weight:700">250</div><div>Credits</div><div class="buy-price" style="color:var(--accent);margin-top:0.5rem">R199</div>
                             </div>
-                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--border)" onclick="purchaseCredits(500)">
-                                <div style="font-size:1.5rem;font-weight:700">500</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R349</div>
+                            <div class="card buy-card" onclick="purchaseCredits(500)">
+                                <div style="font-size:1.5rem;font-weight:700">500</div><div>Credits</div><div class="buy-price" style="color:var(--accent);margin-top:0.5rem">R349</div>
                             </div>
-                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--border)" onclick="purchaseCredits(1000)">
-                                <div style="font-size:1.5rem;font-weight:700">1000</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R599</div>
+                            <div class="card buy-card" onclick="purchaseCredits(1000)">
+                                <div style="font-size:1.5rem;font-weight:700">1000</div><div>Credits</div><div class="buy-price" style="color:var(--accent);margin-top:0.5rem">R599</div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="card" style="margin-top:2rem;border:1px solid #059669">
+                        <div class="card-title" style="color:#059669"><i class="fas fa-bolt"></i> T-800 Token Ecosystem</div>
+                        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1rem">T-800 (T800) is the universal token for Somnia agent payments. Use T800 for booking, AI tools, and more.</p>
+                        <div style="background:var(--light);padding:1rem;border-radius:8px;margin-bottom:0.5rem">
+                            <strong style="color:#059669">Current T800 Fee:</strong> <span id="t800FeeDisplay">10</span> T800 per agent invocation
+                        </div>
+                        <div style="background:var(--light);padding:1rem;border-radius:8px;margin-bottom:0.5rem;display:flex;justify-content:space-between;align-items:center">
+                            <div><strong>Get Free T800:</strong> Claim 5,000 T800 for testing (one per account)</div>
+                            <button class="btn btn-sm btn-primary" onclick="claimT800()" id="claimT800Btn"><i class="fas fa-gift"></i> Claim T800</button>
+                        </div>
+                        <div id="claimT800Result" style="font-size:0.8rem;color:var(--text-light);margin-bottom:0.5rem;display:none"></div>
+                        <div style="background:var(--light);padding:1rem;border-radius:8px;margin-bottom:0.5rem">
+                            <strong>Use T800:</strong> Pay for bookings with T800 (check the modal option), or pay for AI agent invocations via the AgentPaymentRouter.
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-light);padding:0.5rem">
+                            Contract: <code id="t800ContractDisplay">0x475385F327166423D9923024033d8deF34ea9186</code><br>
+                            Router: <code id="t800RouterDisplay">0xbe6AE91380Bf23a1C1bFd613EFA794461A86337C</code>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:2rem;border:1px solid var(--accent)">
+                        <div class="card-title" style="color:var(--accent)"><i class="fas fa-link"></i> On-Chain Escrow (Somnia)</div>
+                        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1rem">Secure your consultation funds on the Somnia Agentic L1 blockchain. Funds are only released when the call is completed.</p>
+                        <div id="escrowList" class="loading">Loading escrow status...</div>
                     </div>
 
                     <div class="card" style="margin-top:1.5rem">
@@ -336,65 +574,303 @@
                 <textarea id="bookReason" class="form-textarea" placeholder="Describe your symptoms..."></textarea>
             </div>
             <div style="background:var(--light);padding:1rem;border-radius:8px;margin:1rem 0">
-                <strong>Cost:</strong> <span id="bookCost">0</span> Credits
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <strong>Cost:</strong> <span id="bookCost">0</span> Credits
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">
+                    <strong>T800 Equivalent:</strong> <span id="bookCostT800">0</span> <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">T800</span>
+                </div>
+                <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid var(--border)">
+                    <label style="font-weight:600;font-size:0.85rem"><input type="checkbox" id="payWithSomnia" style="width:18px;height:18px;margin-right:6px">Pay with Somnia STT</label>
+                    <label style="font-weight:600;font-size:0.85rem" title="Get T800 from Payments page"><input type="checkbox" id="payWithT800" style="width:18px;height:18px;margin-right:6px">Pay with <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">T800</span></label>
+                    <span id="t800BookHint" style="font-size:0.75rem;color:var(--text-light)"></span>
+                </div>
             </div>
             <button class="btn btn-primary" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
-        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-    <script src="wasm_backend.js"></script>
-    <script>
-        // ========== BACKEND CONFIG ==========
-        let backend = WasmBackend;
-        let currentUser = localStorage.getItem('dl_current_user') ? JSON.parse(localStorage.getItem('dl_current_user')) : null;
-        let isWasmReady = false;
+<div class="toast-container" id="toastContainer"></div>
 
-        // Initialize Wasm backend
-        async function initBackend() {
+<script>
+        // ========== API CONFIG ==========
+        const API_BASE = window.API_BASE_URL;
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+        let selectedDoctor = null;
+
+        // AUTO-LOGIN LOGIC
+        async function autoLogin() {
+            if (!authToken) {
+                window.location.href = 'login.html';
+                return;
+            } else {
+                // Fetch current user if token exists
+                try {
+                    const user = await apiCall('/api/auth/me');
+                    currentUser = user;
+                    showApp();
+                } catch (e) {
+                    logout();
+                }
+            }
+        }
+
+        window.onload = autoLogin;
+
+        // ========== API HELPERS ==========
+        async function apiCall(endpoint, options = {}) {
+            const url = API_BASE + endpoint;
+            const headers = { 'Content-Type': 'application/json' };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            
             try {
-                await backend.init();
-                isWasmReady = true;
-                console.log('Wasm backend ready');
-            } catch(e) {
-                console.error('Wasm init failed:', e);
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) { logout(); throw new Error('Session expired'); }
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'API error');
+                return data;
+            } catch (e) {
+                console.error('API Error:', e);
+                throw e;
             }
         }
-        initBackend();
 
-        // Mock doctors data (fallback)
-        const mockDoctors = [
-            { id: 1, full_name: 'Dr. Sarah Johnson', specialty: 'General Practitioner', area: 'Johannesburg', rating: 4.8, is_online: true, video_call_price: 150 },
-            { id: 2, full_name: 'Dr. Michael Chen', specialty: 'Cardiologist', area: 'Cape Town', rating: 4.9, is_online: true, video_call_price: 200 },
-            { id: 3, full_name: 'Dr. Amara Nkosi', specialty: 'Pediatrician', area: 'Durban', rating: 4.7, is_online: false, video_call_price: 180 }
-        ];
+        // ========== AUTH ==========
+        let isLogin = true;
 
-        // ========== DATA FUNCTIONS ==========
-        async function loadDoctors() {
-            if (isWasmReady) {
+        document.getElementById('authSwitch').onclick = e => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            document.getElementById('authSubtitle').textContent = isLogin ? 'Welcome Back' : 'Join South Africa\'s Healthcare Platform';
+            document.getElementById('authBtn').textContent = isLogin ? 'Login' : 'Create Account';
+            document.getElementById('authSwitchText').textContent = isLogin ? 'Don\'t have an account?' : 'Already have an account?';
+            document.getElementById('authSwitch').textContent = isLogin ? 'Register' : 'Login';
+            document.getElementById('nameField').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('roleField').style.display = isLogin ? 'none' : 'block';
+        };
+
+        document.getElementById('authForm').onsubmit = async e => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const err = document.getElementById('authError');
+            err.style.display = 'none';
+            
+            console.log('Form submitted, email:', email, 'isLogin:', isLogin);
+
+            try {
+                if (isLogin) {
+                    const formData = new FormData();
+                    formData.append('username', email);
+                    formData.append('password', password);
+                    
+                    console.log('FormData created, entries:');
+                    for (let [k, v] of formData) console.log('  ', k, '=', v);
+                    
+                    console.log('Fetching from:', API_BASE + '/api/auth/login');
+                    
+                    const response = await fetch(API_BASE + '/api/auth/login', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('Got response, status:', response.status);
+                    
+                    if (!response.ok) {
+                        const data = await response.json();
+                        console.log('Error response:', data);
+                        err.textContent = data.detail || 'Invalid credentials';
+                        err.style.display = 'block';
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Login success:', data);
+                    authToken = data.access_token;
+                    currentUser = data.user;
+                    localStorage.setItem('token', authToken);
+                    showApp();
+                } else {
+                    const name = document.getElementById('authName').value;
+                    const role = document.getElementById('authRole').value;
+                    
+                    await apiCall('/api/auth/register', {
+                        method: 'POST',
+                        body: JSON.stringify({ email, password, name, role })
+                    });
+                    
+                    alert('Registration successful! Please login.');
+                    isLogin = true;
+                    document.getElementById('authSwitch').click();
+                }
+            } catch (e) {
+                err.textContent = 'Connection error. Please try again.';
+                err.style.display = 'block';
+            }
+        };
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('token');
+            window.location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.name;
+            
+            // Display Somnia Address
+            if (currentUser.somnia_address) {
+                const addr = currentUser.somnia_address;
+                document.getElementById('userAddress').textContent = addr.substring(0, 6) + '...' + addr.substring(38);
+                document.getElementById('userAddress').title = addr;
+            }
+
+            updateCredits();
+            updateSomniaBalance();
+            initDashboard();
+            loadDoctors();
+        }
+
+        async function updateSomniaBalance() {
+            try {
+                const data = await apiCall('/api/somnia/escrow/wallet/balance');
+                // Use balance_eth from API
+                document.getElementById('userSttBalance').textContent = parseFloat(data.balance_eth).toFixed(2) + ' STT';
+                
+                // Also update address if not set
+                if (!currentUser.somnia_address) {
+                    const addr = data.address;
+                    document.getElementById('userAddress').textContent = addr.substring(0, 6) + '...' + addr.substring(38);
+                }
+            } catch (e) {
+                console.error('Failed to fetch Somnia balance');
+            }
+        }
+
+        // ========== METAMASK INTEGRATION ==========
+        let mmAccount = null;
+
+        function toast(msg, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const icons = { success: '✓', error: '✗', info: 'ℹ', warning: '⚠' };
+            const el = document.createElement('div');
+            el.className = 'toast ' + type;
+            el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.classList.add('toast-out');setTimeout(()=>this.parentElement.remove(),300)">×</button>`;
+            container.appendChild(el);
+            setTimeout(() => { if (el.parentElement) { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); } }, duration);
+        }
+
+        function showWalletDropdown() {
+            document.getElementById('walletDropdownMenu').classList.toggle('show');
+        }
+        document.addEventListener('click', function(e) {
+            const dd = document.getElementById('walletDropdownMenu');
+            if (dd && !e.target.closest('.wallet-dropdown')) dd.classList.remove('show');
+        });
+
+        function disconnectWallet() {
+            mmAccount = null;
+            const btn = document.getElementById('connectMmBtn');
+            btn.innerHTML = 'Connect MetaMask';
+            btn.style.background = 'var(--secondary)';
+            btn.disabled = false;
+            document.getElementById('connectMmBtnWrapper').style.display = 'inline-block';
+            document.getElementById('walletDropdownWrapper').style.display = 'none';
+            document.getElementById('userAddress').textContent = '0x...';
+            toast('Wallet disconnected', 'info');
+        }
+
+        async function connectMetaMask() {
+            if (typeof window.ethereum === 'undefined') {
+                toast('Please install MetaMask to use this feature.', 'error');
+                return;
+            }
+            const btn = document.getElementById('connectMmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg style="width:14px;height:14px;display:inline-block;margin-right:4px;animation:spin 0.6s linear infinite" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg> Connecting...';
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                mmAccount = accounts[0];
+                btn.innerHTML = '<svg style="width:16px;height:16px;display:inline-block;margin-right:4px;vertical-align:middle" viewBox="0 0 35 33" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M32.958 1l-13.134 9.718 2.442-5.767L32.958 1z" fill="#E17726" stroke="#E17726" stroke-width=".25"/><path d="M2.663 1l13.016 9.825-2.35-5.874L2.663 1z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M28.188 23.3l-3.5 5.346 7.543 2.076 2.166-7.361-6.21-.06z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M1.605 23.363l2.156 7.358 7.543-2.076-3.5-5.346-6.2.064z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M10.922 14.206l-2.083 3.145 7.482.336-.286-8.033-5.113 4.552z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M24.7 14.206l-5.202-4.556-.197 8.137 7.482-.336-2.083-3.245z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M10.569 28.646l4.543-2.204-3.91-3.043-.633 5.247z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M20.51 26.442l4.543 2.204-.633-5.247-3.91 3.043z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M25.052 28.646l-4.543-2.204.402 2.776-.058 1.182 4.199-.758z" fill="#D5BFB2" stroke="#D5BFB2" stroke-width=".25"/><path d="M10.569 28.646l4.199.758-.058-1.182.402-2.776-4.543 2.2z" fill="#D5BFB2" stroke="#D5BFB2" stroke-width=".25"/><path d="M14.86 21.734l-3.77-1.105 2.663-1.224 1.107 2.33z" fill="#233447" stroke="#233447" stroke-width=".25"/><path d="M20.762 21.734l1.107-2.33 2.663 1.224-3.77 1.106z" fill="#233447" stroke="#233447" stroke-width=".25"/><path d="M10.569 28.646l.655-5.346-4.155.063 3.5 5.283z" fill="#CC6228" stroke="#CC6228" stroke-width=".25"/><path d="M24.398 23.3l.655 5.346 3.5-5.283-4.155-.063z" fill="#CC6228" stroke="#CC6228" stroke-width=".25"/><path d="M28.188 23.3l-3.5 5.346 2.285 1.89 4.656-1.79-1.44-5.446z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M7.433 23.3l-1.44 5.446 4.656 1.79 2.285-1.89-3.5-5.346z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M21.92 17.35l-3.694-1.232 1.323-2.042 2.37 3.274z" fill="#CD6116" stroke="#CD6116" stroke-width=".25"/><path d="M13.702 17.35l2.371-3.274 1.323 2.042-3.694 1.232z" fill="#CD6116" stroke="#CD6116" stroke-width=".25"/><path d="M14.86 21.734l-.705-1.873-3.06.868 3.765 1.005z" fill="#E4751F" stroke="#E4751F" stroke-width=".25"/><path d="M20.762 21.734l3.766-1.005-3.06-.868-.706 1.873z" fill="#E4751F" stroke="#E4751F" stroke-width=".25"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/><path d="M10.569 28.646l3.683-7.276-4.82-.07 1.77 2.099-.633 5.247z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/><path d="M10.202 17.35l-2.456 1.733 2.982.292-.526-2.025z" fill="#C0AC9D" stroke="#C0AC9D" stroke-width=".25"/><path d="M21.42 17.35l-.526 2.025 2.982-.292-2.456-1.733z" fill="#C0AC9D" stroke="#C0AC9D" stroke-width=".25"/><path d="M14.86 21.734l.151-2.34-2.63.283 2.479 2.057z" fill="#161616" stroke="#161616" stroke-width=".25"/><path d="M20.762 21.734l2.479-2.057-2.63-.283.151 2.34z" fill="#161616" stroke="#161616" stroke-width=".25"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/></g></svg> <span style="vertical-align:middle">' + mmAccount.substring(0, 6) + '...</span>';
+                btn.style.background = 'var(--accent)';
+                btn.disabled = false;
+                toast('MetaMask Connected \u2713', 'success');
+
+                // Switch to Somnia Testnet if needed
                 try {
-                    const doctors = await backend.getDoctors();
-                    if (doctors.length) return doctors;
-                } catch(e) { console.error('Wasm getDoctors:', e); }
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0xC488' }],
+                    });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0xC488',
+                                chainName: 'Somnia Testnet',
+                                rpcUrls: ['https://api.infra.testnet.somnia.network'],
+                                nativeCurrency: { name: 'Somnia Test Token', symbol: 'STT', decimals: 18 },
+                                blockExplorerUrls: ['https://explorer.testnet.somnia.network']
+                            }],
+                        });
+                    }
+                }
+                // Show disconnect dropdown
+                document.getElementById('connectMmBtnWrapper').style.display = 'none';
+                document.getElementById('walletDropdownWrapper').style.display = 'inline-block';
+                document.getElementById('walletAddressDisplay').innerHTML = '<svg style="width:12px;height:12px;display:inline-block;margin-right:3px;vertical-align:middle" viewBox="0 0 35 33"><path d="M32.958 1l-13.134 9.718 2.442-5.767L32.958 1z" fill="#E17726"/><path d="M2.663 1l13.016 9.825-2.35-5.874L2.663 1z" fill="#E27625"/><path d="M28.188 23.3l-3.5 5.346 7.543 2.076 2.166-7.361-6.21-.06z" fill="#E27625"/><path d="M1.605 23.363l2.156 7.358 7.543-2.076-3.5-5.346-6.2.064z" fill="#E27625"/><path d="M10.922 14.206l-2.083 3.145 7.482.336-.286-8.033-5.113 4.552z" fill="#E27625"/><path d="M24.7 14.206l-5.202-4.556-.197 8.137 7.482-.336-2.083-3.245z" fill="#E27625"/><path d="M10.569 28.646l4.543-2.204-3.91-3.043-.633 5.247z" fill="#E27625"/><path d="M20.51 26.442l4.543 2.204-.633-5.247-3.91 3.043z" fill="#E27625"/><path d="M25.052 28.646l-4.543-2.204.402 2.776-.058 1.182 4.199-.758z" fill="#D5BFB2"/><path d="M10.569 28.646l4.199.758-.058-1.182.402-2.776-4.543 2.2z" fill="#D5BFB2"/><path d="M14.86 21.734l-3.77-1.105 2.663-1.224 1.107 2.33z" fill="#233447"/><path d="M20.762 21.734l1.107-2.33 2.663 1.224-3.77 1.106z" fill="#233447"/><path d="M10.569 28.646l.655-5.346-4.155.063 3.5 5.283z" fill="#CC6228"/><path d="M24.398 23.3l.655 5.346 3.5-5.283-4.155-.063z" fill="#CC6228"/><path d="M28.188 23.3l-3.5 5.346 2.285 1.89 4.656-1.79-1.44-5.446z" fill="#E27625"/><path d="M7.433 23.3l-1.44 5.446 4.656 1.79 2.285-1.89-3.5-5.346z" fill="#E27625"/><path d="M21.92 17.35l-3.694-1.232 1.323-2.042 2.37 3.274z" fill="#CD6116"/><path d="M13.702 17.35l2.371-3.274 1.323 2.042-3.694 1.232z" fill="#CD6116"/><path d="M14.86 21.734l-.705-1.873-3.06.868 3.765 1.005z" fill="#E4751F"/><path d="M20.762 21.734l3.766-1.005-3.06-.868-.706 1.873z" fill="#E4751F"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F"/><path d="M10.569 28.646l3.683-7.276-4.82-.07 1.77 2.099-.633 5.247z" fill="#F5841F"/></svg> <span style="vertical-align:middle">' + mmAccount.substring(0, 6) + '...' + mmAccount.slice(-4) + '</span>';
+            } catch (e) {
+                console.error('MetaMask connection failed:', e);
+                toast('MetaMask connection cancelled or failed', 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Connect MetaMask';
             }
-            return mockDoctors;
         }
 
-        async function loadAppointments(filter = 'all') {
-            if (!currentUser) return [];
-            if (isWasmReady) {
-                try {
-                    return await backend.getAppointments(currentUser.id);
-                } catch(e) { console.error('Wasm getAppts:', e); }
+        function copyAddress() {
+            if (mmAccount) {
+                navigator.clipboard.writeText(mmAccount).then(() => toast('Address copied ✓', 'success'));
             }
-            return JSON.parse(localStorage.getItem('dl_appointments') || '[]');
         }
 
-        function updateCredits(newCredits) {
-            if (currentUser) {
-                currentUser.credits = newCredits;
-                localStorage.setItem('dl_current_user', JSON.stringify(currentUser));
+        // ========== SKELETON HELPERS ==========
+        function showSkeleton(id, rows = 3) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let html = '';
+            for (let i = 0; i < rows; i++) {
+                html += '<div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>';
             }
+            el.innerHTML = html;
+        }
+        function showSkeletonTable(id, cols = 4, rows = 4) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let html = '';
+            for (let i = 0; i < rows; i++) {
+                html += '<tr><td colspan="' + cols + '"><div class="skeleton skeleton-line" style="height:16px;margin:8px 0;"></div></td></tr>';
+            }
+            el.innerHTML = html;
+        }
+
+        function updateCredits() {
+            // Fetch fresh credits from API
+            apiCall('/api/credits/balance').then(data => {
+                currentUser.credits = data.credits;
+                document.getElementById('userCredits').textContent = data.credits + ' Credits';
+                document.getElementById('statCredits').textContent = data.credits;
+            }).catch(() => {});
+            
+            // Update appointment badge
+            apiCall('/api/appointments').then(appts => {
+                const pending = appts.filter(a => a.status === 'SCHEDULED').length;
+                document.getElementById('apptBadge').textContent = pending;
+            }).catch(() => {});
         }
 
         // ========== NAVIGATION ==========
@@ -405,79 +881,104 @@
         function navTo(page) {
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+            const prevPage = document.querySelector('[id^="page-"]:not(.hidden)');
             document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-' + page)?.classList.remove('hidden');
-            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            const nextPage = document.getElementById('page-' + page);
+            if (nextPage) {
+                nextPage.classList.remove('hidden');
+                nextPage.classList.remove('page-enter');
+                void nextPage.offsetWidth; // force reflow
+                nextPage.classList.add('page-enter');
+            }
+            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g,' ');
             
-            if (page === 'appointments') loadAppointmentsPage();
-            if (page === 'doctors') loadDoctorsPage();
+            if (page === 'appointments') loadAppointments();
             if (page === 'records') loadRecords();
             if (page === 'prescriptions') loadPrescriptions();
-            if (page === 'payments') loadPayments();
+            if (page === 'health-tools') loadCreditCosts();
+            if (page === 'payments') { loadPayments(); loadEscrow(); }
             if (page === 'profile') loadProfile();
         }
 
         // ========== DASHBOARD ==========
         async function initDashboard() {
-            const [appts, doctors] = await Promise.all([
-                loadAppointments(),
-                loadDoctors()
-            ]);
-            
-            document.getElementById('statAppointments').textContent = appts.length;
-            document.getElementById('statCredits').textContent = currentUser?.credits || 0;
-            document.getElementById('statDoctors').textContent = doctors.length;
-            document.getElementById('statRecords').textContent = 0;
-            
-            // Upcoming appointments
-            const upcoming = appts.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED').slice(0, 3);
-            const apptsContainer = document.getElementById('dashboardAppts');
-            if (upcoming.length === 0) {
-                apptsContainer.innerHTML = '<div class="empty"><p>No upcoming appointments</p></div>';
-            } else {
-                apptsContainer.innerHTML = upcoming.map(a => `
-                    <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
-                        <strong>Doctor</strong><br>
-                        <small>${a.time || a.created}</small><br>
-                        <span class="status status-scheduled">${a.status}</span>
-                    </div>
-                `).join('');
+            try {
+                const [appts, doctors, records] = await Promise.all([
+                    apiCall('/api/appointments'),
+                    apiCall('/api/doctors'),
+                    apiCall('/api/records')
+                ]);
+                
+                document.getElementById('statAppointments').textContent = appts.length;
+                document.getElementById('statCredits').textContent = currentUser.credits;
+                document.getElementById('statDoctors').textContent = doctors.length;
+                document.getElementById('statRecords').textContent = records.length;
+                
+                // Upcoming appointments
+                const upcoming = appts.filter(a => a.status === 'SCHEDULED' || a.status === 'ACTIVE').slice(0, 3);
+                const apptsContainer = document.getElementById('dashboardAppts');
+                if (upcoming.length === 0) {
+                    apptsContainer.innerHTML = '<div class="empty"><p>No upcoming appointments</p></div>';
+                } else {
+                    apptsContainer.innerHTML = upcoming.map(a => `
+                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                            <strong>${a.doctor_name || 'Doctor'}</strong><br>
+                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
+                            <span class="status status-${a.status.toLowerCase()}">${a.status}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                // Recent records
+                const recordsContainer = document.getElementById('dashboardRecords');
+                if (records.length === 0) {
+                    recordsContainer.innerHTML = '<div class="empty"><p>No medical records</p></div>';
+                } else {
+                    recordsContainer.innerHTML = records.slice(0, 3).map(r => `
+                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                            <strong>Visit Summary</strong><br>
+                            <small>${r.summary.substring(0, 50)}...</small>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Dashboard error:', e);
             }
-            
-            // Recent records - placeholder
-            const recordsContainer = document.getElementById('dashboardRecords');
-            recordsContainer.innerHTML = '<div class="empty"><p>No medical records</p></div>';
         }
 
         // ========== DOCTORS ==========
-        async function loadDoctorsPage() {
-            const doctors = await loadDoctors();
-            renderDoctors(doctors);
-            
-            const specialties = [...new Set(doctors.map(d => d.specialty))];
-            const select = document.getElementById('docSpecialty');
-            select.innerHTML = '<option value="">All Specialties</option>' + 
-                specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+        async function loadDoctors() {
+            try {
+                const doctors = await apiCall('/api/doctors');
+                renderDoctors(doctors);
+                
+                // Populate specialty dropdown
+                const specialties = [...new Set(doctors.map(d => d.specialty))];
+                const select = document.getElementById('docSpecialty');
+                select.innerHTML = '<option value="">All Specialties</option>' + 
+                    specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+            } catch (e) {
+                console.error('Load doctors error:', e);
+            }
         }
 
         async function searchDoctors() {
-            const q = document.getElementById('docSearch').value;
-            const spec = document.getElementById('docSpecialty').value;
-            
-            let doctors = await loadDoctors();
-            if (q) doctors = doctors.filter(d => d.specialty?.toLowerCase().includes(q.toLowerCase()) || d.name?.toLowerCase().includes(q.toLowerCase()));
-            if (spec) doctors = doctors.filter(d => d.specialty === spec);
-            renderDoctors(doctors);
-        }
-
-        function renderDoctors(doctors) {
-            const grid = document.getElementById('doctorsGrid');
-            if (!doctors.length) {
-                grid.innerHTML = '<div class="empty">No doctors found</div>';
-                return;
-            }
-            
-            grid.innerHTML = doctors.map(d => {
+            const query = document.getElementById('docSearch').value;
+            const specialty = document.getElementById('docSpecialty').value;
+            showSkeleton('doctorsGrid', 3);
+            try {
+                const params = new URLSearchParams();
+                if (query) params.set('q', query);
+                if (specialty) params.set('specialty', specialty);
+                const doctors = await apiCall('/api/doctors?' + params);
+                
+                const grid = document.getElementById('doctorsGrid');
+                if (!doctors.length) {
+                    grid.innerHTML = '<div class="empty">No doctors found</div>';
+                    return;
+                }
+                
+                grid.innerHTML = doctors.map(d => {
                 // Verification badge
                 let badge = '';
                 if (d.verification_status === 'verified') {
@@ -496,45 +997,54 @@
                     <div class="meta"><i class="fas fa-stethoscope"></i> ${d.specialty}</div>
                     <div class="meta"><i class="fas fa-map-marker-alt"></i> ${d.area}</div>
                     <div class="meta"><i class="fas fa-star"></i> ${d.rating} (${d.review_count} reviews)</div>
-                    <div class="meta"><i class="fas fa-coins"></i> ${d.consultation_fee} credits</div>
+                    <div class="meta"><i class="fas fa-coins"></i> ${d.consultation_fee} credits <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">≈ ${d.consultation_fee * 10} T800</span></div>
                     <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="openBookModal(${d.id})">Book Appointment</button>
                 </div>
             `}).join('');
+            } catch (e) {
+                console.error('Search doctors error:', e);
+            }
         }
 
         // ========== APPOINTMENTS ==========
-        async function loadAppointmentsPage(filter = 'all') {
-            let appts = await loadAppointments(filter);
-            if (filter !== 'all') {
-                appts = appts.filter(a => a.status === filter);
-            }
-            
-            const tbody = document.getElementById('appointmentsTable');
-            if (!appts.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = appts.map(a => {
-                const isScheduled = a.status === 'PENDING' || a.status === 'CONFIRMED';
-                const isActive = a.status === 'ACTIVE';
-                const isCompleted = a.status === 'COMPLETED';
+        async function loadAppointments(filter = 'all') {
+            showSkeletonTable('appointmentsTable', 5);
+            try {
+                const url = filter === 'all' ? '/api/appointments' : `/api/appointments?status_filter=${filter}`;
+                const appts = await apiCall(url);
                 
-                let actionButtons = '';
-                if (isScheduled) {
-                    actionButtons = '<button class="btn btn-sm btn-danger" onclick="cancelAppt(\'' + a.id + '\')">Cancel</button>';
-                } else if (isCompleted) {
-                    actionButtons = '<span style="color:var(--text-light)">Completed</span>';
+                const tbody = document.getElementById('appointmentsTable');
+                if (!appts.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
+                    return;
                 }
                 
-                return '<tr>' +
-                    '<td>Doctor</td>' +
-                    '<td>' + (a.time || a.created || '-') + '</td>' +
-                    '<td>' + (a.type || 'Video Call') + '</td>' +
-                    '<td><span class="status status-scheduled">' + a.status + '</span></td>' +
-                    '<td>' + actionButtons + '</td>' +
-                '</tr>';
-            }).join('');
+                tbody.innerHTML = appts.map(a => {
+                    const isScheduled = a.status === 'SCHEDULED';
+                    const isActive = a.status === 'ACTIVE';
+                    const isCompleted = a.status === 'COMPLETED';
+                    
+                    let actionButtons = '';
+                    if (isActive) {
+                        actionButtons = '<button class="btn btn-sm btn-accent" onclick="joinCall(' + a.id + ')">Join Call</button>';
+                    } else if (isScheduled) {
+                        actionButtons = '<button class="btn btn-sm btn-secondary" onclick="joinWaitingRoom(' + a.id + ')">Join Waiting Room</button>' +
+                                        '<button class="btn btn-sm btn-danger" style="margin-left:0.5rem" onclick="cancelAppt(' + a.id + ')">Cancel</button>';
+                    } else if (isCompleted) {
+                        actionButtons = '<span style="color:var(--text-light)">Completed</span>';
+                    }
+                    
+                    return '<tr>' +
+                        '<td>' + (a.doctor_name || 'Doctor') + '</td>' +
+                        '<td>' + new Date(a.timestamp).toLocaleDateString() + '</td>' +
+                        '<td>' + a.appointment_type + '</td>' +
+                        '<td><span class="status status-' + a.status.toLowerCase() + '">' + a.status + '</span></td>' +
+                        '<td>' + actionButtons + '</td>' +
+                    '</tr>';
+                }).join('');
+            } catch (e) {
+                console.error('Load appointments error:', e);
+            }
         }
 
         function filterAppts(status, tab) {
@@ -545,7 +1055,12 @@
 
         async function cancelAppt(id) {
             if (!confirm('Cancel this appointment?')) return;
-            loadAppointmentsPage();
+            try {
+                await apiCall(`/api/appointments/${id}`, { method: 'DELETE' });
+                loadAppointments();
+            } catch (e) {
+                alert('Failed to cancel');
+            }
         }
 
         function joinCall(id) {
@@ -553,102 +1068,571 @@
         }
         
         async function joinWaitingRoom(id) {
-            alert('Waiting room feature coming soon');
+            try {
+                const result = await apiCall(`/api/waiting-room/join/${id}`, { method: 'POST' });
+                if (result.waiting) {
+                    alert(`You're in position ${result.position} in the waiting room. Please wait.`);
+                    // Refresh to see updated status
+                    loadAppointments();
+                } else {
+                    toast(result.message || 'Appointment not ready yet', 'warning');
+                }
+            } catch (e) {
+                toast('Error: ' + e.message, 'error');
+            }
         }
 
         // ========== RECORDS ==========
         async function loadRecords() {
-            const tbody = document.getElementById('recordsTable');
-            tbody.innerHTML = '<tr><td colspan="3" class="empty">No medical records</td></tr>';
+            try {
+                const records = await apiCall('/api/records');
+                const tbody = document.getElementById('recordsTable');
+                
+                if (!records.length) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="empty">No medical records</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = records.map(r => `
+                    <tr>
+                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                        <td>Doctor</td>
+                        <td>${r.summary.substring(0, 50)}...</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load records error:', e);
+            }
         }
 
         // ========== PRESCRIPTIONS ==========
         async function loadPrescriptions() {
-            const tbody = document.getElementById('prescriptionsTable');
-            tbody.innerHTML = '<tr><td colspan="4" class="empty">No prescriptions</td></tr>';
+            try {
+                const scripts = await apiCall('/api/prescriptions');
+                const tbody = document.getElementById('prescriptionsTable');
+                
+                if (!scripts.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No prescriptions</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = scripts.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                        <td>${p.medication}</td>
+                        <td>${p.dosage}</td>
+                        <td>${p.instructions || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load prescriptions error:', e);
+            }
         }
 
         // ========== PAYMENTS ==========
         async function loadPayments() {
-            const balance = currentUser?.credits || 0;
-            document.getElementById('creditBalance').textContent = balance;
-            
-            const txns = currentUser ? await backend.getTransactions(currentUser.id).catch(() => []) : [];
-            const tbody = document.getElementById('transactionsTable');
-            
-            if (!txns.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">No transactions</td></tr>';
-                return;
+            try {
+                const balance = await apiCall('/api/credits/balance');
+                document.getElementById('creditBalance').textContent = balance.credits;
+                
+                const txns = await apiCall('/api/credits/transactions');
+                const tbody = document.getElementById('transactionsTable');
+                
+                if (!txns.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No transactions</td></tr>';
+                } else {
+                    tbody.innerHTML = txns.map(t => `
+                        <tr>
+                            <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                            <td>${t.description || t.transaction_type}</td>
+                            <td style="color:${t.payment_status === 'completed' ? 'var(--accent)' : 'var(--text-light)'}">${t.amount}</td>
+                            <td>${t.payment_status}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Load T800 balance
+                ['t800Balance','t800FeeDisplay'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '...';
+                });
+                try {
+                    const t800 = await apiCall('/api/somnia/agent/t800/balance');
+                    document.getElementById('t800Balance').textContent = Number(t800.t800_balance).toFixed(2);
+                    document.getElementById('t800FeeDisplay').textContent = t800.t800_fee_per_invocation || 10;
+                } catch(e) {
+                    document.getElementById('t800Balance').textContent = 'N/A';
+                }
+
+                try {
+                    const t800info = await apiCall('/api/somnia/agent/t800/info');
+                    if (t800info.t800_contract) document.getElementById('t800ContractDisplay').textContent = t800info.t800_contract;
+                    if (t800info.router_contract) document.getElementById('t800RouterDisplay').textContent = t800info.router_contract;
+                } catch(e) {
+                    // fallback addresses already in HTML
+                }
+
+            } catch (e) {
+                console.error('Load payments error:', e);
             }
-            
-            tbody.innerHTML = txns.map(t => `
-                <tr>
-                    <td>${t.time || '-'}</td>
-                    <td>${t.desc || t.type}</td>
-                    <td style="color:${t.type === 'EARNING' ? 'var(--accent)' : 'var(--text-light)'}">${t.amount}</td>
-                    <td>${t.type}</td>
-                </tr>
-            `).join('');
         }
 
         async function purchaseCredits(amount) {
             if (!confirm(`Purchase ${amount} credits for R${amount}?`)) return;
-            await backend.addCredits(currentUser.id, amount);
-            currentUser.credits = (currentUser.credits || 0) + amount;
-            updateCredits(currentUser.credits);
-            loadPayments();
-            alert(`Successfully purchased ${amount} credits!`);
+            const btns = document.querySelectorAll('.purchase-btn[data-amount="' + amount + '"]');
+            btns.forEach(b => { b.classList.add('loading'); b.disabled = true; });
+            try {
+                const result = await apiCall('/api/credits/purchase', {
+                    method: 'POST',
+                    body: JSON.stringify({ amount })
+                });
+                currentUser.credits = result.new_balance;
+                updateCredits();
+                loadPayments();
+                toast(`Successfully purchased ${amount} credits ✓`, 'success');
+            } catch (e) {
+                toast('Purchase failed: ' + e.message, 'error');
+            }
+            btns.forEach(b => { b.classList.remove('loading'); b.disabled = false; });
+        }
+
+        async function claimT800() {
+            const btn = document.getElementById('claimT800Btn');
+            btn.classList.add('loading'); btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span><span class="btn-text">Claiming...</span>';
+            try {
+                const result = await apiCall('/api/somnia/agent/t800/faucet', { method: 'POST' });
+                document.getElementById('claimT800Result').style.display = 'block';
+                document.getElementById('claimT800Result').innerHTML =
+                    `<span style="color:var(--accent)">✓ ${result.message}</span> Balance: ${result.t800_balance} T800`;
+                document.getElementById('t800Balance').textContent = Number(result.t800_balance).toFixed(2);
+                btn.textContent = 'Claimed ✓';
+            } catch (e) {
+                document.getElementById('claimT800Result').style.display = 'block';
+                document.getElementById('claimT800Result').innerHTML =
+                    `<span style="color:var(--danger)">✗ ${e.message}</span>`;
+                btn.classList.remove('loading'); btn.disabled = false; btn.innerHTML = '<span class="spinner"></span><span class="btn-text">Claim T800</span>';
+            }
+        }
+
+        // ========== HEALTH TOOLS ==========
+        async function loadCreditCosts() {
+            showSkeleton('creditCostsList', 3);
+            try {
+                const costs = await apiCall('/api/somnia/agent/credit-costs');
+                const list = document.getElementById('creditCostsList');
+                list.innerHTML = '<table class="table"><thead><tr><th>Feature</th><th>Credits</th></tr></thead><tbody>' +
+                    Object.entries(costs).map(([k, v]) =>
+                        `<tr><td>${k.replace(/_/g, ' ')}</td><td><strong>${v}</strong></td></tr>`
+                    ).join('') +
+                    '</tbody></table>';
+            } catch (e) {
+                document.getElementById('creditCostsList').innerHTML = '<div class="empty">Could not load costs</div>';
+            }
+            // Load STT cost independently (don't block credit costs on STT)
+            try {
+                const stt = await apiCall('/api/somnia/agent/stt/cost');
+                document.getElementById('sttCostBadge').style.display = 'block';
+                document.getElementById('sttCostText').textContent =
+                    `~${Number(stt.total_stt).toFixed(4)} STT per invocation (1 STT = 30 T800)`;
+            } catch (e) {
+                document.getElementById('sttCostBadge').style.display = 'block';
+                document.getElementById('sttCostText').textContent = '~0.57 STT per invocation (1 STT = 30 T800)';
+            }
+        }
+
+        let pollInterval = null;
+
+        async function runSymptomCheck() {
+            const input = document.getElementById('symptomInput').value.trim();
+            if (!input) { toast('Please describe your symptoms', 'warning'); return; }
+            const resultDiv = document.getElementById('symptomResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitting to Somnia LLM Agent...</div>';
+            try {
+                const resp = await apiCall('/api/somnia/agent/symptom-check', {
+                    method: 'POST',
+                    body: JSON.stringify({ symptoms: input })
+                });
+                resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling for result...';
+                let pollStart = Date.now();
+                pollInterval = setInterval(async () => {
+                    if (Date.now() - pollStart > 120000) {
+                        clearInterval(pollInterval);
+                        resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
+                        return;
+                    }
+                    try {
+                        const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                        if (status.status === 'success') {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Result:</strong><br>' + status.result;
+                        } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result available');
+                        } else {
+                            resultDiv.textContent = 'Waiting for agent response (ID: ' + resp.request_id + ')...';
+                        }
+                    } catch(e) {
+                        resultDiv.textContent = 'Polling: ' + e.message;
+                    }
+                }, 3000);
+            } catch (e) {
+                if (e.message.includes('402') || e.message.includes('insufficient credits')) {
+                    resultDiv.textContent = 'Insufficient credits. Please purchase more credits.';
+                } else {
+                    resultDiv.textContent = 'Error: ' + e.message;
+                }
+            }
+        }
+
+        async function runDrugCheck() {
+            const input = document.getElementById('drugInput').value.trim();
+            if (!input) { toast('Enter medications separated by commas', 'warning'); return; }
+            const resultDiv = document.getElementById('drugResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.textContent = 'Submitting to Somnia LLM Agent...';
+            try {
+                const medications = input.split(',').map(m => m.trim()).filter(Boolean);
+                const resp = await apiCall('/api/somnia/agent/drug-interaction', {
+                    method: 'POST',
+                    body: JSON.stringify({ medications })
+                });
+                resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling for result...';
+                let pollStart = Date.now();
+                pollInterval = setInterval(async () => {
+                    if (Date.now() - pollStart > 120000) {
+                        clearInterval(pollInterval);
+                        resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
+                        return;
+                    }
+                    try {
+                        const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                        if (status.status === 'success') {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Interaction Result:</strong><br>' + status.result;
+                        } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
+                        } else {
+                            resultDiv.textContent = 'Waiting for response...';
+                        }
+                    } catch(e) {
+                        resultDiv.textContent = 'Polling: ' + e.message;
+                    }
+                }, 3000);
+            } catch (e) {
+                if (e.message.includes('402')) {
+                    resultDiv.textContent = 'Insufficient credits.';
+                } else {
+                    resultDiv.textContent = 'Error: ' + e.message;
+                }
+            }
+        }
+
+        async function _pollResult(resp, resultDiv) {
+            resultDiv.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div class="poll-status" style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitted (ID: ' + resp.request_id + '). Polling...</div>';
+            let pollStart = Date.now();
+            const maxPoll = 120000;
+            const interval = setInterval(async () => {
+                const elapsed = Date.now() - pollStart;
+                const pct = Math.min(95, (elapsed / maxPoll) * 100);
+                const bar = resultDiv.querySelector('.poll-progress-fill');
+                const status = resultDiv.querySelector('.poll-status');
+                if (bar) bar.style.width = pct + '%';
+                if (status) status.textContent = 'Waiting for agent response... (' + Math.floor(elapsed / 1000) + 's)';
+                if (elapsed > maxPoll) {
+                    clearInterval(interval);
+                    resultDiv.innerHTML = '<strong>Timed out</strong> — no response after 120s. Please try again.';
+                    return;
+                }
+                try {
+                    const st = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                    if (st.status === 'success') {
+                        clearInterval(interval);
+                        if (bar) bar.style.width = '100%';
+                        resultDiv.innerHTML = '<strong>Result:</strong><br>' + st.result;
+                    } else if (['failed', 'timedout', 'archived'].includes(st.status)) {
+                        clearInterval(interval);
+                        resultDiv.innerHTML = '<strong>Agent ' + st.status + ':</strong> ' + (st.result || 'No result');
+                    }
+                } catch(e) {
+                    if (status) status.textContent = 'Polling... (' + Math.floor(elapsed / 1000) + 's)';
+                }
+            }, 3000);
+        }
+
+        async function runSymptomCheckStt() {
+            const input = document.getElementById('symptomInput').value.trim();
+            if (!input) { toast('Please describe your symptoms', 'warning'); return; }
+            const resultDiv = document.getElementById('symptomResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.textContent = 'Submitting via STT...';
+            try {
+                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
+                    method: 'POST',
+                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Patient symptoms: ' + input + '. Provide triage assessment.', system_prompt: 'You are a medical triage assistant.' })
+                });
+                _pollResult(resp, resultDiv);
+            } catch (e) {
+                resultDiv.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function runDrugCheckStt() {
+            const input = document.getElementById('drugInput').value.trim();
+            if (!input) { toast('Enter medications', 'warning'); return; }
+            const resultDiv = document.getElementById('drugResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.textContent = 'Submitting via STT...';
+            try {
+                const medications = input.split(',').map(m => m.trim()).filter(Boolean);
+                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
+                    method: 'POST',
+                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Check interactions between these medications: ' + medications.join(', '), system_prompt: 'You are a clinical pharmacist.' })
+                });
+                _pollResult(resp, resultDiv);
+            } catch (e) {
+                resultDiv.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function runHealthTips() {
+            const input = document.getElementById('tipsInput').value.trim();
+            if (!input) { toast('Enter a health topic', 'warning'); return; }
+            const resultDiv = document.getElementById('tipsResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitting to Somnia LLM Agent...</div>';
+            try {
+                const resp = await apiCall('/api/somnia/agent/health-tips', {
+                    method: 'POST',
+                    body: JSON.stringify({ topic: input })
+                });
+                resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling...';
+                let pollStart = Date.now();
+                pollInterval = setInterval(async () => {
+                    if (Date.now() - pollStart > 120000) {
+                        clearInterval(pollInterval);
+                        resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
+                        return;
+                    }
+                    try {
+                        const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                        if (status.status === 'success') {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Health Tips:</strong><br>' + status.result;
+                        } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
+                        }
+                    } catch(e) {
+                        resultDiv.textContent = 'Polling: ' + e.message;
+                    }
+                }, 3000);
+            } catch (e) {
+                if (e.message.includes('402')) {
+                    resultDiv.textContent = 'Insufficient credits.';
+                } else {
+                    resultDiv.textContent = 'Error: ' + e.message;
+                }
+            }
+        }
+
+        async function runGenerateSummary() {
+            const input = document.getElementById('summaryInput').value.trim();
+            if (!input) { toast('Enter consultation notes', 'warning'); return; }
+            const resultDiv = document.getElementById('summaryResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitting to Somnia LLM Agent...</div>';
+            try {
+                const resp = await apiCall('/api/somnia/agent/generate-summary', {
+                    method: 'POST',
+                    body: JSON.stringify({ consultation_notes: input })
+                });
+                resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling...';
+                let pollStart = Date.now();
+                pollInterval = setInterval(async () => {
+                    if (Date.now() - pollStart > 120000) {
+                        clearInterval(pollInterval);
+                        resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
+                        return;
+                    }
+                    try {
+                        const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                        if (status.status === 'success') {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Summary:</strong><br>' + status.result;
+                        } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
+                        }
+                    } catch(e) {
+                        resultDiv.textContent = 'Polling: ' + e.message;
+                    }
+                }, 3000);
+            } catch (e) {
+                if (e.message.includes('402')) {
+                    resultDiv.textContent = 'Insufficient credits.';
+                } else {
+                    resultDiv.textContent = 'Error: ' + e.message;
+                }
+            }
         }
 
         // ========== PROFILE ==========
         function loadProfile() {
-            document.getElementById('profileName').value = currentUser?.name || '';
-            document.getElementById('profileEmail').value = currentUser?.email || '';
-            document.getElementById('profilePhone').value = currentUser?.phone || '';
-            document.getElementById('profileRole').value = currentUser?.role || 'PATIENT';
+            document.getElementById('profileName').value = currentUser.name;
+            document.getElementById('profileEmail').value = currentUser.email;
+            document.getElementById('profilePhone').value = currentUser.phone || '';
+            document.getElementById('profileRole').value = currentUser.role;
         }
 
         function saveProfile() {
-            alert('Profile saved!');
+            toast('Profile saved ✓', 'success');
         }
 
         // ========== BOOKING ==========
-        let selectedDoctor = null;
-
-        function openBookModal(docId) {
-            loadDoctors().then(doctors => {
-                selectedDoctor = doctors.find(d => d.id === docId) || doctors[0];
-                if (!selectedDoctor) return;
+        async function openBookModal(docId) {
+            try {
+                const doctor = await apiCall(`/api/doctors/${docId}`);
+                selectedDoctor = doctor;
                 document.getElementById('bookDoctorInfo').innerHTML = `
                     <div style="background:var(--light);padding:1rem;border-radius:8px;margin-bottom:1rem">
-                        <strong>${selectedDoctor.name || 'Doctor'}</strong><br>
-                        <span>${selectedDoctor.specialty || 'General'} - ${selectedDoctor.area || 'Online'}</span>
+                        <strong>${doctor.name}</strong><br>
+                        <span>${doctor.specialty} - ${doctor.area}</span>
                     </div>
                 `;
-                document.getElementById('bookCost').textContent = selectedDoctor.video_call_price || 150;
+                document.getElementById('bookCost').textContent = doctor.consultation_fee;
+                const t800Cost = doctor.consultation_fee * 10;
+                document.getElementById('bookCostT800').textContent = t800Cost;
+
+                // Check user's T800 balance and update checkbox state
+                let t800Bal = 0;
+                try {
+                    const t800 = await apiCall('/api/somnia/agent/t800/balance');
+                    t800Bal = Number(t800.t800_balance) || 0;
+                } catch(e) {}
+                const payWithT800 = document.getElementById('payWithT800');
+                const t800Hint = document.getElementById('t800BookHint');
+                payWithT800.checked = false;
+                if (t800Bal >= t800Cost) {
+                    payWithT800.disabled = false;
+                    payWithT800.title = `You have ${t800Bal.toFixed(0)} T800 — enough to pay`;
+                    t800Hint.textContent = `✓ You have ${t800Bal.toFixed(0)} T800`;
+                    t800Hint.style.color = 'var(--accent)';
+                } else {
+                    payWithT800.disabled = true;
+                    payWithT800.title = `Need ${t800Cost} T800, you have ${t800Bal.toFixed(0)}. Claim free T800 from Payments page`;
+                    t800Hint.textContent = `Need ${t800Cost} T800 — you have ${t800Bal.toFixed(0)} (get free T800 in Payments)`;
+                    t800Hint.style.color = 'var(--text-light)';
+                }
+
                 document.getElementById('bookModal').classList.add('active');
-            });
+            } catch(e) {
+                toast('Error loading doctor: ' + e.message, 'error');
+            }
         }
 
         async function confirmBooking() {
             const type = document.getElementById('bookType').value;
             const datetime = document.getElementById('bookDateTime').value;
             const reason = document.getElementById('bookReason').value;
+            const useSomnia = document.getElementById('payWithSomnia').checked;
+            const useT800 = document.getElementById('payWithT800').checked;
             
-            if (!datetime) { alert('Please select date and time'); return; }
+            if (!datetime) { toast('Please select date and time', 'warning'); return; }
+
+            const bookBtn = document.querySelector('#bookModal .btn-primary');
+            if (bookBtn) { bookBtn.classList.add('loading'); bookBtn.disabled = true; }
             
-            const cost = selectedDoctor?.video_call_price || 150;
-            if ((currentUser?.credits || 0) < cost) {
-                alert('Insufficient credits. Please purchase more.');
-                return;
+            try {
+                const appt = await apiCall('/api/appointments', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        doctor_id: selectedDoctor.id,
+                        timestamp: new Date(datetime).toISOString(),
+                        appointment_type: type,
+                        reason: reason
+                    })
+                });
+
+                let paymentMethod = 'credits';
+                if (useSomnia) paymentMethod = 'stt';
+                if (useT800) paymentMethod = 't800';
+                
+                if (paymentMethod === 'stt') {
+                    toast('Initiating Somnia On-Chain Escrow...', 'info', 3000);
+                    try {
+                        const escrowResult = await apiCall(`/api/appointments/${appt.id}/pay-with-somnia`, {
+                            method: 'POST'
+                        });
+                        toast('STT payment deposited! Hash: ' + escrowResult.somnia_tx_hash.substring(0, 10) + '... ✓', 'success');
+                    } catch (escrowErr) {
+                        toast('On-chain escrow failed: ' + escrowErr.message + '. Using credits instead.', 'error');
+                    }
+                } else if (paymentMethod === 't800') {
+                    toast('Initiating T800 token payment...', 'info', 3000);
+                    try {
+                        const t800Result = await apiCall(`/api/appointments/${appt.id}/pay-with-t800`, {
+                            method: 'POST'
+                        });
+                        toast('T800 payment sent successfully ✓', 'success');
+                    } catch (t800Err) {
+                        toast('T800 payment failed: ' + t800Err.message + '. Booking completed with credits.', 'error');
+                    }
+                } else {
+                    toast('Appointment booked successfully ✓', 'success');
+                }
+                
+                closeModal('bookModal');
+                updateCredits();
+                updateSomniaBalance();
+                if (typeof loadPayments === 'function') loadPayments();
+                if (typeof loadEscrow === 'function') loadEscrow();
+            } catch (e) {
+                toast('Booking failed: ' + e.message, 'error');
             }
-            
-            await backend.createAppointment(currentUser.id, selectedDoctor.id, type, datetime, cost);
-            
-            closeModal('bookModal');
-            alert('Appointment booked successfully!');
-            currentUser.credits -= cost;
-            updateCredits(currentUser.credits);
+            if (bookBtn) { bookBtn.classList.remove('loading'); bookBtn.disabled = false; }
+        }
+
+        async function loadEscrow() {
+            const container = document.getElementById('escrowList');
+            container.innerHTML = '<div class="skeleton-card" style="padding:12px"><div class="skeleton skeleton-line" style="width:100%"></div><div class="skeleton skeleton-line med"></div><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line med"></div></div>';
+            try {
+                const appts = await apiCall('/api/appointments');
+                const somniaAppts = appts.filter(a => a.escrow_status && a.escrow_status !== 'NONE');
+                
+                if (somniaAppts.length === 0) {
+                    container.innerHTML = '<div class="empty"><i class="fas fa-link" style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3"></i><br>No on-chain escrow transactions</div>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div style="overflow-x:auto">
+                    <table class="table">
+                        <thead><tr><th>ID</th><th>Doctor</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+                        <tbody>
+                            ${somniaAppts.map(a => {
+                                const status = (a.escrow_status || '').toLowerCase();
+                                const fee = a.consultation_fee || a.base_price || a.price_credits || 0;
+                                const method = a.payment_method || 'stt';
+                                const amountDisplay = method === 't800' ? fee * 10 + ' T800' : fee + ' STT';
+                                const statusClass = status === 'released' ? 'status-released' : status === 'funded' ? 'status-funded' : status === 'pending' ? 'status-pending' : 'status-' + status;
+                                return `<tr>
+                                    <td>#${a.id}</td>
+                                    <td>${a.doctor_name || '—'}</td>
+                                    <td>${amountDisplay}</td>
+                                    <td><span style="font-size:0.75rem;padding:2px 6px;border-radius:4px;background:${method==='t800'?'#05966920':'#0052cc20'};color:${method==='t800'?'#059669':'var(--primary)'};font-weight:600">${method.toUpperCase()}</span></td>
+                                    <td><span class="status ${statusClass}">${a.escrow_status}</span></td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    </div>
+                `;
+            } catch (e) {
+                container.innerHTML = '<div class="empty">Failed to load escrow data</div>';
+            }
         }
 
         function closeModal(id) {
@@ -656,8 +1640,13 @@
         }
 
         // Check session on load
-        if (currentUser) {
-            showApp();
+        if (authToken) {
+            apiCall('/api/auth/me').then(user => {
+                currentUser = user;
+                showApp();
+            }).catch(() => {
+                localStorage.removeItem('token');
+            });
         }
     </script>
 </body>

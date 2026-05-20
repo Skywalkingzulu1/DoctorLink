@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T-800 Admin Dashboard — DoctorLink</title>
+<script src="config.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh; }
+
+/* Layout */
+h1 { font-size: 1.5rem; margin-bottom: 4px; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
+.subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; animation: fadeInUp 0.4s ease both; }
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.10s; }
+.card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.20s; }
+.card:nth-child(5) { animation-delay: 0.25s; }
+.card:nth-child(6) { animation-delay: 0.30s; }
+.card:nth-child(7) { animation-delay: 0.35s; }
+.card:nth-child(8) { animation-delay: 0.40s; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.card h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card h2 span { color: #38bdf8; }
+.stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1e293b; font-size: 0.88rem; }
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: #94a3b8; }
+.stat-value { color: #f1f5f9; font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 0.82rem; }
+.stat-value.green { color: #4ade80; }
+.stat-value.blue { color: #38bdf8; }
+.stat-value.yellow { color: #fbbf24; }
+.stat-value.purple { color: #a78bfa; }
+.stat-value.red { color: #f87171; }
+.stat-value.orange { color: #fb923c; }
+.address { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 0.75rem; color: #64748b; word-break: break-all; }
+.address a { color: #38bdf8; text-decoration: none; }
+.address a:hover { text-decoration: underline; }
+.status-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.green { background: #4ade80; box-shadow: 0 0 6px #4ade8080; }
+.dot.red { background: #f87171; box-shadow: 0 0 6px #f8717180; }
+.dot.yellow { background: #fbbf24; box-shadow: 0 0 6px #fbbf2480; }
+
+/* Refresh bar */
+.refresh-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.last-updated { color: #64748b; font-size: 0.8rem; }
+.countdown { color: #475569; font-size: 0.75rem; margin-left: 8px; }
+
+/* Buttons */
+.refresh-btn { background: #334155; border: 1px solid #475569; color: #e2e8f0; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.refresh-btn:hover { background: #475569; border-color: #64748b; }
+.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.refresh-btn .spinner { width: 14px; height: 14px; border: 2px solid #475569; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+.refresh-btn.loading .spinner { display: inline-block; }
+.refresh-btn.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Action buttons */
+.action-btn { background: #334155; border: 1px solid #475569; color: #e2e8f0; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+.action-btn:hover { background: #475569; }
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.action-btn .spinner { width: 12px; height: 12px; border: 2px solid #475569; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+.action-btn.loading .spinner { display: inline-block; }
+.action-btn.loading .action-text { display: none; }
+
+/* Copy button */
+.copy-btn { background: none; border: none; cursor: pointer; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; transition: all 0.2s; margin-left: 4px; }
+.copy-btn:hover { color: #38bdf8; background: #334155; }
+.copy-btn.copied { color: #4ade80; }
+
+/* Skeleton loading */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: 4px; }
+.skeleton-line { height: 14px; margin: 8px 0; width: 100%; }
+.skeleton-line.short { width: 60%; }
+.skeleton-line.med { width: 80%; }
+.skeleton-line.micro { width: 30%; height: 10px; }
+.skeleton-card { min-height: 120px; padding: 20px; }
+.skeleton-donut { width: 120px; height: 120px; border-radius: 50%; margin: 10px auto; }
+.skeleton-bar { height: 24px; border-radius: 6px; margin: 8px 0; }
+
+/* Hero metrics */
+.hero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.hero-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px 20px; animation: fadeInUp 0.4s ease both; }
+.hero-card:nth-child(1) { animation-delay: 0s; }
+.hero-card:nth-child(2) { animation-delay: 0.05s; }
+.hero-card:nth-child(3) { animation-delay: 0.10s; }
+.hero-card:nth-child(4) { animation-delay: 0.15s; }
+.hero-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 4px; }
+.hero-value { font-size: 1.6rem; font-weight: 600; font-family: 'JetBrains Mono', 'Consolas', monospace; color: #f1f5f9; line-height: 1.2; }
+.hero-value.green { color: #4ade80; }
+.hero-value.blue { color: #38bdf8; }
+.hero-value.purple { color: #a78bfa; }
+.hero-value.yellow { color: #fbbf24; }
+.hero-sub { font-size: 0.7rem; color: #475569; margin-top: 2px; }
+
+/* Donut chart */
+.donut-container { display: flex; align-items: center; gap: 20px; margin: 10px 0; }
+.donut-legend { flex: 1; }
+.donut-legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; padding: 3px 0; }
+.donut-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.donut-legend-value { margin-left: auto; font-family: 'JetBrains Mono', 'Consolas', monospace; color: #e2e8f0; }
+.donut-legend-pct { color: #64748b; font-size: 0.7rem; margin-left: 4px; }
+
+/* Stacked bar */
+.stacked-bar { height: 28px; border-radius: 6px; display: flex; overflow: hidden; margin: 12px 0; }
+.stacked-bar .seg { height: 100%; transition: width 0.6s ease; position: relative; }
+.stacked-bar .seg:first-child { border-radius: 6px 0 0 6px; }
+.stacked-bar .seg:last-child { border-radius: 0 6px 6px 0; }
+.stacked-bar .seg:only-child { border-radius: 6px; }
+.bar-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.bar-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #94a3b8; }
+
+/* Vesting */
+.schedule-item { padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.82rem; }
+.schedule-item:last-child { border-bottom: none; }
+.schedule-item .benef { color: #38bdf8; }
+.progress-bar { height: 4px; background: #1e293b; border-radius: 2px; margin-top: 4px; }
+.progress-fill { height: 100%; background: #4ade80; border-radius: 2px; transition: width 0.5s ease; }
+
+/* Error */
+.error-msg { color: #f87171; padding: 20px; text-align: center; }
+.loading-text { text-align: center; padding: 40px; color: #64748b; }
+
+/* Toast */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; min-width: 280px; max-width: 420px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: toastIn 0.3s ease both; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+.toast.toast-out { animation: toastOut 0.3s ease both; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+.toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+.toast-msg { flex: 1; color: #e2e8f0; }
+.toast-close { background: none; border: none; color: #475569; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+.toast-close:hover { color: #94a3b8; }
+.toast.success { border-left: 3px solid #4ade80; }
+.toast.success .toast-icon { color: #4ade80; }
+.toast.error { border-left: 3px solid #f87171; }
+.toast.error .toast-icon { color: #f87171; }
+.toast.info { border-left: 3px solid #38bdf8; }
+.toast.info .toast-icon { color: #38bdf8; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 500; }
+.badge.green { background: #16653440; color: #4ade80; border: 1px solid #166534; }
+.badge.red { background: #7f1d1d40; color: #f87171; border: 1px solid #7f1d1d; }
+.badge.yellow { background: #713f1240; color: #fbbf24; border: 1px solid #713f12; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  body { padding: 10px; }
+  .grid { grid-template-columns: 1fr; }
+  .hero-grid { grid-template-columns: 1fr 1fr; }
+  .hero-value { font-size: 1.2rem; }
+  .refresh-bar { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span id="statusDot" class="dot green"></span>
+  <span id="chainStatus">Somnia Testnet (50312)</span>
+</div>
+
+<div class="refresh-bar">
+  <div>
+    <h1>T-800 Ecosystem <span style="font-size:0.7rem;color:#475569;font-weight:400;">Admin Dashboard</span></h1>
+    <div class="subtitle" style="margin-bottom:0;">Deployer: <span id="deployerAddr" class="address" style="cursor:pointer;" onclick="copyText(this.textContent,'Deployer address')"></span> <button class="copy-btn" id="deployerCopy" onclick="copyText(document.getElementById('deployerAddr').textContent,'Deployer address')">📋</button></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span class="last-updated"><span id="lastUpdated"></span><span class="countdown" id="countdown"></span></span>
+    <button class="refresh-btn" id="refreshBtn" onclick="triggerRefresh()"><span class="spinner"></span><span class="btn-text">Refresh</span></button>
+  </div>
+</div>
+
+<!-- Hero Metrics -->
+<div class="hero-grid" id="heroGrid">
+  <div class="hero-card" id="heroPrice"><div class="hero-label">T800 Price</div><div class="hero-value skeleton" style="height:1.6rem;width:80px;">&nbsp;</div></div>
+  <div class="hero-card" id="heroDeployerStt"><div class="hero-label">STT in Deployer</div><div class="hero-value skeleton" style="height:1.6rem;width:100px;">&nbsp;</div></div>
+  <div class="hero-card" id="heroT800Collected"><div class="hero-label">T800 Collected</div><div class="hero-value skeleton" style="height:1.6rem;width:80px;">&nbsp;</div></div>
+  <div class="hero-card" id="heroTvl"><div class="hero-label">Ecosystem TVL</div><div class="hero-value skeleton" style="height:1.6rem;width:100px;">&nbsp;</div></div>
+</div>
+
+<div class="grid" id="mainGrid">
+  <!-- T800 Token -->
+  <div class="card" id="cardT800">
+    <h2><span>T800</span> Token <span id="t800Badge" class="badge green" style="display:none;"></span></h2>
+    <div id="t800Stats" class="skeleton-card"></div>
+  </div>
+
+  <!-- Router -->
+  <div class="card" id="cardRouter">
+    <h2><span>AgentPaymentRouter</span></h2>
+    <div id="routerStats" class="skeleton-card"></div>
+  </div>
+
+  <!-- DEX -->
+  <div class="card" id="cardDex">
+    <h2><span>T800DEX</span></h2>
+    <div id="dexStats" class="skeleton-card"></div>
+  </div>
+
+  <!-- STT Contract Balances -->
+  <div class="card" id="cardStt">
+    <h2><span>STT</span> Contract Balances</h2>
+    <div id="sttBalances" class="skeleton-card"></div>
+  </div>
+
+  <!-- P&L -->
+  <div class="card" id="cardPl">
+    <h2><span>P&amp;L</span> &amp; Equity</h2>
+    <div id="plStats" class="skeleton-card"></div>
+  </div>
+
+  <!-- Recovery -->
+  <div class="card" id="cardRecover">
+    <h2><span>Recover</span> Funds</h2>
+    <div id="recoverPanel" class="skeleton-card"></div>
+  </div>
+
+  <!-- Vesting -->
+  <div class="card" id="cardVesting" style="grid-column: 1 / -1;">
+    <h2><span>Vesting</span> Schedules <span id="scheduleCount"></span></h2>
+    <div id="vestingSchedules" class="skeleton-card"></div>
+  </div>
+
+  <!-- Contract Addresses -->
+  <div class="card" id="cardAddrs" style="grid-column: 1 / -1;">
+    <h2><span>Contract</span> Addresses</h2>
+    <div id="contractAddresses" class="skeleton-card"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ========== TOAST SYSTEM ==========
+function toast(msg, type = 'info', duration = 4000) {
+  const container = document.getElementById('toastContainer');
+  const icons = { success: '✓', error: '✗', info: 'ℹ' };
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.classList.add('toast-out');setTimeout(()=>this.parentElement.remove(),300)">×</button>`;
+  container.appendChild(el);
+  setTimeout(() => { if (el.parentElement) { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); } }, duration);
+}
+
+// ========== FORMAT HELPERS ==========
+const BASE = window.API_BASE_URL + '/api/somnia/admin';
+
+function fmt(n, decimals = 18) {
+  if (n === null || n === undefined || n === 0) return '0.00';
+  const val = Number(n) / 10 ** decimals;
+  if (val >= 1_000_000) return val.toLocaleString(undefined, {maximumFractionDigits: 2});
+  if (val >= 1) return val.toFixed(2);
+  if (val >= 0.001) return val.toFixed(4);
+  if (val >= 0.000001) return val.toFixed(6);
+  return val.toExponential(2);
+}
+
+function fmtNum(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+  return Number(n).toFixed(0);
+}
+
+function shortAddr(addr) {
+  if (!addr) return '';
+  return addr.slice(0, 6) + '...' + addr.slice(-4);
+}
+
+function renderStat(label, value, cls = '') {
+  return `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-value ${cls}">${value}</span></div>`;
+}
+
+function fmtTime(ts) {
+  if (!ts || ts == 0) return '—';
+  return new Date(Number(ts) * 1000).toLocaleString();
+}
+
+function fmtPercent(part, total) {
+  if (!total || total == 0) return '0%';
+  return ((Number(part) / Number(total)) * 100).toFixed(1) + '%';
+}
+
+function pct(n, total) {
+  if (!total || total == 0) return 0;
+  return Math.max(0.5, (Number(n) / Number(total)) * 100);
+}
+
+// ========== COPY TO CLIPBOARD ==========
+function copyText(text, label = 'Address') {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    toast(label + ' copied ✓', 'success');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    toast(label + ' copied ✓', 'success');
+  });
+}
+
+// ========== SKELETON HELPERS ==========
+function showSkeleton(id) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = '<div class="skeleton skeleton-line micro"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line med"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line med"></div>';
+}
+
+function showSkeletonDonut(id) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = '<div class="skeleton skeleton-donut"></div>';
+}
+
+function showSkeletonBar(id) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = '<div class="skeleton skeleton-bar"></div><div class="skeleton skeleton-line short"></div>';
+}
+
+// ========== SVG DONUT CHART ==========
+function donutChart(segments, size = 100, stroke = 20) {
+  // segments: [{label, value, color}]
+  const total = segments.reduce((s, seg) => s + seg.value, 0);
+  if (total === 0) return '<div style="text-align:center;color:#64748b;padding:20px;">No data</div>';
+
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const cx = size / 2, cy = size / 2;
+  const sorted = [...segments].sort((a, b) => b.value - a.value);
+  let offset = 0;
+  const slices = sorted.map((seg, i) => {
+    const pctVal = seg.value / total;
+    const len = pctVal * circ;
+    const dash = `${len} ${circ - len}`;
+    const rot = offset / circ * 360;
+    const s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${stroke}" stroke-dasharray="${dash}" stroke-dashoffset="0" transform="rotate(-90 ${cx} ${cy})" style="transform-origin:center;transition:stroke-dasharray 0.6s ease;opacity:0.9;" />`;
+    offset += len;
+    return s;
+  });
+
+  // Legend
+  const legend = segments.map(seg => {
+    const pctVal = ((seg.value / total) * 100).toFixed(1);
+    return `<div class="donut-legend-item"><span class="donut-legend-dot" style="background:${seg.color}"></span>${seg.label}<span class="donut-legend-pct">${pctVal}%</span><span class="donut-legend-value">${fmtNum(seg.value)}</span></div>`;
+  }).join('');
+
+  const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex-shrink:0;">${slices.join('')}<circle cx="${cx}" cy="${cy}" r="${r * 0.6}" fill="#1e293b" /></svg>`;
+
+  return `<div class="donut-container">${svg}<div class="donut-legend">${legend}</div></div>`;
+}
+
+// ========== STACKED BAR ==========
+function stackedBar(items) {
+  // items: [{label, value, color}]
+  const total = items.reduce((s, i) => s + Math.max(0, i.value), 0);
+  if (total === 0) return '<div style="color:#64748b;font-size:0.8rem;">No data</div>';
+
+  const segs = items.map(i => {
+    const w = pct(i.value, total);
+    return `<div class="seg" style="width:${w}%;background:${i.color};" title="${i.label}: ${fmtNum(i.value)}"></div>`;
+  }).join('');
+
+  const legend = items.map(i => {
+    const pctVal = ((i.value / total) * 100).toFixed(1);
+    return `<span class="bar-legend-item"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${i.color};"></span>${i.label} (${pctVal}%)</span>`;
+  }).join('');
+
+  return `<div class="stacked-bar">${segs}</div><div class="bar-legend">${legend}</div>`;
+}
+
+// ========== COUNTDOWN ==========
+let countdownInterval = null;
+let secondsUntilRefresh = 30;
+
+function startCountdown(intervalSec = 30) {
+  secondsUntilRefresh = intervalSec;
+  const el = document.getElementById('countdown');
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    secondsUntilRefresh--;
+    if (secondsUntilRefresh <= 0) {
+      el.textContent = '';
+      return;
+    }
+    el.textContent = 'Next refresh in ' + secondsUntilRefresh + 's';
+  }, 1000);
+}
+
+function resetCountdown() {
+  secondsUntilRefresh = 30;
+  document.getElementById('countdown').textContent = '';
+}
+
+// ========== MAIN REFRESH ==========
+async function triggerRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  await refresh();
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
+
+async function refresh() {
+  // Show skeletons on all cards
+  showSkeleton('t800Stats');
+  showSkeleton('routerStats');
+  showSkeleton('dexStats');
+  showSkeleton('sttBalances');
+  showSkeleton('plStats');
+  showSkeletonDonut('recoverPanel');
+  showSkeleton('vestingSchedules');
+  showSkeleton('contractAddresses');
+
+  // Hero skeletons
+  document.querySelectorAll('#heroGrid .hero-value').forEach(el => { el.classList.add('skeleton'); el.textContent = '\u00a0'; });
+
+  document.getElementById('lastUpdated').textContent = 'Refreshing...';
+  resetCountdown();
+
+  try {
+    const r = await fetch(BASE + '/overview');
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+    const d = await r.json();
+    renderAll(d);
+    document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+    startCountdown(30);
+  } catch (e) {
+    toast('Failed to load data: ' + e.message, 'error', 6000);
+    document.getElementById('lastUpdated').textContent = 'Error: ' + e.message;
+    document.querySelectorAll('.card').forEach(c => c.innerHTML = `<div class="error-msg">${e.message}</div>`);
+  }
+}
+
+function renderAll(d) {
+  // Deployer
+  document.getElementById('deployerAddr').textContent = d.deployer;
+
+  // ===== HERO METRICS =====
+  const dx = d.dex;
+  const stt = d.contract_stt_balances;
+  const rt = d.router;
+
+  const heroPriceEl = document.querySelector('#heroPrice .hero-value');
+  heroPriceEl.classList.remove('skeleton');
+  heroPriceEl.textContent = fmt(dx.t800_price_stt) + ' STT';
+  heroPriceEl.className = 'hero-value purple';
+
+  const heroDeployerEl = document.querySelector('#heroDeployerStt .hero-value');
+  heroDeployerEl.classList.remove('skeleton');
+  heroDeployerEl.textContent = fmt(stt.deployer) + ' STT';
+  heroDeployerEl.className = 'hero-value green';
+
+  const heroCollectedEl = document.querySelector('#heroT800Collected .hero-value');
+  heroCollectedEl.classList.remove('skeleton');
+  heroCollectedEl.textContent = fmt(rt.total_t800_collected) + ' T800';
+  heroCollectedEl.className = 'hero-value yellow';
+
+  // TVL = all STT in contracts + deployer
+  const tvl = Number(stt.deployer) + Number(stt.platform) + Number(stt.sponsor) + Number(stt.escrow) + Number(stt.router) + Number(stt.dex);
+  const heroTvlEl = document.querySelector('#heroTvl .hero-value');
+  heroTvlEl.classList.remove('skeleton');
+  heroTvlEl.textContent = fmt(tvl) + ' STT';
+  heroTvlEl.className = 'hero-value blue';
+
+  // ===== T800 TOKEN =====
+  const t8 = d.t800_token;
+  const total = Number(t8.total_supply);
+  const deployerAmt = Number(t8.deployer_balance);
+  const routerAmt = Number(t8.router_balance);
+  const dexAmt = Number(t8.dex_balance);
+  const circAmt = Math.max(0, total - deployerAmt);
+
+  // Donut chart
+  const segments = [
+    { label: 'Deployer', value: deployerAmt, color: '#fbbf24' },
+    { label: 'Circulating', value: circAmt, color: '#4ade80' },
+  ];
+  if (routerAmt > 0) segments.push({ label: 'Router', value: routerAmt, color: '#38bdf8' });
+  if (dexAmt > 0) segments.push({ label: 'DEX', value: dexAmt, color: '#a78bfa' });
+
+  let t800Html = donutChart(segments, 110, 22);
+  t800Html += renderStat('Total Supply', fmt(t8.total_supply));
+  t800Html += renderStat('Max Supply', fmt(t8.max_supply));
+  t800Html += renderStat('Deployer Wallet', fmt(t8.deployer_balance), 'yellow');
+  t800Html += renderStat('Circulating', fmt(circAmt), 'green');
+  t800Html += renderStat('Router', fmt(t8.router_balance), 'blue');
+  t800Html += renderStat('DEX', fmt(t8.dex_balance), 'purple');
+  const mintCls = t8.minting_finished ? 'green' : 'red';
+  t800Html += renderStat('Minting', t8.minting_finished ? 'Finished ✓' : 'Active', mintCls);
+  document.getElementById('t800Stats').innerHTML = t800Html;
+
+  const badgeEl = document.getElementById('t800Badge');
+  badgeEl.style.display = 'inline-flex';
+  badgeEl.textContent = fmtNum(total) + ' T800';
+  badgeEl.className = 'badge ' + (t8.minting_finished ? 'green' : 'yellow');
+
+  // ===== ROUTER =====
+  let routerHtml = '';
+  routerHtml += renderStat('Fee per Invoke', fmt(rt.t800_per_invocation) + ' T800', 'purple');
+  routerHtml += renderStat('STT Pool Balance', fmt(rt.stt_pool_balance) + ' STT', 'green');
+  routerHtml += renderStat('STT Contract', fmt(rt.stt_contract_balance) + ' STT', 'blue');
+  routerHtml += renderStat('Total T800 Collected', fmt(rt.total_t800_collected), 'yellow');
+  document.getElementById('routerStats').innerHTML = routerHtml;
+
+  // ===== DEX =====
+  let dexHtml = '';
+  const priceStt = fmt(dx.t800_price_stt);
+  dexHtml += renderStat('T800 Reserve', fmt(dx.t800_reserve), 'blue');
+  dexHtml += renderStat('STT Reserve', fmt(dx.stt_reserve) + ' STT', 'green');
+  dexHtml += renderStat('Total LP Tokens', fmt(dx.total_liquidity_tokens, 18), 'purple');
+  dexHtml += renderStat('T800 Price', priceStt + ' STT', 'yellow');
+  dexHtml += renderStat('STT Price', fmt(dx.stt_price_t800) + ' T800', 'yellow');
+  // Price ratio as visual
+  const t800Pct = pct(dx.t800_reserve, Number(dx.t800_reserve) + Number(dx.stt_reserve));
+  const sttPct = pct(dx.stt_reserve, Number(dx.t800_reserve) + Number(dx.stt_reserve));
+  dexHtml += `<div style="margin-top:8px;"><div class="stacked-bar" style="height:8px;"><div class="seg" style="width:${t800Pct}%;background:#38bdf8;" title="T800: ${fmt(dx.t800_reserve)}"></div><div class="seg" style="width:${sttPct}%;background:#4ade80;" title="STT: ${fmt(dx.stt_reserve)} STT"></div></div><div style="display:flex;justify-content:space-between;font-size:0.65rem;color:#64748b;margin-top:2px;"><span>⚪ T800 ${t800Pct.toFixed(0)}%</span><span>STT ${sttPct.toFixed(0)}% ⚪</span></div></div>`;
+  document.getElementById('dexStats').innerHTML = dexHtml;
+
+  // ===== STT CONTRACT BALANCES =====
+  let sttHtml = '';
+  sttHtml += renderStat('Deployer', fmt(stt.deployer) + ' STT', 'green');
+  sttHtml += renderStat('Platform', fmt(stt.platform) + ' STT', stt.platform > 0 ? 'green' : 'red');
+  sttHtml += renderStat('Sponsor', fmt(stt.sponsor) + ' STT', 'yellow');
+  sttHtml += renderStat('Escrow', fmt(stt.escrow) + ' STT', 'blue');
+  sttHtml += renderStat('Router', fmt(stt.router) + ' STT', 'blue');
+  sttHtml += renderStat('DEX', fmt(stt.dex) + ' STT', 'purple');
+
+  // Mini stacked bar of STT distribution
+  const sttItems = [
+    { label: 'Deployer', value: Number(stt.deployer), color: '#4ade80' },
+    { label: 'Platform', value: Number(stt.platform), color: '#f87171' },
+    { label: 'Sponsor', value: Number(stt.sponsor), color: '#fbbf24' },
+    { label: 'Escrow', value: Number(stt.escrow), color: '#38bdf8' },
+    { label: 'Router', value: Number(stt.router), color: '#60a5fa' },
+    { label: 'DEX', value: Number(stt.dex), color: '#a78bfa' },
+  ].filter(i => i.value > 0);
+  if (sttItems.length > 0) sttHtml += stackedBar(sttItems);
+
+  document.getElementById('sttBalances').innerHTML = sttHtml;
+
+  // ===== P&L =====
+  const bs = d.stt_balance_sheet || {};
+  let plHtml = '';
+  plHtml += renderStat('STT from Faucet', fmt(bs.stt_in_faucet) + ' STT', 'green');
+  plHtml += renderStat('Deployer Wallet', fmt(bs.stt_deployer_wallet) + ' STT', 'green');
+  plHtml += renderStat('In DEX Liquidity', fmt(bs.stt_in_dex_liquidity) + ' STT', 'blue');
+  plHtml += renderStat('In Router Pool', fmt(bs.stt_in_router_pool) + ' STT', 'blue');
+  plHtml += renderStat('In Sponsor', fmt(bs.stt_in_sponsor) + ' STT', 'yellow');
+  plHtml += renderStat('Locked in Platform', fmt(bs.stt_locked_in_platform) + ' STT', 'red');
+  plHtml += renderStat('Gas Spent (est.)', fmt(bs.stt_gas_spent_lifetime) + ' STT', 'red');
+  plHtml += renderStat('Deposited to Platform', fmt(bs.stt_deposited_to_platform_historical) + ' STT', 'yellow');
+  plHtml += renderStat('Deposited to Sponsor', fmt(bs.stt_deposited_to_sponsor_historical) + ' STT', 'yellow');
+
+  // Stacked bar for STT allocation
+  const plItems = [
+    { label: 'Deployer', value: Number(bs.stt_deployer_wallet), color: '#4ade80' },
+    { label: 'DEX LP', value: Number(bs.stt_in_dex_liquidity), color: '#38bdf8' },
+    { label: 'Router Pool', value: Number(bs.stt_in_router_pool), color: '#60a5fa' },
+    { label: 'Sponsor', value: Number(bs.stt_in_sponsor), color: '#fbbf24' },
+    { label: 'Locked', value: Number(bs.stt_locked_in_platform), color: '#f87171' },
+    { label: 'Gas', value: Number(bs.stt_gas_spent_lifetime), color: '#dc2626' },
+  ].filter(i => i.value > 0);
+  if (plItems.length > 0) {
+    plHtml += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">';
+    plHtml += stackedBar(plItems);
+    plHtml += '</div>';
+  }
+
+  const dpi = d.dex_price_info || {};
+  if (dpi.t800_price_stt) {
+    plHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #334155;">' +
+      renderStat('DEX T800 Price', fmt(dpi.t800_price_stt) + ' STT', 'purple') +
+      renderStat('T800 Value at DEX Price', fmt(dpi.t800_value_at_dex_price_stt) + ' STT', 'purple') +
+      '<div style="font-size:0.7rem;color:#64748b;margin-top:4px;">' + (dpi.note || '') + '</div></div>';
+  }
+
+  // Platform T800
+  const pt = d.platform_t800_earnings || {};
+  if (pt.platform_account_balance !== undefined) {
+    plHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #334155;">';
+    plHtml += '<div class="stat-row"><span class="stat-label">Platform T800 (off-chain)</span><span class="stat-value green">' + Number(pt.platform_account_balance).toFixed(0) + ' T800</span></div>';
+    plHtml += '<div class="stat-row"><span class="stat-label">Total T800 Fees Collected</span><span class="stat-value blue">' + Number(pt.total_fee_collected_from_appointments).toFixed(0) + ' T800</span></div>';
+    plHtml += '</div>';
+  }
+  document.getElementById('plStats').innerHTML = plHtml;
+
+  // ===== RECOVER FUNDS =====
+  const rec = d.recoverable_funds || [];
+  let recHtml = '';
+  if (rec.length === 0) {
+    recHtml = '<div class="stat-row" style="color:#475569;">No recoverable funds</div>';
+  } else {
+    // Total recoverable
+    let totalRecStt = 0, totalRecT800 = 0;
+    rec.forEach(r => { totalRecStt += Number(r.amount_stt || 0); totalRecT800 += Number(r.amount_t800 || 0); });
+    recHtml = '<div class="stat-row" style="border-bottom:1px solid #334155;padding-bottom:8px;margin-bottom:8px;"><span class="stat-label">Total Recoverable</span><span class="stat-value green">' + fmt(totalRecStt) + ' STT' + (totalRecT800 > 0 ? ' + ' + fmt(totalRecT800) + ' T800' : '') + '</span></div>';
+
+    for (const r of rec) {
+      const amountLabel = r.amount_stt ? fmt(r.amount_stt) + ' STT' : '';
+      const t800Label = r.amount_t800 ? fmt(r.amount_t800) + ' T800' : '';
+      const bothLabel = [amountLabel, t800Label].filter(Boolean).join(' + ');
+      recHtml += `<div class="stat-row" style="flex-direction:column;gap:6px;padding:10px 0;">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+          <span class="stat-label">${r.contract}</span>
+          <span class="stat-value green">${bothLabel}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+          <div style="font-size:0.75rem;color:#64748b;">${r.method}</div>
+          <button class="action-btn" onclick="doRecover('${r.action}', this)">
+            <span class="spinner"></span><span class="action-text">Recover →</span>
+          </button>
+        </div>
+      </div>`;
+    }
+  }
+  document.getElementById('recoverPanel').innerHTML = recHtml;
+
+  // ===== VESTING =====
+  const v = d.vesting;
+  document.getElementById('scheduleCount').textContent = '(' + v.schedule_count + ')';
+  let vHtml = '';
+  if (v.schedules && v.schedules.length > 0) {
+    let totalVested = 0, totalReleased = 0;
+    for (const s of v.schedules) { totalVested += Number(s.total_amount); totalReleased += Number(s.released); }
+    vHtml = '<div class="stat-row" style="border-bottom:1px solid #334155;padding-bottom:8px;margin-bottom:8px;"><span class="stat-label">Total Vested</span><span class="stat-value green">' + fmt(totalVested) + ' T800</span></div>';
+    for (const s of v.schedules) {
+      const pct = fmtPercent(s.released, s.total_amount);
+      vHtml += `<div class="schedule-item">
+        <div><span class="benef">${shortAddr(s.beneficiary)}</span> — ${fmt(s.total_amount)} T800</div>
+        <div style="font-size:0.75rem;color:#64748b;">Start: ${fmtTime(s.start_time)} | Cliff: ${s.cliff_duration}s | Duration: ${s.duration}s</div>
+        <div style="font-size:0.75rem;color:#94a3b8;">Released: ${fmt(s.released)} T800 (${pct})</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}"></div></div>
+      </div>`;
+    }
+  } else {
+    vHtml = '<div class="stat-row" style="color:#475569;">No vesting schedules created yet</div>';
+  }
+  document.getElementById('vestingSchedules').innerHTML = vHtml;
+
+  // ===== CONTRACT ADDRESSES =====
+  const addrs = {
+    'T800Token': '0x475385F327166423D9923024033d8deF34ea9186',
+    'AgentPaymentRouter': '0xbe6AE91380Bf23a1C1bFd613EFA794461A86337C',
+    'T800DEX': '0x38e0Cd09C6eBB71e6d97653e5d083Bd1C897E7d7',
+    'TokenVesting': '0x7a67E8EA485223005323314249154075bd05e1B7',
+    'Platform': '0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776',
+    'Sponsor': '0xbC26b85eaDF0e2ab1f2B5E7de048D52E80bCa3Ca',
+    'Escrow': '0xe68fe63F35EF5068BE57084B27753eAB6768beb1',
+  };
+  let addrHtml = '';
+  for (const [name, addr] of Object.entries(addrs)) {
+    addrHtml += `<div class="stat-row">
+      <span class="stat-label">${name}</span>
+      <span class="address">
+        <a href="https://explorer.somnia.network/address/${addr}" target="_blank">${addr}</a>
+        <button class="copy-btn" onclick="copyText('${addr}','${name}')">📋</button>
+      </span>
+    </div>`;
+  }
+  document.getElementById('contractAddresses').innerHTML = addrHtml;
+}
+
+// ========== RECOVERY ==========
+async function doRecover(action, btn) {
+  btn.classList.add('loading');
+  btn.disabled = true;
+  try {
+    const r = await fetch(BASE + '/' + action, { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'HTTP ' + r.status);
+    toast('Recovery successful! TX: ' + d.tx_hash.slice(0, 10) + '...', 'success', 8000);
+    triggerRefresh();
+  } catch (e) {
+    toast('Recovery failed: ' + e.message, 'error', 6000);
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// ========== INIT ==========
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>
