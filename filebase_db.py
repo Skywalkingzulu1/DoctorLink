@@ -374,7 +374,23 @@ class FilebaseSession:
     def query(self, model_class):
         return FilebaseQuery(model_class)
 
+    @staticmethod
+    def _apply_defaults(obj):
+        """Apply SQLAlchemy Column defaults to any unset attributes on the instance."""
+        for col in obj.__table__.columns:
+            if not hasattr(obj, col.name) or getattr(obj, col.name, None) is None:
+                if col.default is not None:
+                    try:
+                        default = col.default.arg if callable(col.default.arg) else col.default.arg
+                        if callable(default):
+                            setattr(obj, col.name, default())
+                        else:
+                            setattr(obj, col.name, default)
+                    except (TypeError, ValueError):
+                        pass
+
     def add(self, obj):
+        self._apply_defaults(obj)
         self._new.append(obj)
 
     def add_all(self, objs):

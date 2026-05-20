@@ -96,6 +96,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         role=role,
         phone=request.phone,
         credits=500 if role == UserRole.PATIENT else 0,
+        is_active=True,
         is_deleted=False,
         email_verified=True,  # Auto-verify for now
     )
