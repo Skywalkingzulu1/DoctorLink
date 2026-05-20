@@ -1,22 +1,12 @@
 #!/usr/bin/env python3
 """
-Run database migrations (create tables) for DoctorLink.
-
-This script uses SQLAlchemy's metadata to create all tables defined in
-`models.py`. It works for both SQLite (default) and PostgreSQL (if the
-`DATABASE_URL` environment variable points to a PostgreSQL instance).
+Run database migrations — no-op: Filebase document store has no schema.
 """
 
-from database import engine, Base
+from database import Base
 
 def run_migrations() -> None:
-    """Create all tables in the database.
-
-    The function is idempotent – calling it multiple times will not
-    recreate existing tables.
-    """
-    Base.metadata.create_all(bind=engine)
-
+    print("Filebase document store: no schema migrations needed.")
 
 if __name__ == "__main__":
     run_migrations()

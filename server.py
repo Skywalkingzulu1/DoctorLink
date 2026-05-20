@@ -17,7 +17,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "static"))
 print(f"Serving DoctorLink at http://localhost:{PORT}")
 print("Open your browser to use the app!")
 

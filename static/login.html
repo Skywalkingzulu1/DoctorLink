@@ -121,7 +121,7 @@
             return hash.toString();
         }
 
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -129,23 +129,34 @@
 
             errorDiv.style.display = 'none';
 
-            // Get users from localStorage
-            const users = JSON.parse(localStorage.getItem('doctorlink_users') || '[]');
-            
-            // Find user by email and check password
-            const user = users.find(u => u.email === email && u.passwordHash === simpleHash(password));
-            
-            if (user) {
-                localStorage.setItem('token', 'loggedin_' + Date.now());
-                localStorage.setItem('doctorlink_current_user', JSON.stringify(user));
-                
-                if (user.role === 'DOCTOR') {
-                    window.location.href = 'doctor_dashboard.html';
+            try {
+                const formData = new FormData();
+                formData.append('username', email);
+                formData.append('password', password);
+
+                const response = await fetch('http://localhost:8000/api/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('doctorlink_current_user', JSON.stringify(data.user));
+                    
+                    if (data.user.role === 'DOCTOR') {
+                        window.location.href = 'doctor_dashboard.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
                 } else {
-                    window.location.href = 'index.html';
+                    errorDiv.textContent = data.detail || 'Invalid email or password';
+                    errorDiv.style.display = 'block';
                 }
-            } else {
-                errorDiv.textContent = 'Invalid email or password';
+            } catch (err) {
+                console.error('Login error:', err);
+                errorDiv.textContent = 'Connection error. Make sure the server is running.';
                 errorDiv.style.display = 'block';
             }
         });

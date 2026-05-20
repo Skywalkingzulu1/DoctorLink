@@ -68,6 +68,25 @@ temp/
 *.tmp
 nul
 
-# Local-only markdown files (not for GitHub)
-*.md
+# Local-only files
 docs/PLATFORM_RESEARCH.md
+
+# Dev/test scripts
+brute_selector.py
+check_bytecode.py
+check_data.py
+check_event_sig.py
+check_payloads.py
+check_payloads2.py
+check_raw.py
+compile_contracts.py
+decode_agent.py
+deploy_sponsor.py
+deploy_t800.py
+extract_payloads.py
+fetch_tx_history.py
+find_llm_agent.py
+find_payload.py
+find_selector.py
+query_registry.py
+add_skeletons.py

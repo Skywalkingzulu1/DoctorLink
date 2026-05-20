@@ -37,6 +37,7 @@
         .btn-primary:hover{background:var(--primary-dark)}
         .btn-secondary{background:var(--light);color:var(--text);border:1px solid var(--border)}
         .btn-accent{background:var(--accent);color:#fff}
+        .btn-warning{background:#f59e0b;color:#fff}
         .btn-danger{background:var(--danger);color:#fff}
         .btn-sm{padding:0.4rem 0.8rem;font-size:0.85rem}
         
@@ -84,6 +85,81 @@
         .auth-card input{width:100%;padding:0.8rem;margin-bottom:1rem;border:1px solid var(--border);border-radius:8px}
         .auth-card button{width:100%;padding:1rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
 
+        /* Loading */
+        .loading{text-align:center;padding:2rem;color:var(--text-light)}
+
+        /* Skeleton */
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .skeleton{background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:6px;}
+        .skeleton-line{height:14px;margin:8px 0;width:100%}.skeleton-line.short{width:50%}.skeleton-line.med{width:75%}
+        .skeleton-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+        .skeleton-card{min-height:100px}
+        .skeleton-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+
+        /* Spinner */
+        .btn .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
+        .btn.loading .spinner{display:inline-block}
+        .btn.loading .btn-text{display:none}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* Toast */
+        .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+        .toast{pointer-events:auto;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:280px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.15);animation:toastIn 0.3s ease both;display:flex;align-items:center;gap:10px;font-size:0.88rem}
+        .toast.toast-out{animation:toastOut 0.3s ease both}
+        @keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
+        .toast-icon{font-size:1.2rem;flex-shrink:0}
+        .toast-msg{flex:1;color:var(--text)}
+        .toast-close{background:none;border:none;font-size:1rem;cursor:pointer;color:var(--text-light);padding:0 4px}
+        .toast.success{border-left:3px solid var(--accent)}.toast.success .toast-icon{color:var(--accent)}
+        .toast.error{border-left:3px solid var(--danger)}.toast.error .toast-icon{color:var(--danger)}
+        .toast.info{border-left:3px solid var(--primary)}.toast.info .toast-icon{color:var(--primary)}
+        .toast.warning{border-left:3px solid var(--warning)}.toast.warning .toast-icon{color:var(--warning)}
+
+        /* Poll progress */
+        .poll-progress{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+        .poll-progress-fill{height:100%;background:var(--primary);border-radius:2px;transition:width 0.5s ease}
+
+        /* Wallet disconnect */
+        .wallet-dropdown{position:relative;display:inline-block}
+        .wallet-dropdown-menu{display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:200;margin-top:4px}
+        .wallet-dropdown-menu.show{display:block}
+        .wallet-dropdown-item{padding:8px 14px;cursor:pointer;font-size:0.85rem;color:var(--text);display:flex;align-items:center;gap:8px}
+        .wallet-dropdown-item:hover{background:var(--light)}
+        .wallet-dropdown-item.danger{color:var(--danger)}
+
+        /* ── UI OVERHAUL: ANIMATIONS + MODERN DESIGN ── */
+        .page-enter{animation:pageSlideIn 0.35s ease both}
+        @keyframes pageSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .card{transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease}
+        .card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.08)}
+        .gradient-text{background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+        .btn{position:relative;overflow:hidden;transition:transform 0.15s ease,box-shadow 0.15s ease}
+        .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+        .btn:active{transform:translateY(0) scale(0.98)}
+        .menu-item{position:relative;transition:all 0.25s ease}
+        .menu-item::before{content:'';position:absolute;left:0;top:50%;width:3px;height:0;background:var(--primary);border-radius:0 3px 3px 0;transition:all 0.25s ease;transform:translateY(-50%)}
+        .menu-item.active::before{height:60%}
+        .menu-item.active{background:linear-gradient(90deg,rgba(0,82,204,0.06),transparent)}
+        .sidebar-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));position:relative;overflow:hidden}
+        .sidebar-header h1,.sidebar-header h1 span{-webkit-text-fill-color:#fff}
+        .sidebar-header::after{content:'';position:absolute;top:-50%;right:-30%;width:100px;height:200px;background:rgba(255,255,255,0.05);transform:rotate(25deg)}
+        .top-bar{border-bottom:2px solid transparent;background-clip:padding-box}
+        .top-bar::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));opacity:0.6}
+        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        .status-released{background:#e3fcef;color:var(--accent)}
+        .status-funded{background:#eef2ff;color:var(--primary)}
+        .status-pending{background:#fff3e0;color:#e65100}
+
+        /* T800 Faucet Card */
+        .faucet-card{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+        .faucet-card button{background:#fff;color:#059669;border:none;padding:0.5rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+        .faucet-card button:disabled{opacity:0.6;cursor:not-allowed}
+        .faucet-card .spinner{width:16px;height:16px;border:2px solid rgba(5,150,101,0.3);border-top-color:#059669;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
+        .faucet-card button.loading .spinner{display:inline-block}
+        .faucet-card button.loading .btn-text{display:none}
+
         /* Responsive */
         @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
     </style>
@@ -101,7 +177,7 @@
                 <button type="submit">Login</button>
             </form>
             <div style="margin-top:1rem;padding:1rem;background:var(--light);border-radius:8px;font-size:0.85rem">
-                <strong>Demo:</strong> doctor@doctorlink.co.za / test123
+                <strong>Demo:</strong> doc@docmail.com / test123
             </div>
         </div>
     </div>
@@ -119,6 +195,8 @@
                 <div class="menu-item" data-page="schedule"><i class="fas fa-clock"></i> Schedule</div>
                 <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
                 <div class="menu-item" data-page="pricing"><i class="fas fa-tag"></i> Pricing</div>
+                <div class="menu-item" data-page="ai-tools"><i class="fas fa-robot"></i> AI Tools</div>
+                <div class="menu-item" data-page="subscription"><i class="fas fa-crown"></i> Subscription</div>
                 <div class="menu-item" data-page="settings"><i class="fas fa-cog"></i> Settings</div>
                 <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
             </div>
@@ -127,7 +205,23 @@
         <div class="main">
             <div class="top-bar">
                 <div style="font-weight:600" id="pageTitle">Dashboard</div>
-                <div style="font-weight:600" id="userName">Dr. Name</div>
+                <div class="user-info" style="display:flex;align-items:center;gap:1rem">
+                    <div id="somniaWalletInfo" style="text-align:right;margin-right:1rem;font-size:0.8rem;color:var(--text-light)">
+                        <div id="userAddress" style="font-family:monospace;cursor:pointer;" onclick="mmAccount ? copyAddress() : null" title="Click to copy address">0x...</div>
+                        <div id="userSttBalance" style="color:var(--accent);font-weight:700">0.00 STT</div>
+                        <span id="connectMmBtnWrapper">
+                            <button id="connectMmBtn" onclick="connectMetaMask()" style="background:var(--secondary);color:#fff;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px">Connect MetaMask</button>
+                        </span>
+                        <span id="walletDropdownWrapper" class="wallet-dropdown" style="display:none;">
+                            <button onclick="showWalletDropdown()" style="background:var(--accent);color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px;display:flex;align-items:center;gap:4px"><span id="walletAddressDisplay">0x...</span> ▾</button>
+                            <div class="wallet-dropdown-menu" id="walletDropdownMenu">
+                                <div class="wallet-dropdown-item" onclick="copyAddress()">📋 Copy Address</div>
+                                <div class="wallet-dropdown-item danger" onclick="disconnectWallet()">✕ Disconnect</div>
+                            </div>
+                        </span>
+                    </div>
+                    <div style="font-weight:600" id="userName">Dr. Name</div>
+                </div>
             </div>
 
             <div class="content">
@@ -155,6 +249,33 @@
                         <div style="display:flex;gap:0.5rem;margin-top:1rem">
                             <button id="collectBtn" class="btn" style="flex:1;background:#fff;color:#36b37e" onclick="collectEarnings()">Collect Earnings</button>
                             <button id="gigModeBtn" class="btn" style="flex:1;background:#fff;color:#0052cc" onclick="toggleGigMode()"><i class="fas fa-power-off"></i> <span id="gigModeText">Go Online</span></button>
+                        </div>
+                    </div>
+                    
+                    <div id="somniaEarningsCard" class="card" style="margin-bottom:1.5rem;border:2px solid var(--accent);background:var(--white)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+                            <div>
+                                <div style="font-size:0.9rem;color:var(--text-light)">On-Chain Earnings</div>
+                                <div id="sttEarnings" style="font-size:2rem;font-weight:700;color:var(--accent)">0.00 STT</div>
+                                <div id="docT800Earnings" style="font-size:1.2rem;font-weight:600;color:#059669">0.00 T800</div>
+                                <div style="font-size:0.8rem;color:var(--text-light)">Secured by <span style="font-family:monospace">DoctorLinkEscrow</span> + direct T800 transfers</div>
+                            </div>
+                            <div style="text-align:right">
+                                <button class="btn btn-accent" onclick="updateSomniaBalance()">Refresh</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="subscriptionCard" class="card" style="margin-bottom:1.5rem;border:2px solid #f59e0b;background:#fffbeb">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <div style="font-size:0.9rem;color:#92400e">Somnia AI Tools Subscription</div>
+                                <div id="subscriptionStatus" style="font-size:1.5rem;font-weight:700;color:#92400e">Checking...</div>
+                                <div style="font-size:0.8rem;color:#a16207">Get unlimited AI-powered medical tools</div>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary" onclick="navTo('subscription')"><i class="fas fa-crown"></i> Subscribe</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -281,6 +402,97 @@
                     </div>
                 </div>
 
+                <!-- AI TOOLS -->
+                <div id="page-ai-tools" class="hidden">
+                    <!-- T800 Faucet -->
+                    <div class="faucet-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+                            <div>
+                                <div style="font-size:1.1rem;font-weight:600">T-800 Faucet</div>
+                                <div style="font-size:0.85rem;opacity:0.9;margin-top:4px">Get 5,000 free T800 tokens for testing on-chain payments</div>
+                            </div>
+                            <button id="claimT800BtnDoc" onclick="claimT800Doc()"><span class="spinner"></span><span class="btn-text">Claim T800</span></button>
+                        </div>
+                        <div id="claimT800ResultDoc" style="margin-top:0.8rem;font-size:0.85rem;display:none;"></div>
+                    </div>
+                    <h2 class="page-title">AI Medical Tools</h2>
+                    <p style="color:var(--text-light);margin-bottom:1.5rem">Powered by Somnia LLM Inference — costs deducted from your credits</p>
+                    <div id="docSttCostBadge" style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-light);display:none;">
+                        <span style="background:#059669;color:white;padding:2px 8px;border-radius:4px;font-weight:bold;">STT</span>
+                        <span id="docSttCostText">Loading cost...</span>
+                    </div>
+
+                    <div class="grid">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><i class="fas fa-file-alt" style="color:var(--primary)"></i> Visit Summary Generator</div></div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Paste consultation notes to generate a structured medical summary</p>
+                            <div class="form-group">
+                                <textarea id="docSummaryInput" class="form-textarea" rows="3" placeholder="Paste consultation notes..."></textarea>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="docRunSummary()"><i class="fas fa-file-alt"></i> Generate (5 credits)</button>
+                            <button class="btn btn-outline" onclick="docRunSummaryStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            </div>
+                            <div id="docSummaryResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#eef2ff;border-radius:8px;white-space:pre-wrap"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><i class="fas fa-pills" style="color:var(--warning)"></i> Drug Interaction Check</div></div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Check interactions before prescribing</p>
+                            <div class="form-group">
+                                <input type="text" id="docDrugInput" class="form-input" placeholder="E.g., Aspirin, Ibuprofen, Warfarin">
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-warning" onclick="docRunDrugCheck()"><i class="fas fa-flask"></i> Check (5 credits)</button>
+                            <button class="btn btn-outline" onclick="docRunDrugCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            </div>
+                            <div id="docDrugResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#fefce8;border-radius:8px;white-space:pre-wrap"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><i class="fas fa-lightbulb" style="color:var(--accent)"></i> Patient Education</div></div>
+                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Generate health tips for your patients</p>
+                            <div class="form-group">
+                                <input type="text" id="docTipsInput" class="form-input" placeholder="E.g., diabetes management">
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-accent" onclick="docRunTips()"><i class="fas fa-book-medical"></i> Generate (3 credits)</button>
+                            <button class="btn btn-outline" onclick="docRunTipsStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            </div>
+                            <div id="docTipsResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#f0fdf4;border-radius:8px;white-space:pre-wrap"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:1.5rem">
+                        <div class="card-header"><div class="card-title"><i class="fas fa-coins" style="color:#f59e0b"></i> Credit Costs</div></div>
+                        <div id="docCreditCosts" class="loading">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- SUBSCRIPTION -->
+                <div id="page-subscription" class="hidden">
+                    <h2 class="page-title">Somnia AI Subscription</h2>
+                    <div style="max-width:600px;margin:0 auto">
+                        <div class="card" style="text-align:center;border:2px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fff)">
+                            <i class="fas fa-crown" style="font-size:3rem;color:#f59e0b;margin-bottom:1rem"></i>
+                            <h3 style="margin-bottom:0.5rem">Doctor AI Pro</h3>
+                            <div style="font-size:2.5rem;font-weight:700;color:#92400e;margin-bottom:0.5rem">10 STT<span style="font-size:1rem;color:var(--text-light)">/month</span></div>
+                            <ul style="list-style:none;text-align:left;margin:1.5rem 0;padding:0">
+                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Unlimited AI visit summaries</li>
+                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Unlimited drug interaction checks</li>
+                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Unlimited patient education content</li>
+                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> On-chain via Somnia Sponsor Contract</li>
+                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Funds flow to platform treasury</li>
+                            </ul>
+                            <div id="subStatus" style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-light)"></div>
+                            <button id="subscribeBtn" class="btn btn-primary" onclick="subscribeNow()" style="width:100%;padding:1rem;font-size:1.1rem">
+                                <i class="fas fa-crown"></i> Subscribe Now - 10 STT
+                            </button>
+                            <div id="subTxInfo" style="margin-top:1rem;font-size:0.8rem;color:var(--text-light)"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- SETTINGS -->
                 <div id="page-settings" class="hidden">
                     <h2 class="page-title">Doctor Settings</h2>
@@ -327,14 +539,39 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
+</div>
 
-    <script>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
         // ========== API CONFIG ==========
         const API_BASE = '';
         let authToken = localStorage.getItem('token');
         let currentUser = null;
+
+        // AUTO-LOGIN LOGIC
+        async function autoLogin() {
+            if (!authToken) {
+                window.location.href = 'login.html';
+                return;
+            } else {
+                // Fetch current user if token exists
+                try {
+                    const user = await apiCall('/api/auth/me');
+                    currentUser = user;
+                    if (user.role !== 'DOCTOR') {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    showApp();
+                } catch (e) {
+                    logout();
+                }
+            }
+        }
+
+        window.onload = autoLogin;
 
         // ========== API HELPERS ==========
         async function apiCall(endpoint, options = {}) {
@@ -407,10 +644,150 @@
             document.getElementById('appPage').classList.remove('hidden');
             document.getElementById('userName').textContent = currentUser.name;
             
+            // Display Somnia Address
+            if (currentUser.somnia_address) {
+                const addr = currentUser.somnia_address;
+                document.getElementById('userAddress').textContent = addr.substring(0, 6) + '...' + addr.substring(38);
+                document.getElementById('userAddress').title = addr;
+            }
+
+            updateSomniaBalance();
+            loadSubscriptionStatus();
             // Check if doctor profile is incomplete - redirect to settings
             loadDoctorProfile();
         }
+
+        async function updateSomniaBalance() {
+            try {
+                const data = await apiCall('/api/somnia/escrow/wallet/balance');
+                const balance = parseFloat(data.balance_eth).toFixed(2);
+                document.getElementById('userSttBalance').textContent = balance + ' STT';
+                
+                // For demonstration, we show the same balance in the earnings card
+                if (document.getElementById('sttEarnings')) {
+                    document.getElementById('sttEarnings').textContent = balance + ' STT';
+                }
+            } catch (e) {
+                console.error('Failed to fetch Somnia balance');
+            }
+
+            // Fetch T800 balance
+            try {
+                const t800 = await apiCall('/api/somnia/agent/t800/balance');
+                const el = document.getElementById('docT800Earnings');
+                if (el) el.textContent = Number(t800.t800_balance).toFixed(2) + ' T800';
+            } catch(e) {
+                console.error('Failed to fetch T800 balance');
+            }
+        }
+
+        // ========== METAMASK INTEGRATION ==========
+        let mmAccount = null;
+
+        function toast(msg, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const icons = { success: '✓', error: '✗', info: 'ℹ', warning: '⚠' };
+            const el = document.createElement('div');
+            el.className = 'toast ' + type;
+            el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.classList.add('toast-out');setTimeout(()=>this.parentElement.remove(),300)">×</button>`;
+            container.appendChild(el);
+            setTimeout(() => { if (el.parentElement) { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); } }, duration);
+        }
+
+        function showWalletDropdown() {
+            document.getElementById('walletDropdownMenu').classList.toggle('show');
+        }
+        document.addEventListener('click', function(e) {
+            const dd = document.getElementById('walletDropdownMenu');
+            if (dd && !e.target.closest('.wallet-dropdown')) dd.classList.remove('show');
+        });
+
+        function disconnectWallet() {
+            mmAccount = null;
+            const btn = document.getElementById('connectMmBtn');
+            btn.innerHTML = 'Connect MetaMask';
+            btn.style.background = 'var(--secondary)';
+            btn.disabled = false;
+            document.getElementById('connectMmBtnWrapper').style.display = 'inline-block';
+            document.getElementById('walletDropdownWrapper').style.display = 'none';
+            document.getElementById('userAddress').textContent = '0x...';
+            toast('Wallet disconnected', 'info');
+        }
+
+        async function connectMetaMask() {
+            if (typeof window.ethereum === 'undefined') {
+                toast('Please install MetaMask to use this feature.', 'error');
+                return;
+            }
+            const btn = document.getElementById('connectMmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg style="width:14px;height:14px;display:inline-block;margin-right:4px;animation:spin 0.6s linear infinite" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg> Connecting...';
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                mmAccount = accounts[0];
+                btn.innerHTML = '<svg style="width:16px;height:16px;display:inline-block;margin-right:4px;vertical-align:middle" viewBox="0 0 35 33" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M32.958 1l-13.134 9.718 2.442-5.767L32.958 1z" fill="#E17726" stroke="#E17726" stroke-width=".25"/><path d="M2.663 1l13.016 9.825-2.35-5.874L2.663 1z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M28.188 23.3l-3.5 5.346 7.543 2.076 2.166-7.361-6.21-.06z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M1.605 23.363l2.156 7.358 7.543-2.076-3.5-5.346-6.2.064z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M10.922 14.206l-2.083 3.145 7.482.336-.286-8.033-5.113 4.552z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M24.7 14.206l-5.202-4.556-.197 8.137 7.482-.336-2.083-3.245z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M10.569 28.646l4.543-2.204-3.91-3.043-.633 5.247z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M20.51 26.442l4.543 2.204-.633-5.247-3.91 3.043z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M25.052 28.646l-4.543-2.204.402 2.776-.058 1.182 4.199-.758z" fill="#D5BFB2" stroke="#D5BFB2" stroke-width=".25"/><path d="M10.569 28.646l4.199.758-.058-1.182.402-2.776-4.543 2.2z" fill="#D5BFB2" stroke="#D5BFB2" stroke-width=".25"/><path d="M14.86 21.734l-3.77-1.105 2.663-1.224 1.107 2.33z" fill="#233447" stroke="#233447" stroke-width=".25"/><path d="M20.762 21.734l1.107-2.33 2.663 1.224-3.77 1.106z" fill="#233447" stroke="#233447" stroke-width=".25"/><path d="M10.569 28.646l.655-5.346-4.155.063 3.5 5.283z" fill="#CC6228" stroke="#CC6228" stroke-width=".25"/><path d="M24.398 23.3l.655 5.346 3.5-5.283-4.155-.063z" fill="#CC6228" stroke="#CC6228" stroke-width=".25"/><path d="M28.188 23.3l-3.5 5.346 2.285 1.89 4.656-1.79-1.44-5.446z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M7.433 23.3l-1.44 5.446 4.656 1.79 2.285-1.89-3.5-5.346z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M21.92 17.35l-3.694-1.232 1.323-2.042 2.37 3.274z" fill="#CD6116" stroke="#CD6116" stroke-width=".25"/><path d="M13.702 17.35l2.371-3.274 1.323 2.042-3.694 1.232z" fill="#CD6116" stroke="#CD6116" stroke-width=".25"/><path d="M14.86 21.734l-.705-1.873-3.06.868 3.765 1.005z" fill="#E4751F" stroke="#E4751F" stroke-width=".25"/><path d="M20.762 21.734l3.766-1.005-3.06-.868-.706 1.873z" fill="#E4751F" stroke="#E4751F" stroke-width=".25"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/><path d="M10.569 28.646l3.683-7.276-4.82-.07 1.77 2.099-.633 5.247z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/><path d="M10.202 17.35l-2.456 1.733 2.982.292-.526-2.025z" fill="#C0AC9D" stroke="#C0AC9D" stroke-width=".25"/><path d="M21.42 17.35l-.526 2.025 2.982-.292-2.456-1.733z" fill="#C0AC9D" stroke="#C0AC9D" stroke-width=".25"/><path d="M14.86 21.734l.151-2.34-2.63.283 2.479 2.057z" fill="#161616" stroke="#161616" stroke-width=".25"/><path d="M20.762 21.734l2.479-2.057-2.63-.283.151 2.34z" fill="#161616" stroke="#161616" stroke-width=".25"/></g></svg> <span style="vertical-align:middle">' + mmAccount.substring(0, 6) + '...</span>';
+                btn.style.background = 'var(--accent)';
+                btn.disabled = false;
+                toast('MetaMask Connected \u2713', 'success');
+
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0xC488' }],
+                    });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0xC488',
+                                chainName: 'Somnia Testnet',
+                                rpcUrls: ['https://api.infra.testnet.somnia.network'],
+                                nativeCurrency: { name: 'Somnia Test Token', symbol: 'STT', decimals: 18 },
+                                blockExplorerUrls: ['https://explorer.testnet.somnia.network']
+                            }],
+                        });
+                    }
+                }
+                document.getElementById('connectMmBtnWrapper').style.display = 'none';
+                document.getElementById('walletDropdownWrapper').style.display = 'inline-block';
+                document.getElementById('walletAddressDisplay').innerHTML = '<svg style="width:12px;height:12px;display:inline-block;margin-right:3px;vertical-align:middle" viewBox="0 0 35 33"><path d="M32.958 1l-13.134 9.718 2.442-5.767L32.958 1z" fill="#E17726"/><path d="M2.663 1l13.016 9.825-2.35-5.874L2.663 1z" fill="#E27625"/><path d="M28.188 23.3l-3.5 5.346 7.543 2.076 2.166-7.361-6.21-.06z" fill="#E27625"/><path d="M1.605 23.363l2.156 7.358 7.543-2.076-3.5-5.346-6.2.064z" fill="#E27625"/><path d="M10.922 14.206l-2.083 3.145 7.482.336-.286-8.033-5.113 4.552z" fill="#E27625"/><path d="M24.7 14.206l-5.202-4.556-.197 8.137 7.482-.336-2.083-3.245z" fill="#E27625"/><path d="M10.569 28.646l4.543-2.204-3.91-3.043-.633 5.247z" fill="#E27625"/><path d="M20.51 26.442l4.543 2.204-.633-5.247-3.91 3.043z" fill="#E27625"/><path d="M25.052 28.646l-4.543-2.204.402 2.776-.058 1.182 4.199-.758z" fill="#D5BFB2"/><path d="M10.569 28.646l4.199.758-.058-1.182.402-2.776-4.543 2.2z" fill="#D5BFB2"/><path d="M14.86 21.734l-3.77-1.105 2.663-1.224 1.107 2.33z" fill="#233447"/><path d="M20.762 21.734l1.107-2.33 2.663 1.224-3.77 1.106z" fill="#233447"/><path d="M10.569 28.646l.655-5.346-4.155.063 3.5 5.283z" fill="#CC6228"/><path d="M24.398 23.3l.655 5.346 3.5-5.283-4.155-.063z" fill="#CC6228"/><path d="M28.188 23.3l-3.5 5.346 2.285 1.89 4.656-1.79-1.44-5.446z" fill="#E27625"/><path d="M7.433 23.3l-1.44 5.446 4.656 1.79 2.285-1.89-3.5-5.346z" fill="#E27625"/><path d="M21.92 17.35l-3.694-1.232 1.323-2.042 2.37 3.274z" fill="#CD6116"/><path d="M13.702 17.35l2.371-3.274 1.323 2.042-3.694 1.232z" fill="#CD6116"/><path d="M14.86 21.734l-.705-1.873-3.06.868 3.765 1.005z" fill="#E4751F"/><path d="M20.762 21.734l3.766-1.005-3.06-.868-.706 1.873z" fill="#E4751F"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F"/><path d="M10.569 28.646l3.683-7.276-4.82-.07 1.77 2.099-.633 5.247z" fill="#F5841F"/></svg> <span style="vertical-align:middle">' + mmAccount.substring(0, 6) + '...' + mmAccount.slice(-4) + '</span>';
+            } catch (e) {
+                console.error('MetaMask connection failed:', e);
+                toast('MetaMask connection cancelled or failed', 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Connect MetaMask';
+            }
+        }
+
+        function copyAddress() {
+            if (mmAccount) {
+                navigator.clipboard.writeText(mmAccount).then(() => toast('Address copied ✓', 'success'));
+            }
+        }
         
+        // ========== SKELETON HELPERS ==========
+        function showSkeleton(id, rows) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            rows = rows || 3;
+            const items = [];
+            for (let i = 0; i < rows; i++) {
+                items.push('<div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>');
+            }
+            el.innerHTML = items.join('');
+        }
+        function showSkeletonTable(id, cols) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            cols = cols || 5;
+            const rows = [];
+            for (let i = 0; i < 4; i++) {
+                rows.push('<tr><td colspan="' + cols + '"><div class="skeleton skeleton-line" style="height:16px;margin:8px 0;"></div></td></tr>');
+            }
+            el.innerHTML = rows.join('');
+        }
+
         async function loadDoctorProfile() {
             try {
                 const profile = await apiCall('/api/profile/doctor');
@@ -446,7 +823,7 @@
                 
                 // If profile not completed, force settings page
                 if (!profile.profile_completed) {
-                    alert('Please complete your doctor profile to receive patients.');
+                    toast('Please complete your doctor profile to receive patients.', 'warning');
                     document.getElementById('docName').value = profile.name || '';
                     document.getElementById('docSpecialty').value = profile.specialty || '';
                     document.getElementById('docArea').value = profile.area || '';
@@ -469,6 +846,23 @@
             }
         }
 
+        async function claimT800Doc() {
+            const btn = document.getElementById('claimT800BtnDoc');
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                const result = await apiCall('/api/somnia/agent/t800/faucet', { method: 'POST' });
+                const resDiv = document.getElementById('claimT800ResultDoc');
+                resDiv.style.display = 'block';
+                resDiv.innerHTML = '<span style="color:#fff">\u2713 ' + result.message + '</span>';
+                btn.innerHTML = '<span class="spinner"></span><span class="btn-text">Claimed \u2713</span>';
+            } catch (e) {
+                const resDiv = document.getElementById('claimT800ResultDoc');
+                resDiv.style.display = 'block';
+                resDiv.innerHTML = '<span style="color:#fca5a5">\u2717 ' + e.message + '</span>';
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        }
+
         // ========== NAVIGATION ==========
         document.querySelectorAll('.menu-item[data-page]').forEach(item => {
             item.onclick = () => navTo(item.dataset.page);
@@ -478,13 +872,21 @@
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
             document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-' + page)?.classList.remove('hidden');
-            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            const nextPage = document.getElementById('page-' + page);
+            if (nextPage) {
+                nextPage.classList.remove('hidden');
+                nextPage.classList.remove('page-enter');
+                void nextPage.offsetWidth;
+                nextPage.classList.add('page-enter');
+            }
+            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g,' ');
             
             if (page === 'appointments') loadAppointments();
             if (page === 'patients') loadPatients();
             if (page === 'prescriptions') loadPrescriptionsForm();
             if (page === 'pricing') loadPricingPage();
+            if (page === 'ai-tools') loadDocCreditCosts();
+            if (page === 'subscription') loadSubscriptionStatus();
         }
 
         // ========== DASHBOARD ==========
@@ -559,6 +961,7 @@
 
         // ========== APPOINTMENTS ==========
         async function loadAppointments(filter = 'all') {
+            showSkeletonTable('appointmentsTable', 5);
             try {
                 const url = filter === 'all' ? '/api/appointments' : `/api/appointments?status_filter=${filter}`;
                 const appts = await apiCall(url);
@@ -606,11 +1009,11 @@
                     method: 'PATCH',
                     body: JSON.stringify({ status: 'ACTIVE' })
                 });
-                alert('Appointment accepted!');
+                toast('Appointment accepted ✓', 'success');
                 initDashboard();
                 loadAppointments();
             } catch (e) {
-                alert('Failed: ' + e.message);
+                toast('Failed: ' + e.message, 'error');
             }
         }
         
@@ -618,7 +1021,7 @@
             try {
                 // Use waiting room API to admit patient
                 const result = await apiCall(`/api/waiting-room/admit/${id}`, { method: 'POST' });
-                alert('Patient admitted to video call!');
+                toast('Patient admitted to video call ✓', 'success');
                 initDashboard();
                 loadAppointments();
             } catch (e) {
@@ -627,7 +1030,7 @@
                     method: 'PATCH',
                     body: JSON.stringify({ status: 'ACTIVE' })
                 });
-                alert('Appointment activated for video call!');
+                toast('Appointment activated for video call ✓', 'success');
                 initDashboard();
                 loadAppointments();
             }
@@ -701,7 +1104,7 @@
             const instructions = document.getElementById('prescriptionInstructions').value;
             
             if (!apptId || !medication || !dosage) {
-                alert('Please fill all required fields');
+                toast('Please fill all required fields', 'warning');
                 return;
             }
             
@@ -715,7 +1118,7 @@
                         instructions
                     })
                 });
-                alert('Prescription created!');
+                toast('Prescription created ✓', 'success');
                 document.getElementById('prescriptionMed').value = '';
                 document.getElementById('prescriptionDosage').value = '';
                 document.getElementById('prescriptionInstructions').value = '';
@@ -733,7 +1136,7 @@
                 const fee = parseInt(document.getElementById('docFee').value) || 150;
                 
                 if (!name || !specialty || !area) {
-                    alert('Please fill in name, specialty, and area.');
+                    toast('Please fill in name, specialty, and area.', 'warning');
                     return;
                 }
                 
@@ -747,12 +1150,12 @@
                     })
                 });
                 
-                alert('Profile saved! Verification status: ' + profile.verification_status);
+                toast('Profile saved ✓ Status: ' + profile.verification_status, 'success');
                 
                 // Refresh profile to show new badge
                 loadDoctorProfile();
             } catch(e) {
-                alert('Failed to save: ' + e.message);
+                toast('Failed to save: ' + e.message, 'error');
             }
         }
 
@@ -762,10 +1165,10 @@
                 const result = await apiCall('/api/profile/doctor/request-verification', {
                     method: 'POST'
                 });
-                alert(result.message);
+                toast(result.message, 'info');
                 loadDoctorProfile();
             } catch(e) {
-                alert('Verification error: ' + e.message);
+                toast('Verification error: ' + e.message, 'error');
             }
         }
 
@@ -775,10 +1178,10 @@
                 const result = await apiCall('/api/credits/doctor/collect', {
                     method: 'POST'
                 });
-                alert('Collected! New balance: ' + result.new_balance + ' credits');
+                toast('Collected ✓ New balance: ' + result.new_balance + ' credits', 'success');
                 initDashboard();
             } catch(e) {
-                alert('Error: ' + e.message);
+                toast('Error: ' + e.message, 'error');
             }
         }
 
@@ -791,10 +1194,10 @@
                     method: 'POST',
                     body: JSON.stringify({ is_online: newStatus })
                 });
-                alert('You are now ' + (newStatus ? 'ONLINE' : 'OFFLINE'));
+                toast('You are now ' + (newStatus ? 'ONLINE' : 'OFFLINE'), 'success');
                 loadDoctorProfile();
             } catch(e) {
-                alert('Error: ' + e.message);
+                toast('Error: ' + e.message, 'error');
             }
         }
 
@@ -846,14 +1249,240 @@
                     body: JSON.stringify(pricing)
                 });
                 
-                alert('Pricing saved! 20% platform fee will be applied to each transaction.');
+                toast('Pricing saved ✓', 'success');
                 updatePricePreview();
             } catch(e) {
-                alert('Error: ' + e.message);
+                toast('Error: ' + e.message, 'error');
             }
         }
 
-        // Update verification status display
+        // ========== AI TOOLS ==========
+        async function loadDocCreditCosts() {
+            try {
+                const costs = await apiCall('/api/somnia/agent/credit-costs');
+                document.getElementById('docCreditCosts').innerHTML = '<table class="table"><thead><tr><th>Feature</th><th>Credits</th></tr></thead><tbody>' +
+                    Object.entries(costs).map(([k, v]) => `<tr><td>${k.replace(/_/g, ' ')}</td><td><strong>${v}</strong></td></tr>`).join('') + '</tbody></table>';
+            } catch(e) {
+                document.getElementById('docCreditCosts').innerHTML = '<div class="empty">Could not load costs</div>';
+            }
+            try {
+                const stt = await apiCall('/api/somnia/agent/stt/cost');
+                document.getElementById('docSttCostBadge').style.display = 'block';
+                document.getElementById('docSttCostText').textContent =
+                    `~${Number(stt.total_stt).toFixed(4)} STT per invocation (1 STT = 30 T800)`;
+            } catch(e) {
+                document.getElementById('docSttCostBadge').style.display = 'block';
+                document.getElementById('docSttCostText').textContent = '~0.57 STT per invocation (1 STT = 30 T800)';
+            }
+        }
+
+        function _pollDocResult(resp, div) {
+            div.textContent = 'Submitted (ID: ' + resp.request_id + '). Polling...';
+            const ps = Date.now();
+            const iv = setInterval(async () => {
+                if (Date.now() - ps > 120000) { clearInterval(iv); div.textContent = 'Timed out.'; return; }
+                try {
+                    const s = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                    if (s.status === 'success') { clearInterval(iv); div.innerHTML = '<strong>Result:</strong><br>' + s.result; }
+                    else if (['failed','timedout','archived'].includes(s.status)) { clearInterval(iv); div.innerHTML = '<strong>Agent ' + s.status + ':</strong> ' + (s.result || 'No result'); }
+                } catch(e) {}
+            }, 3000);
+        }
+
+        async function docRunSummaryStt() {
+            const input = document.getElementById('docSummaryInput').value.trim();
+            if (!input) { toast('Enter notes', 'warning'); return; }
+            const div = document.getElementById('docSummaryResult');
+            div.classList.remove('hidden'); div.textContent = 'Submitting via STT...';
+            try {
+                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
+                    method: 'POST',
+                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Generate a visit summary from: ' + input, system_prompt: 'You are a medical scribe.' })
+                });
+                _pollDocResult(resp, div);
+            } catch(e) { div.textContent = 'Error: ' + e.message; }
+        }
+
+        async function docRunDrugCheckStt() {
+            const input = document.getElementById('docDrugInput').value.trim();
+            if (!input) { toast('Enter medications', 'warning'); return; }
+            const div = document.getElementById('docDrugResult');
+            div.classList.remove('hidden'); div.textContent = 'Submitting via STT...';
+            try {
+                const meds = input.split(',').map(m => m.trim()).filter(Boolean);
+                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
+                    method: 'POST',
+                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Check interactions: ' + meds.join(', '), system_prompt: 'You are a clinical pharmacist.' })
+                });
+                _pollDocResult(resp, div);
+            } catch(e) { div.textContent = 'Error: ' + e.message; }
+        }
+
+        async function docRunTipsStt() {
+            const input = document.getElementById('docTipsInput').value.trim();
+            if (!input) { toast('Enter a topic', 'warning'); return; }
+            const div = document.getElementById('docTipsResult');
+            div.classList.remove('hidden'); div.textContent = 'Submitting via STT...';
+            try {
+                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
+                    method: 'POST',
+                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Create health tips about: ' + input, system_prompt: 'You are a patient education specialist.' })
+                });
+                _pollDocResult(resp, div);
+            } catch(e) { div.textContent = 'Error: ' + e.message; }
+        }
+
+        let docPollInterval = null;
+
+        function _pollDocResult(resp, div, label) {
+            const maxMs = 120000;
+            const start = Date.now();
+            div.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitted (ID: ' + resp.request_id + '). Polling...</div>';
+            docPollInterval = setInterval(async () => {
+                const elapsed = Date.now() - start;
+                const pct = Math.min(95, (elapsed / maxMs) * 100);
+                const bar = div.querySelector('.poll-progress-fill');
+                const st = div.querySelector('div:last-child');
+                if (bar) bar.style.width = pct + '%';
+                if (st) st.textContent = 'Waiting for agent... (' + Math.floor(elapsed / 1000) + 's)';
+                if (elapsed > maxMs) { clearInterval(docPollInterval); div.innerHTML = '<strong>Timed out</strong> — no response after 120s. Try again.'; return; }
+                try {
+                    const s = await apiCall('/api/somnia/agent/result/' + resp.request_id);
+                    if (s.status === 'success') { clearInterval(docPollInterval); if (bar) bar.style.width = '100%'; div.innerHTML = '<strong>' + label + ':</strong><br>' + s.result; }
+                    else if (['failed','timedout','archived'].includes(s.status)) { clearInterval(docPollInterval); div.innerHTML = '<strong>Agent ' + s.status + ':</strong> ' + (s.result || 'No result'); }
+                } catch(e) {}
+            }, 3000);
+        }
+
+        async function docRunSummary() {
+            const input = document.getElementById('docSummaryInput').value.trim();
+            if (!input) { toast('Enter consultation notes', 'warning'); return; }
+            const div = document.getElementById('docSummaryResult');
+            div.classList.remove('hidden');
+            try {
+                const resp = await apiCall('/api/somnia/agent/generate-summary', {
+                    method: 'POST', body: JSON.stringify({ consultation_notes: input })
+                });
+                _pollDocResult(resp, div, 'Summary');
+            } catch(e) { div.innerHTML = e.message.includes('402') ? 'Insufficient credits' : 'Error: ' + e.message; }
+        }
+
+        async function docRunDrugCheck() {
+            const input = document.getElementById('docDrugInput').value.trim();
+            if (!input) { toast('Enter medications', 'warning'); return; }
+            const div = document.getElementById('docDrugResult');
+            div.classList.remove('hidden');
+            try {
+                const medications = input.split(',').map(m => m.trim()).filter(Boolean);
+                const resp = await apiCall('/api/somnia/agent/drug-interaction', {
+                    method: 'POST', body: JSON.stringify({ medications })
+                });
+                _pollDocResult(resp, div, 'Interactions');
+            } catch(e) { div.innerHTML = e.message.includes('402') ? 'Insufficient credits' : 'Error: ' + e.message; }
+        }
+
+        async function docRunTips() {
+            const input = document.getElementById('docTipsInput').value.trim();
+            if (!input) { toast('Enter a health topic', 'warning'); return; }
+            const div = document.getElementById('docTipsResult');
+            div.classList.remove('hidden');
+            try {
+                const resp = await apiCall('/api/somnia/agent/health-tips', {
+                    method: 'POST', body: JSON.stringify({ topic: input })
+                });
+                _pollDocResult(resp, div, 'Health Tips');
+            } catch(e) { div.innerHTML = e.message.includes('402') ? 'Insufficient credits' : 'Error: ' + e.message; }
+        }
+
+        // ========== SUBSCRIPTION ==========
+        async function loadSubscriptionStatus() {
+            try {
+                const sub = await apiCall('/api/somnia/subscription/status');
+                const statusDiv = document.getElementById('subscriptionStatus');
+                const subPageStatus = document.getElementById('subStatus');
+                const subscribeBtn = document.getElementById('subscribeBtn');
+
+                if (sub.active) {
+                    statusDiv.innerHTML = 'Active <span style="font-size:0.9rem;color:var(--accent)">✓</span>';
+                    if (subPageStatus) subPageStatus.innerHTML = '<span style="color:var(--accent);font-weight:600">✓ Active</span> — expires ' + new Date(sub.end_date).toLocaleDateString();
+                    if (subscribeBtn) subscribeBtn.textContent = 'Renew — 10 STT';
+                } else {
+                    statusDiv.innerHTML = 'Not subscribed';
+                    if (subPageStatus) subPageStatus.innerHTML = '<span style="color:var(--text-light)">Not subscribed</span>';
+                    if (subscribeBtn) subscribeBtn.innerHTML = '<i class="fas fa-crown"></i> Subscribe Now — 10 STT';
+                }
+            } catch(e) {
+                document.getElementById('subscriptionStatus').textContent = 'Unavailable';
+            }
+        }
+
+        async function subscribeNow() {
+            if (!window.ethereum) {
+                toast('Please install MetaMask to subscribe.', 'error');
+                await connectMetaMask();
+                if (!window.ethereum) return;
+            }
+
+            const sponsorAddr = '0xbC26b85eaDF0e2ab1f2B5E7de048D52E80bCa3Ca';
+            const amountWei = '10000000000000000000'; // 10 STT
+
+            const btn = document.getElementById('subscribeBtn');
+            btn.classList.add('loading'); btn.disabled = true;
+
+            const info = document.getElementById('subTxInfo');
+            info.innerHTML = '<span class="spinner" style="display:inline-block;margin-right:6px;"></span> Please confirm MetaMask transaction...';
+
+            try {
+                const txHash = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: mmAccount,
+                        to: sponsorAddr,
+                        value: amountWei,
+                        gas: '0x5208',
+                    }]
+                });
+
+                info.innerHTML = '<span class="spinner" style="display:inline-block;margin-right:6px;"></span> Sent! Waiting for confirmation... ' + txHash.substring(0, 10) + '...';
+
+                let receipt = null;
+                for (let i = 0; i < 30; i++) {
+                    await new Promise(r => setTimeout(r, 2000));
+                    receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
+                    if (receipt) break;
+                }
+
+                if (!receipt) {
+                    info.textContent = 'Transaction pending. Hash: ' + txHash;
+                    toast('Subscription tx pending: ' + txHash.substring(0, 10) + '...', 'warning');
+                    btn.classList.remove('loading'); btn.disabled = false;
+                    return;
+                }
+
+                if (receipt.status !== '0x1') {
+                    info.textContent = 'Transaction failed. Please try again.';
+                    toast('Subscription transaction failed', 'error');
+                    btn.classList.remove('loading'); btn.disabled = false;
+                    return;
+                }
+
+                info.textContent = 'Confirming with backend...';
+                await apiCall('/api/somnia/subscription/subscribe', {
+                    method: 'POST',
+                    body: JSON.stringify({ tx_hash: txHash })
+                });
+
+                info.innerHTML = '<span style="color:var(--accent);font-weight:600">\u2713 Subscription activated!</span>';
+                toast('Subscription activated \u2713', 'success');
+                loadSubscriptionStatus();
+            } catch(e) {
+                info.textContent = 'Error: ' + e.message;
+                toast('Subscription error: ' + e.message, 'error');
+            }
+            btn.classList.remove('loading'); btn.disabled = false;
+        }
+
+        // ========== VERIFICATION ==========
         function updateVerificationDisplay(profile) {
             const statusDiv = document.getElementById('verificationStatus');
             const bannerDiv = document.getElementById('verificationBanner');

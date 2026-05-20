@@ -1,9 +1,10 @@
 """
-DoctorLink FastAPI Server with WebSocket Signaling.
+DoctorLink FastAPI Server with WebSocket Signaling and Somnia Agentic L1 Integration.
 """
 
 import os
 import sys
+import asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 from config import settings
 from database import init_db
+from somnia.client import somnia
 
 # Import routers
 from api.auth import router as auth_router
@@ -32,6 +34,18 @@ from api.chat import router as chat_router
 from api.tips import router as tips_router
 from api.storage import router as storage_router, ensure_bucket_exists
 from api.telehealth import router as telehealth_router
+from api.somnia_agent import router as somnia_agent_router
+from api.somnia_escrow import router as somnia_escrow_router
+from api.somnia_subscription import router as somnia_subscription_router
+from api.somnia_admin import router as somnia_admin_router
+
+# Import autonomous agents
+from somnia.autonomous_agents import (
+    AutonomousAppointmentMatcher,
+    AutonomousFollowUpScheduler,
+    AutonomousEscrowAgent,
+    AutonomousAIDoctorAgent,
+)
 
 # Create SocketIO server
 sio = socketio.AsyncServer(
@@ -47,6 +61,16 @@ app = FastAPI(
     description="South Africa's Healthcare Platform API",
     version="1.0.0",
 )
+
+
+@app.exception_handler(RuntimeError)
+async def runtime_error_handler(request, exc):
+    """Catch RuntimeError (tx failures, revert reasons) and return JSON 500."""
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc) or "Internal server error"},
+    )
 
 # Wrap SocketIO with ASGI
 socket_app = socketio.ASGIApp(sio, app)
@@ -74,20 +98,38 @@ app.include_router(chat_router, prefix="")
 app.include_router(tips_router, prefix="")
 app.include_router(telehealth_router, prefix="")
 app.include_router(storage_router, prefix="/api/storage")
+app.include_router(somnia_agent_router, prefix="")
+app.include_router(somnia_escrow_router, prefix="")
+app.include_router(somnia_subscription_router, prefix="")
+app.include_router(somnia_admin_router, prefix="")
 
 
 @app.on_event("startup")
-def startup_event():
-    """Initialize database and storage on startup."""
+async def startup_event():
+    """Initialize database, storage, and autonomous agents on startup."""
     init_db()
+    somnia.validate()
     ensure_bucket_exists()
+
+    # Seed demo data if bucket is empty
+    from seed_filebase import seed
+    seed()
+
+    # Start autonomous agents as background tasks (only if Somnia is configured)
+    if settings.SOMNIA_PRIVATE_KEY:
+        asyncio.create_task(AutonomousAppointmentMatcher().run())
+        asyncio.create_task(AutonomousFollowUpScheduler().run())
+        asyncio.create_task(AutonomousEscrowAgent().run())
+        asyncio.create_task(AutonomousAIDoctorAgent().run())
+    else:
+        print("SOMNIA_PRIVATE_KEY not set — autonomous agents disabled")
 
 
 @app.get("/")
 def root():
     from fastapi.responses import RedirectResponse
 
-    return RedirectResponse("/static/index_v2.html")
+    return RedirectResponse("/static/landing.html")
 
 
 @app.get("/index.html")
@@ -399,4 +441,4 @@ app.mount("/socket.io", socket_app)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(socket_app, host="0.0.0.0", port=3000)
+    uvicorn.run(socket_app, host="0.0.0.0", port=8000)

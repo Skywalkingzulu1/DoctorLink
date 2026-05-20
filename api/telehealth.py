@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 FastAPI router for telehealth and real-time consultation updates.
+Integrated with Somnia Agentic L1 for AI-enhanced visit summaries.
 """
 
 import os
 import sys
+import asyncio
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -17,7 +19,6 @@ from auth import get_current_user, require_role
 from api.websocket_manager import manager
 from database import (
     get_db,
-    SessionLocal,
     RoomStatus,
     History,
     Appointment,
@@ -26,6 +27,7 @@ from database import (
     Doctor,
 )
 from config import settings
+from somnia.agent_service import invoke_llm_agent
 
 router = APIRouter(
     prefix="/api/telehealth",
@@ -172,5 +174,15 @@ async def post_summary(
 
     db.commit()
     db.refresh(history)
+
+    # Enhance summary with Somnia LLM agent for structured medical format
+    try:
+        await asyncio.to_thread(
+            invoke_llm_agent,
+            f"Structure this consultation summary: {summary.summary}",
+            "Convert to structured medical summary format with: Chief Complaint, History, Examination, Assessment, Plan, Follow-up.",
+        )
+    except Exception as e:
+        print(f"LLM summary enhancement failed: {e}")
 
     return {"status": "summary_uploaded", "history_id": history.id}

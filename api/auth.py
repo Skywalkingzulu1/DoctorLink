@@ -1,5 +1,6 @@
 """
 Auth API endpoints for DoctorLink.
+Integrated with Somnia Agentic L1 for automatic wallet creation.
 """
 
 import os
@@ -22,6 +23,7 @@ from database import get_db, User, UserRole, Doctor
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from config import settings
 from api.storage import get_public_url, object_exists
+from somnia.wallet import create_wallet_for_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -49,6 +51,7 @@ class UserResponse(BaseModel):
     phone_verified: bool = False
     verification_level: str = "none"
     avatar_url: str | None = None
+    somnia_address: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -100,6 +103,15 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
+    # Create Somnia wallet for new user
+    somnia_wallet = None
+    try:
+        somnia_wallet = create_wallet_for_user(user.id)
+    except Exception as e:
+        import traceback
+        print(f"Somnia wallet creation failed: {e}")
+        print(traceback.format_exc())
+
     # Auto-create doctor profile if registering as DOCTOR
     if role == UserRole.DOCTOR:
         doctor = Doctor(
@@ -136,6 +148,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         phone_verified=user.phone_verified,
         verification_level=user.verification_level or "none",
         avatar_url=avatar_url,
+        somnia_address=user.somnia_address,
     )
 
 
@@ -180,6 +193,7 @@ def login(
             "phone_verified": user.phone_verified,
             "verification_level": user.verification_level or "none",
             "avatar_url": avatar_url,
+            "somnia_address": user.somnia_address,
         },
     }
 
@@ -203,6 +217,7 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
         "phone_verified": current_user.phone_verified,
         "verification_level": current_user.verification_level or "none",
         "avatar_url": avatar_url,
+        "somnia_address": current_user.somnia_address,
     }
 
 

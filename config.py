@@ -34,6 +34,22 @@ class Settings(BaseSettings):
     FILEBASE_BUCKET: str = "skyhealth"
     FILEBASE_ENDPOINT: str = "https://s3.filebase.com"
 
+    # Somnia Agentic L1
+    SOMNIA_RPC_URL: str = "https://api.infra.testnet.somnia.network"
+    SOMNIA_CHAIN_ID: int = 50312
+    SOMNIA_CURRENCY: str = "STT"
+    SOMNIA_PLATFORM_CONTRACT: str = "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    SOMNIA_ESCROW_CONTRACT: str = ""
+    SOMNIA_PRIVATE_KEY: str = ""
+    SOMNIA_SPONSOR_CONTRACT: str = ""
+    SOMNIA_GAS_LIMIT: int = 500000
+
+    # T-800 Token
+    T800_CONTRACT_ADDRESS: str = ""
+    ROUTER_CONTRACT_ADDRESS: str = ""
+    DEX_CONTRACT_ADDRESS: str = ""
+    TOKEN_VESTING_CONTRACT: str = ""
+
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 

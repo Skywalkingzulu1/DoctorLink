@@ -1,5 +1,6 @@
 """
 Prescription API endpoints for DoctorLink.
+Integrated with Somnia Agentic L1 for autonomous drug interaction checking.
 """
 
 import os
@@ -14,8 +15,11 @@ from pydantic import BaseModel, ConfigDict
 
 from database import get_db, Prescription, Appointment, Doctor, User
 from auth import get_current_user, require_role
+from somnia.autonomous_agents import AutonomousPrescriptionReviewer
 
 router = APIRouter(prefix="/api/prescriptions", tags=["prescriptions"])
+
+prescription_reviewer = AutonomousPrescriptionReviewer()
 
 
 class PrescriptionResponse(BaseModel):
@@ -64,7 +68,7 @@ def list_prescriptions(
 @router.post(
     "", response_model=PrescriptionResponse, status_code=status.HTTP_201_CREATED
 )
-def create_prescription(
+async def create_prescription(
     request: CreatePrescriptionRequest,
     current_user: User = Depends(require_role(["DOCTOR"])),
     db: Session = Depends(get_db),
@@ -98,6 +102,14 @@ def create_prescription(
     db.add(prescription)
     db.commit()
     db.refresh(prescription)
+
+    # Trigger autonomous drug interaction check via Somnia LLM agent
+    try:
+        await prescription_reviewer.review_prescription(
+            prescription.id, [request.medication]
+        )
+    except Exception as e:
+        print(f"Drug interaction check failed: {e}")
 
     return prescription
 

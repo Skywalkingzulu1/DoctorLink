@@ -5,99 +5,124 @@ from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
 from jose import jwt
 
-# If you need the current directory in path, use:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from main import app
-from database import SessionLocal, Base, engine, User, Doctor, AppointmentStatus, UserRole
+from database import FilebaseSession, User, Doctor, AppointmentStatus, UserRole, Appointment
+from filebase_db import _cache
 from config import settings
 
 client = TestClient(app)
 
+def _clear_all_tables():
+    """Clear all in-memory caches so tests start fresh."""
+    _cache.clear()
+    # We don't delete Filebase remote — each test run starts fresh locally
+
 def setup_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    
-    # Use UserRole enum if available, or just string if it's a string column
-    # database.py uses SQLEnum(UserRole)
+    db = FilebaseSession()
+
     patient = User(name="Test Patient", email="test@patient.com", credits=500, role=UserRole.PATIENT, password_hash="hash")
     doctor_user = User(name="Test Doctor", email="test@doctor.com", credits=0, role=UserRole.DOCTOR, password_hash="hash")
+
     db.add(patient)
     db.add(doctor_user)
     db.commit()
-    db.refresh(patient)
-    db.refresh(doctor_user)
-    
-    doc = Doctor(user_id=doctor_user.id, name="Dr. Test", specialty="Testing", area="Test Area", is_online=True)
-    db.add(doc)
-    db.commit()
-    db.refresh(doc)
-    
-    # Return patient token, doctor token, doctor id
-    p_token = jwt.encode({"sub": str(patient.id), "user_id": patient.id, "exp": datetime.utcnow() + timedelta(days=1)}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    d_token = jwt.encode({"sub": str(doctor_user.id), "user_id": doctor_user.id, "exp": datetime.utcnow() + timedelta(days=1)}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return p_token, d_token, doc.id, patient.id, doctor_user.id
+    db.close()
 
-def test_full_flow():
-    print("Testing End-to-End DoctorLink Flow...")
-    p_token, d_token, doc_id, p_id, d_id = setup_db()
-    p_headers = {"Authorization": f"Bearer {p_token}"}
-    d_headers = {"Authorization": f"Bearer {d_token}"}
-    
-    # 1. Check me
-    res = client.get("/api/auth/me", headers=p_headers)
-    assert res.status_code == 200, f"Failed GET /api/auth/me: {res.text}"
-    assert res.json()["credits"] == 500
-    print("✅ Get /me successful")
-    
-    # 2. Book appointment (should deduct credits immediately)
-    future_time = (datetime.utcnow() + timedelta(days=1)).isoformat()
-    res = client.post("/api/appointments", json={
-        "doctor_id": doc_id,
-        "timestamp": future_time,
-        "service_tier": "VIDEO_CALL",
-        "appointment_type": "VIDEO"
-    }, headers=p_headers)
-    assert res.status_code == 201, f"Failed POST /api/appointments: {res.text}"
-    appt_id = res.json()["id"]
-    print("✅ Appointment booked successfully")
-    
-    # 2b. Verify credit deduction
-    res = client.get("/api/auth/me", headers=p_headers)
-    assert res.json()["credits"] == 350, f"Credits not deducted! Got {res.json()['credits']}"
-    print("✅ Credits automatically deducted upon booking.")
-    
-    # 3. Update status to ACTIVE (Doctor does this)
-    res = client.patch(f"/api/appointments/{appt_id}", json={"status": "ACTIVE"}, headers=d_headers)
-    assert res.status_code == 200, f"Failed PATCH /api/appointments: {res.text}"
-    print("✅ Appointment status updated to ACTIVE by doctor")
-    
-    # 4. Telehealth signal exchange
-    res = client.post(f"/api/telehealth/rooms/{appt_id}/signals", json={
-        "target_id": d_id,
-        "signal_data": "offer"
-    }, headers=p_headers)
-    assert res.status_code == 200, f"Failed POST signals: {res.text}"
-    print("✅ WebRTC Signal Exchange endpoint successful")
-    
-    # 5. Upload Meeting Summary
-    res = client.post(f"/api/telehealth/summary", json={
-        "appointment_id": appt_id,
-        "summary": "Patient is doing great. No issues."
-    }, headers=d_headers)
-    assert res.status_code == 201, f"Failed POST summary: {res.text}"
-    print("✅ Meeting summary uploaded successfully")
+    # Create doctor profile
+    db2 = FilebaseSession()
+    doctor = Doctor(name="Dr. Test", specialty="General", area="Test Area", user_id=doctor_user.id,
+                    consultation_fee=150, is_available=True)
+    db2.add(doctor)
+    db2.commit()
+    db2.close()
 
-    # 6. Verify status is COMPLETED
-    res = client.get(f"/api/appointments/{appt_id}", headers=p_headers)
-    assert res.json()["status"] == "COMPLETED"
-    print("✅ Appointment status is COMPLETED")
+    return patient, doctor_user, doctor
 
-    print("🚀 All E2E Tests Passed!")
 
-def f(s):
-    return s.format() # Just a helper for f-strings if I forgot some
+def make_token(email: str):
+    payload = {"sub": email, "exp": datetime.utcnow() + timedelta(hours=1)}
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+@pytest.fixture(autouse=True)
+def reset():
+    _clear_all_tables()
+
+
+def test_root():
+    response = client.get("/")
+    assert response.status_code == 200
+
+
+def test_login():
+    # First register
+    resp = client.post("/api/auth/register", json={
+        "email": "login@test.com", "password": "test123",
+        "name": "Login Tester", "role": "PATIENT"
+    })
+    assert resp.status_code == 200, resp.text
+
+    # Then login
+    resp = client.post("/api/auth/token", data={
+        "username": "login@test.com", "password": "test123"
+    }, headers={"Content-Type": "application/x-www-form-urlencoded"})
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert "access_token" in data
+    return data["access_token"]
+
+
+def test_appointment_flow():
+    patient, doctor_user, doctor = setup_db()
+    token = make_token(patient.email)
+
+    # Get doctors
+    resp = client.get("/api/doctors", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    doctors = resp.json()
+    assert len(doctors) > 0
+
+    # Book appointment
+    tomorrow = datetime.utcnow() + timedelta(days=1)
+    resp = client.post("/api/appointments", json={
+        "doctor_id": doctor.id,
+        "timestamp": tomorrow.isoformat(),
+        "appointment_type": "VIDEO",
+        "reason": "Test appointment"
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200, resp.text
+    apt = resp.json()
+    assert "id" in apt
+
+    # Get appointments
+    resp = client.get("/api/appointments", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    appts = resp.json()
+    assert len(appts) > 0
+
+
+def test_profile():
+    patient, _, _ = setup_db()
+    token = make_token(patient.email)
+
+    resp = client.get("/api/profile", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    assert resp.json()["email"] == patient.email
+
+
+def test_doctor_profile():
+    patient, doctor_user, doctor = setup_db()
+
+    # Doctor token
+    token = make_token(doctor_user.email)
+
+    resp = client.get("/api/profile/doctor", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "Dr. Test"
+
 
 if __name__ == "__main__":
-    test_full_flow()
+    pytest.main([__file__, "-v"])

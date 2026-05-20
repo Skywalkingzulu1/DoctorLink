@@ -82,6 +82,34 @@ def init_sample_data():
             profile_completed=True
         )
         db.add(doctor_profile2)
+
+        # Create AI Doctor
+        ai_doctor_user = User(
+            name="Somnia AI Agent",
+            email="ai@somnia.network",
+            password_hash=hash_password("agent123"),
+            role=UserRole.DOCTOR,
+            credits=0,
+            email_verified=True,
+            somnia_address="0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776", # Somnia Platform Contract as placeholder
+            verification_level="verified"
+        )
+        db.add(ai_doctor_user)
+        db.commit()
+        db.refresh(ai_doctor_user)
+
+        ai_doctor = Doctor(
+            user_id=ai_doctor_user.id,
+            name="Somnia AI Doctor",
+            specialty="Autonomous Medical Agent",
+            area="Somnia L1 Blockchain",
+            bio="I am an agentic doctor powered by Somnia LLM inference. I provide immediate medical consultation and on-chain prescription audits.",
+            consultation_fee=1,
+            is_online=True,
+            verification_status="verified",
+            profile_completed=True
+        )
+        db.add(ai_doctor)
         
         # Create a sample appointment
         appointment = Appointment(

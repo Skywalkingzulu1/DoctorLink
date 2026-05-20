@@ -1,11 +1,12 @@
 """
-SQLite database configuration and models for DoctorLink.
+Database layer for DoctorLink — backed by Filebase S3 document store.
+Each table is a JSON file in the Filebase bucket.
+No SQLite dependency. No SQLAlchemy engine/connection.
 """
 
 import os
 from datetime import datetime, date, timedelta
 from sqlalchemy import (
-    create_engine,
     Column,
     Integer,
     String,
@@ -17,27 +18,15 @@ from sqlalchemy import (
     Float,
     Boolean,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from sqlalchemy.orm import declarative_base, relationship
 from enum import Enum
 
-from config import settings
+from filebase_db import FilebaseSession
 
-# Database path
-DATABASE_URL = settings.DATABASE_URL
+# Backward compat: SessionLocal = FilebaseSession
+SessionLocal = FilebaseSession
 
-# Create engine
-# If it's a sqlite database, we need the check_same_thread=False argument
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL, connect_args={"check_same_thread": False}, echo=False
-    )
-else:
-    engine = create_engine(DATABASE_URL, echo=False)
-
-# Session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class
+# Base class (kept for Column descriptor definitions)
 Base = declarative_base()
 
 
@@ -106,6 +95,13 @@ class User(Base):
     # Hashgraph
     hashgraph_account_id = Column(String, nullable=True)
 
+    # Somnia blockchain
+    somnia_address = Column(String, nullable=True)
+    somnia_private_key = Column(String, nullable=True)
+
+    # T800 token balance (off-chain tracking for demo)
+    t800_balance = Column(Integer, default=0)
+
     # Inconvenience Discount
     inconvenience_discount_amount = Column(Integer, default=0)
     inconvenience_discount_active = Column(Boolean, default=False)
@@ -119,6 +115,7 @@ class User(Base):
     medical_records = relationship("MedicalRecord", back_populates="patient")
     transactions = relationship("Transaction", back_populates="user")
     history_records = relationship("History", back_populates="patient")
+
 
 class Doctor(Base):
     __tablename__ = "Doctors"
@@ -164,6 +161,11 @@ class Doctor(Base):
     # Hashgraph for credits
     hashgraph_account_id = Column(String, nullable=True)
 
+    # Subscription (Somnia AI tools)
+    subscription_active = Column(Boolean, default=False)
+    subscription_end = Column(DateTime, nullable=True)
+    subscription_stt_paid = Column(Float, default=0.0)
+
     # Image/photo
     photo_url = Column(String, nullable=True)
 
@@ -201,6 +203,15 @@ class Appointment(Base):
     started_at = Column(DateTime, nullable=True)
     ended_at = Column(DateTime, nullable=True)
     duration_minutes = Column(Integer, nullable=True)
+
+    # T800 payment tracking
+    platform_fee_t800 = Column(Integer, default=0)
+
+    # Somnia on-chain tracking
+    somnia_tx_hash = Column(String, nullable=True)
+    somnia_release_tx = Column(String, nullable=True)
+    somnia_refund_tx = Column(String, nullable=True)
+    somnia_agent_results = Column(Text, nullable=True)
 
     # Relationships
     patient = relationship(
@@ -279,16 +290,15 @@ class History(Base):
     appointment = relationship("Appointment", back_populates="history")
 
 
-# Create tables
+# Init — no-op, tables are created via seed/migration
 def init_db():
-    # Add history relationship to Appointment dynamically if needed, 
-    # but we can also do it in the class definition if we move things around.
-    # For now, let's just make sure the relationship exists.
-    Base.metadata.create_all(bind=engine)
+    """No-op: Filebase JSON files don't need schema creation."""
+    pass
 
 
 def get_db():
-    db = SessionLocal()
+    """Yields a FilebaseSession (replaces SQLAlchemy Session)."""
+    db = FilebaseSession()
     try:
         yield db
     finally:

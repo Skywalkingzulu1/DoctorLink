@@ -1,6 +1,7 @@
 """
 Appointment API endpoints for DoctorLink.
-Gig Economy Model: 20% platform fee, 80% to doctor, tips 100% to doctor
+Gig Economy Model: 20% platform fee, 80% to doctor, tips 100% to doctor.
+Integrated with Somnia Agentic L1 for on-chain escrow and AI-powered features.
 """
 
 import os
@@ -26,6 +27,7 @@ from database import (
 )
 from auth import get_current_user, require_role
 from api.storage import get_public_url, get_presigned_url, object_exists
+from somnia.wallet import ensure_user_wallet
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
@@ -278,6 +280,12 @@ def create_appointment(
 
         db.commit()
         db.refresh(appointment)
+
+        # Ensure patient has a Somnia wallet for on-chain payments
+        try:
+            ensure_user_wallet(current_user.id)
+        except Exception as e:
+            print(f"Somnia wallet creation skipped: {e}")
 
         return appointment
     except Exception as e:
@@ -538,4 +546,160 @@ def get_appointment_pricing(
         "escrow_status": appointment.escrow_status.value
         if appointment.escrow_status
         else "PENDING",
+    }
+
+
+@router.post("/{appointment_id}/pay-with-somnia")
+def pay_with_somnia(
+    appointment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Pay for an appointment using Somnia STT tokens via on-chain escrow."""
+    appointment = (
+        db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    )
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    if appointment.patient_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your appointment")
+
+    from somnia.wallet import get_user_wallet, ensure_user_wallet, get_user_balance
+    from somnia.escrow_service import deposit_escrow
+    from somnia.client import somnia
+
+    ensure_user_wallet(current_user.id)
+    patient_wallet = get_user_wallet(current_user.id)
+
+    doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
+    if not doctor or not doctor.user_id:
+        raise HTTPException(status_code=400, detail="Doctor has no linked user account")
+    doctor_wallet = get_user_wallet(doctor.user_id)
+    if not doctor_wallet:
+        doctor_wallet = ensure_user_wallet(doctor.user_id)
+
+    amount = (appointment.base_price or appointment.price_credits or 150) * 10**18
+
+    # Check balance before deposit
+    balance = somnia.get_balance(patient_wallet["address"])
+    if balance < amount:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Insufficient STT balance. Have {somnia.w3.from_wei(balance, 'ether'):.4f} STT, need {somnia.w3.from_wei(amount, 'ether'):.4f} STT",
+        )
+
+    result = deposit_escrow(appointment_id, doctor_wallet["address"], amount)
+
+    appointment.escrow_status = EscrowStatus.HELD
+    appointment.somnia_tx_hash = result["tx_hash"]
+    db.commit()
+
+    return {
+        "message": "Payment deposited to Somnia escrow",
+        "tx_hash": result["tx_hash"],
+        "appointment_id": appointment_id,
+    }
+
+
+PLATFORM_FEE_PERCENT = 20
+
+def _get_platform_account(db: Session) -> User:
+    """Find or create the platform fee holding account."""
+    platform = db.query(User).filter(User.email == "platform@doctorlink.co.za").first()
+    if not platform:
+        from auth import hash_password
+        platform = User(
+            name="DoctorLink Platform",
+            email="platform@doctorlink.co.za",
+            password_hash=hash_password("platform-admin-2026"),
+            role="PATIENT",
+            credits=0,
+            t800_balance=0,
+            email_verified=True,
+        )
+        db.add(platform)
+        db.flush()
+    return platform
+
+
+@router.post("/{appointment_id}/pay-with-t800")
+def pay_with_t800(
+    appointment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Pay for an appointment using off-chain T800 balance. 80% to doctor, 20% to platform."""
+    patient = db.query(User).filter(User.id == current_user.id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    appointment = (
+        db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    )
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    if appointment.patient_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your appointment")
+
+    doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
+    if not doctor or not doctor.user_id:
+        raise HTTPException(status_code=400, detail="Doctor has no linked user account")
+    doctor_user = db.query(User).filter(User.id == doctor.user_id).first()
+    if not doctor_user:
+        raise HTTPException(status_code=400, detail="Doctor user account not found")
+
+    amount_credits = appointment.base_price or appointment.price_credits or 150
+    cost_t800 = amount_credits * 10  # 1 credit = 10 T800
+    platform_fee_t800 = cost_t800 * PLATFORM_FEE_PERCENT // 100  # 20%
+    doctor_earnings_t800 = cost_t800 - platform_fee_t800
+
+    if (patient.t800_balance or 0) < cost_t800:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Insufficient T800. Have {patient.t800_balance or 0:.0f} T800, need {cost_t800} T800",
+        )
+
+    platform_acct = _get_platform_account(db)
+
+    patient.t800_balance = (patient.t800_balance or 0) - cost_t800
+    doctor_user.t800_balance = (doctor_user.t800_balance or 0) + doctor_earnings_t800
+    platform_acct.t800_balance = (platform_acct.t800_balance or 0) + platform_fee_t800
+
+    appointment.payment_method = "t800"
+    appointment.escrow_status = EscrowStatus.RELEASED
+    appointment.platform_fee_t800 = platform_fee_t800
+    db.commit()
+
+    return {
+        "message": "Payment sent via T800 tokens",
+        "amount_t800": cost_t800,
+        "doctor_share_t800": doctor_earnings_t800,
+        "platform_fee_t800": platform_fee_t800,
+        "new_balance": patient.t800_balance,
+        "appointment_id": appointment_id,
+    }
+
+
+@router.get("/{appointment_id}/somnia-status")
+def get_somnia_status(
+    appointment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get on-chain status for an appointment."""
+    appointment = (
+        db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    )
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    return {
+        "appointment_id": appointment_id,
+        "escrow_status": appointment.escrow_status.value
+        if appointment.escrow_status
+        else "PENDING",
+        "somnia_tx_hash": appointment.somnia_tx_hash,
+        "somnia_release_tx": appointment.somnia_release_tx,
+        "somnia_refund_tx": appointment.somnia_refund_tx,
+        "agent_results": appointment.somnia_agent_results,
     }
