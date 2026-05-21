@@ -1,0 +1,30 @@
+{
+  "name": "doctorlink-somnia-experiments",
+  "version": "1.0.0",
+  "description": "Experimenting with Somnia Agents on-chain integration for DoctorLink",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:oracle": "hardhat run scripts/deploy_oracle.ts --network somnia",
+    "invoke:oracle": "hardhat run scripts/invoke_oracle.ts --network somnia",
+    "deploy:sentiment": "hardhat run scripts/deploy_sentiment.ts --network somnia",
+    "invoke:sentiment": "hardhat run scripts/invoke_sentiment.ts --network somnia",
+    "deploy:healthtips": "hardhat run scripts/deploy_healthtips.ts --network somnia",
+    "invoke:healthtips": "hardhat run scripts/invoke_healthtips.ts --network somnia",
+    "deploy:all": "hardhat run scripts/deploy_all.ts --network somnia",
+    "deploy:druginfo": "hardhat run scripts/deploy_druginfo.ts --network somnia",
+    "invoke:druginfo": "hardhat run scripts/invoke_druginfo.ts --network somnia",
+    "deploy:druginfo-v2": "hardhat run scripts/deploy_druginfo_v2.ts --network somnia",
+    "invoke:druginfo-v2": "hardhat run scripts/invoke_druginfo_v2.ts --network somnia",
+    "client": "npx tsx -e \"import { getBtcPrice, getHealthTips } from './client'; Promise.all([getBtcPrice(), getHealthTips()]).then(([p, t]) => { console.log('BTC:', '$' + p.price); t.forEach(h => console.log('Tip:', h.topic, '->', h.tip.substring(0,80)+'...')); }).catch(console.error);\""
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "@nomicfoundation/hardhat-viem": "2.0.6",
+    "dotenv": "16.5.0",
+    "hardhat": "^2.28.0",
+    "ts-node": "10.9.2",
+    "tsx": "^4.22.3",
+    "typescript": "5.8.3"
+  }
+}

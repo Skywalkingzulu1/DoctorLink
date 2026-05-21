@@ -1,0 +1,113 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILLMAgent",
+  "sourceName": "contracts/interfaces/ISomniaAgents.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "roles",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "messages",
+          "type": "string[]"
+        },
+        {
+          "internalType": "bool",
+          "name": "chainOfThought",
+          "type": "bool"
+        }
+      ],
+      "name": "inferChat",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "prompt",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "system",
+          "type": "string"
+        },
+        {
+          "internalType": "int256",
+          "name": "minValue",
+          "type": "int256"
+        },
+        {
+          "internalType": "int256",
+          "name": "maxValue",
+          "type": "int256"
+        },
+        {
+          "internalType": "bool",
+          "name": "chainOfThought",
+          "type": "bool"
+        }
+      ],
+      "name": "inferNumber",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "prompt",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "system",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "chainOfThought",
+          "type": "bool"
+        },
+        {
+          "internalType": "string[]",
+          "name": "allowedValues",
+          "type": "string[]"
+        }
+      ],
+      "name": "inferString",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

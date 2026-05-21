@@ -547,15 +547,13 @@
             console.error('Booking error:', e);
         }
     }
-        }
-    }
 
     function closeBookingModal() {
         document.getElementById('bookingModal').style.display = 'none';
     }
 
     async function loadAppointments() {
-        const appts = await loadAppointments();
+        const appts = await apiCall('/api/appointments');
         const tbody = document.getElementById('appointmentsTable');
         
         // Get doctors for display

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorLink — On-Chain Agents</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--light);color:var(--text);line-height:1.5}
+
+        .app{display:flex;min-height:100vh}
+        .sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto}
+        .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border)}
+        .sidebar-header h1{font-size:1.3rem;color:var(--primary);font-weight:800}
+        .sidebar-header h1 span{color:var(--secondary)}
+        .sidebar-menu{padding:1rem 0}
+        .menu-item{padding:0.8rem 1.5rem;cursor:pointer;display:flex;align-items:center;gap:0.8rem;color:var(--text-light);transition:all 0.2s;text-decoration:none}
+        .menu-item:hover,.menu-item.active{background:var(--light);color:var(--primary);border-left:3px solid var(--primary)}
+        .menu-item i{width:20px}
+
+        .main{flex:1;margin-left:260px}
+        .top-bar{background:var(--white);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:0.5rem}
+        .top-bar .status{display:flex;align-items:center;gap:0.5rem;font-size:0.85rem}
+        .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+        .dot.green{background:#36b37e}
+        .dot.red{background:#de350b}
+        .dot.yellow{background:#ffab00}
+        .badge{padding:0.25rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:600}
+
+        .content{padding:2rem;max-width:1200px}
+        .page-title{font-size:1.6rem;margin-bottom:0.3rem}
+        .page-subtitle{color:var(--text-light);margin-bottom:2rem}
+
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:1.5rem;margin-bottom:2rem}
+
+        .card{background:var(--white);border-radius:12px;padding:1.5rem;border:1px solid var(--border)}
+        .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem}
+        .card-title{font-size:1rem;font-weight:600;display:flex;align-items:center;gap:0.5rem}
+        .card-title i{color:var(--primary)}
+        .card-value{font-size:2.2rem;font-weight:800;letter-spacing:-0.5px}
+        .card-label{font-size:0.8rem;color:var(--text-light);margin-top:0.2rem}
+
+        .tip-item{padding:0.8rem 0;border-bottom:1px solid var(--border)}
+        .tip-item:last-child{border-bottom:none}
+        .tip-topic{font-weight:600;font-size:0.9rem;margin-bottom:0.3rem;color:var(--primary)}
+        .tip-text{font-size:0.85rem;color:var(--text);line-height:1.6}
+
+        .btn{padding:0.6rem 1.2rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem;font-size:0.85rem}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:var(--primary-dark)}
+        .btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+        .btn-outline:hover{background:var(--light)}
+        .btn-sm{padding:0.4rem 0.8rem;font-size:0.8rem}
+
+        .sentiment-tag{display:inline-block;padding:0.2rem 0.8rem;border-radius:20px;font-size:0.8rem;font-weight:600}
+        .sentiment-bullish{background:#e3fcef;color:#006644}
+        .sentiment-bearish{background:#ffebe6;color:#bf2600}
+        .sentiment-neutral{background:#f4f5f7;color:#42526e}
+
+        .loading{text-align:center;padding:2rem;color:var(--text-light)}
+        .loading i{font-size:1.5rem;margin-bottom:0.5rem}
+
+        .explorer-link{color:var(--text-light);font-size:0.8rem;text-decoration:none}
+        .explorer-link:hover{color:var(--primary);text-decoration:underline}
+
+        .faq-toggle{background:none;border:none;width:100%;text-align:left;padding:0.8rem 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:0.9rem}
+        .faq-answer{padding:0 0 0.8rem;font-size:0.85rem;color:var(--text-light);line-height:1.6;display:none}
+
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="app">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>Doctor<span>Link</span></h1>
+            <div style="font-size:0.75rem;color:var(--text-light);margin-top:0.3rem">On-Chain Agents</div>
+        </div>
+        <div class="sidebar-menu">
+            <a href="index.html" class="menu-item"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="somnia.html" class="menu-item active"><i class="fas fa-microchip"></i> Somnia Agents</a>
+            <a href="https://shannon-explorer.somnia.network" target="_blank" class="menu-item"><i class="fas fa-external-link-alt"></i> Explorer</a>
+            <a href="https://github.com/skywalkingzulu1/DoctorLink/tree/master/experiments/somnia-agents" target="_blank" class="menu-item"><i class="fas fa-code"></i> Contracts</a>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="top-bar">
+            <div>
+                <span style="font-weight:600">Somnia Agents</span>
+                <span style="font-size:0.8rem;color:var(--text-light);margin-left:0.5rem">Shannon Testnet</span>
+            </div>
+            <div class="status">
+                <span id="rpcStatus" class="dot yellow"></span>
+                <span id="rpcText">Connecting...</span>
+                <span class="badge" style="background:#eae6ff;color:#403294" id="chainBadge">50312</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <h1 class="page-title">On-Chain AI Agents</h1>
+            <p class="page-subtitle">Live data from Somnia testnet via agent requests. Read-only — no wallet needed.</p>
+
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-chart-line"></i> BTC / USD Price</div>
+                        <button class="btn btn-outline btn-sm" onclick="refreshPrice()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                    <div id="priceSection">
+                        <div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading price...</div>
+                    </div>
+                    <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border)">
+                        <a class="explorer-link" href="https://shannon-explorer.somnia.network/address/0x94aa29bc174fd819004abdf41972b74531665aed" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> PriceOracle contract
+                        </a>
+                    </div>
+                </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-heartbeat"></i> AI Health Tips</div>
+                    <button class="btn btn-outline btn-sm" onclick="refreshTips()"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div id="tipsSection">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading tips...</div>
+                </div>
+                <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border)">
+                    <a class="explorer-link" href="https://shannon-explorer.somnia.network/address/0x4de3358682d8652021fa608a74442a109da5cec9" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> HealthTips contract
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-chart-bar"></i> Sentiment Analysis</div>
+                    <button class="btn btn-outline btn-sm" onclick="refreshSentiment()"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div id="sentimentSection">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading sentiment...</div>
+                </div>
+                <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border)">
+                    <a class="explorer-link" href="https://shannon-explorer.somnia.network/address/0xda9dda954d44b41417358b66c2760668e129e11d" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> SentimentAnalyzer contract
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-capsules"></i> AI Drug Info</div>
+                    <button class="btn btn-outline btn-sm" onclick="refreshDrugInfo()"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div id="drugInfoSection">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading drug info...</div>
+                </div>
+                <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border)">
+                    <a class="explorer-link" href="https://shannon-explorer.somnia.network/address/0xe8c4d8ffd5111cb6530a5ef1a1e6e213ab8b48c6" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> DrugInfoV2 contract
+                    </a>
+                </div>
+            </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-info-circle"></i> How It Works</div>
+                </div>
+                <div>
+                    <button class="faq-toggle" onclick="toggleFaq(this)">
+                        <span>What are Somnia Agents?</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.7rem"></i>
+                    </button>
+                    <div class="faq-answer">
+                        Somnia Agents are off-chain validators that execute AI tasks (API calls, LLM inference, web scraping) and return results on-chain via the platform contract at <code>0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776</code>.
+                    </div>
+
+                    <button class="faq-toggle" onclick="toggleFaq(this)">
+                        <span>How is data stored on-chain?</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.7rem"></i>
+                    </button>
+                    <div class="faq-answer">
+                        Each request sends a payload + STT deposit to the platform. Validators execute the agent, reach consensus, and the platform calls back the contract with the result. The deposit is refunded minus execution costs.
+                    </div>
+
+                    <button class="faq-toggle" onclick="toggleFaq(this)">
+                        <span>Which agents are we using?</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.7rem"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <strong>PriceOracle</strong> uses the JSON API Request agent to fetch from CoinGecko. <strong>SentimentAnalyzer</strong> classifies crypto market sentiment (bullish/bearish/neutral) via LLM. <strong>HealthTips</strong> uses the LLM Inference agent (Qwen3-30B) with chain-of-thought for evidence-based health advice. <strong>DrugInfoV2</strong> uses the LLM agent for AI-generated drug information as a replacement for the non-functional Parse Website agent.
+                    </div>
+
+                    <button class="faq-toggle" onclick="toggleFaq(this)">
+                        <span>How much does each request cost?</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.7rem"></i>
+                    </button>
+                    <div class="faq-answer">
+                        JSON API: 0.12 STT (0.03 deposit + 3 validators), LLM: 0.24 STT, Parse Website: 0.33 STT. Deposits are refunded on success. We have 0.07 STT remaining — refill from the faucet to invoke new requests.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const RPC = "https://api.infra.testnet.somnia.network";
+const EXPLORER = "https://shannon-explorer.somnia.network";
+
+const CONTRACTS = {
+    PriceOracle: "0x94aa29bc174fd819004abdf41972b74531665aed",
+    SentimentAnalyzer: "0xda9dda954d44b41417358b66c2760668e129e11d",
+    HealthTips: "0x4de3358682d8652021fa608a74442a109da5cec9",
+    DrugInfoV2: "0xe8c4d8ffd5111cb6530a5ef1a1e6e213ab8b48c6",
+};
+
+const ABI = {
+    PriceOracle: [
+        "function latestPrice() view returns (uint256)",
+        "function lastUpdatedAt() view returns (uint256)",
+        "function getFormattedPrice() view returns (uint256, uint256)",
+    ],
+    HealthTips: [
+        "function getTipCount() view returns (uint256)",
+        "function getTip(uint256) view returns (string, string)",
+    ],
+    SentimentAnalyzer: [
+        "function latestClassification() view returns (string)",
+        "function latestScore() view returns (int256)",
+    ],
+    DrugInfoV2: [
+        "function getInfoCount() view returns (uint256)",
+        "function getInfo(uint256) view returns (string, string)",
+    ],
+};
+
+let provider;
+let contracts = {};
+
+async function init() {
+    try {
+        provider = new ethers.JsonRpcProvider(RPC);
+        const net = await provider.getNetwork();
+        document.getElementById("rpcStatus").className = "dot green";
+        document.getElementById("rpcText").textContent = "Connected (chain " + net.chainId.toString() + ")";
+
+        contracts.PriceOracle = new ethers.Contract(CONTRACTS.PriceOracle, ABI.PriceOracle, provider);
+        contracts.HealthTips = new ethers.Contract(CONTRACTS.HealthTips, ABI.HealthTips, provider);
+        contracts.SentimentAnalyzer = new ethers.Contract(CONTRACTS.SentimentAnalyzer, ABI.SentimentAnalyzer, provider);
+        contracts.DrugInfoV2 = new ethers.Contract(CONTRACTS.DrugInfoV2, ABI.DrugInfoV2, provider);
+
+        await Promise.all([refreshPrice(), refreshTips(), refreshSentiment(), refreshDrugInfo()]);
+    } catch (e) {
+        document.getElementById("rpcStatus").className = "dot red";
+        document.getElementById("rpcText").textContent = "RPC error: " + e.message;
+    }
+}
+
+async function refreshPrice() {
+    document.getElementById("priceSection").innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading price...</div>';
+    try {
+        const [whole, decimal] = await contracts.PriceOracle.getFormattedPrice();
+        const updated = Number(await contracts.PriceOracle.lastUpdatedAt());
+        const timeAgo = formatTimeAgo(updated);
+        document.getElementById("priceSection").innerHTML = `
+            <div class="card-value">$${whole.toString()}.${decimal.toString().padStart(8, "0")}</div>
+            <div class="card-label">Last updated ${timeAgo}</div>
+            <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border);font-size:0.8rem;color:var(--text-light)">
+                <i class="fas fa-database"></i> Source: CoinGecko via JSON API Request Agent
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById("priceSection").innerHTML = `<div style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+}
+
+async function refreshTips() {
+    document.getElementById("tipsSection").innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading tips...</div>';
+    try {
+        const count = Number(await contracts.HealthTips.getTipCount());
+        if (count === 0) {
+            document.getElementById("tipsSection").innerHTML = '<div style="color:var(--text-light);text-align:center;padding:1rem">No tips generated yet. Run <code>npm run invoke:healthtips</code> to request on-chain AI health tips.</div>';
+            return;
+        }
+        let html = "";
+        for (let i = 0; i < count; i++) {
+            const [topic, tip] = await contracts.HealthTips.getTip(i);
+            html += `
+                <div class="tip-item">
+                    <div class="tip-topic"><i class="fas fa-chevron-right" style="font-size:0.6rem;margin-right:0.4rem"></i>${topic}</div>
+                    <div class="tip-text">${tip}</div>
+                </div>
+            `;
+        }
+        document.getElementById("tipsSection").innerHTML = html + `
+            <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-light)">
+                <i class="fas fa-robot"></i> Generated by LLM Inference Agent (Qwen3-30B) with chain-of-thought
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById("tipsSection").innerHTML = `<div style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+}
+
+async function refreshSentiment() {
+    document.getElementById("sentimentSection").innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading sentiment...</div>';
+    try {
+        const classification = await contracts.SentimentAnalyzer.latestClassification();
+        const score = Number(await contracts.SentimentAnalyzer.latestScore());
+        const sentimentClass = classification === "bullish" ? "sentiment-bullish" :
+            classification === "bearish" ? "sentiment-bearish" : "sentiment-neutral";
+        const scoreText = score > 0 ? `${score}/100` : "N/A";
+        document.getElementById("sentimentSection").innerHTML = `
+            <div style="text-align:center">
+                <span class="sentiment-tag ${sentimentClass}" style="font-size:1.2rem;padding:0.5rem 1.5rem">
+                    ${classification || "No data"}
+                </span>
+                <div style="margin-top:1rem">
+                    <span class="card-label">Score</span>
+                    <div class="card-value">${scoreText}</div>
+                </div>
+                <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border);font-size:0.8rem;color:var(--text-light)">
+                    <i class="fas fa-robot"></i> LLM Inference Agent (Qwen3-30B)
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById("sentimentSection").innerHTML = `<div style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+}
+
+async function refreshDrugInfo() {
+    document.getElementById("drugInfoSection").innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><br>Loading drug info...</div>';
+    try {
+        const count = Number(await contracts.DrugInfoV2.getInfoCount());
+        if (count === 0) {
+            document.getElementById("drugInfoSection").innerHTML = '<div style="color:var(--text-light);text-align:center;padding:1rem">No drug info generated yet.</div>';
+            return;
+        }
+        let html = "";
+        for (let i = 0; i < count; i++) {
+            const [drugName, info] = await contracts.DrugInfoV2.getInfo(i);
+            html += `
+                <div class="tip-item">
+                    <div class="tip-topic"><i class="fas fa-capsules" style="margin-right:0.4rem"></i>${drugName}</div>
+                    <div class="tip-text">${info}</div>
+                </div>
+            `;
+        }
+        document.getElementById("drugInfoSection").innerHTML = html + `
+            <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-light)">
+                <i class="fas fa-robot"></i> Generated by LLM Inference Agent (Qwen3-30B) with chain-of-thought
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById("drugInfoSection").innerHTML = `<div style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+}
+
+function formatTimeAgo(timestamp) {
+    const diff = Date.now() / 1000 - timestamp;
+    if (diff < 60) return "just now";
+    if (diff < 3600) return Math.floor(diff / 60) + " minutes ago";
+    if (diff < 86400) return Math.floor(diff / 3600) + " hours ago";
+    return new Date(timestamp * 1000).toLocaleString();
+}
+
+function toggleFaq(btn) {
+    const answer = btn.nextElementSibling;
+    const icon = btn.querySelector("i");
+    if (answer.style.display === "block") {
+        answer.style.display = "none";
+        icon.className = "fas fa-chevron-down";
+    } else {
+        answer.style.display = "block";
+        icon.className = "fas fa-chevron-up";
+    }
+}
+
+init();
+</script>
+</body>
+</html>

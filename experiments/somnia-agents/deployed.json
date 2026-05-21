@@ -1,0 +1,12 @@
+{
+  "network": "somnia-testnet",
+  "chainId": 50312,
+  "deployedAt": "2026-05-20T19:29:07.345Z",
+  "platform": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776",
+  "contracts": {
+    "PriceOracle": "0x94aa29bc174fd819004abdf41972b74531665aed",
+    "SentimentAnalyzer": "0xda9dda954d44b41417358b66c2760668e129e11d",
+    "HealthTips": "0x4de3358682d8652021fa608a74442a109da5cec9",
+    "DrugInfoV2": "0xe8c4d8ffd5111cb6530a5ef1a1e6e213ab8b48c6"
+  }
+}

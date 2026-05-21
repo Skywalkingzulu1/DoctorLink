@@ -1,0 +1,240 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\molel\\Somnia\\DoctorLink\\experiments\\somnia-agents\\contracts\\DrugInfo.sol": {
+      "lastModificationDate": 1779303019743,
+      "contentHash": "43cde371e2ce4a99854fa3773325f348",
+      "sourceName": "contracts/DrugInfo.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/ISomniaAgents.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "DrugInfo"
+      ]
+    },
+    "C:\\Users\\molel\\Somnia\\DoctorLink\\experiments\\somnia-agents\\contracts\\interfaces\\ISomniaAgents.sol": {
+      "lastModificationDate": 1779299676832,
+      "contentHash": "7ceeb857e76a1b37870dbec03ef6bdcb",
+      "sourceName": "contracts/interfaces/ISomniaAgents.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "IAgentRequester",
+        "IJsonApiAgent",
+        "ILLMAgent",
+        "IParseWebsiteAgent"
+      ]
+    },
+    "C:\\Users\\molel\\Somnia\\DoctorLink\\experiments\\somnia-agents\\contracts\\SentimentAnalyzer.sol": {
+      "lastModificationDate": 1779302130410,
+      "contentHash": "e0fb04d84041facd5c626a4a141b591c",
+      "sourceName": "contracts/SentimentAnalyzer.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/ISomniaAgents.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "SentimentAnalyzer"
+      ]
+    },
+    "C:\\Users\\molel\\Somnia\\DoctorLink\\experiments\\somnia-agents\\contracts\\PriceOracle.sol": {
+      "lastModificationDate": 1779302240036,
+      "contentHash": "dd5a1c75bb5c98d3ef0e65ca66f4e056",
+      "sourceName": "contracts/PriceOracle.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/ISomniaAgents.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "PriceOracle"
+      ]
+    },
+    "C:\\Users\\molel\\Somnia\\DoctorLink\\experiments\\somnia-agents\\contracts\\HealthTips.sol": {
+      "lastModificationDate": 1779302145385,
+      "contentHash": "610c0131a6f70ac7254e1b7a24c0dcbb",
+      "sourceName": "contracts/HealthTips.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/ISomniaAgents.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "HealthTips"
+      ]
+    },
+    "C:\\Users\\molel\\Somnia\\DoctorLink\\experiments\\somnia-agents\\contracts\\DrugInfoV2.sol": {
+      "lastModificationDate": 1779357642465,
+      "contentHash": "3486e6d7114c6c8651c1857375f8e8db",
+      "sourceName": "contracts/DrugInfoV2.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/ISomniaAgents.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "DrugInfoV2"
+      ]
+    }
+  }
+}
