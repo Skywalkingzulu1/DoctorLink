@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DoctorLink - Patient App</title>
+    <script src="config.js"></script>
     <script src="supabase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -228,7 +229,7 @@
     </div>
 
     <script>
-    const API_BASE = '';
+    const API_BASE = window.API_BASE_URL || '';
     let authToken = localStorage.getItem('dl_token');
     let currentUser = supabase.getUser ? supabase.getUser() : null;
     let selectedDoctor = null;
@@ -247,64 +248,6 @@
         { id: 2, name: 'Dr. Michael Chen', specialty: 'Cardiologist', area: 'Cape Town', rating: 4.9, is_online: true, avatar_url: null },
         { id: 3, name: 'Dr. Amara Nkosi', specialty: 'Pediatrician', area: 'Durban', rating: 4.7, is_online: false, avatar_url: null }
     ];
-
-    // Data loading functions (using localStorage for demo)
-    async function loadDoctors() {
-        try {
-            // Try Supabase first
-            const { data } = await supabase.from('doctors').select('*').eq('is_online', true);
-            if (data && data.length > 0) return data;
-        } catch(e) {}
-        // Fallback to mock data for demo
-        return mockDoctors;
-    }
-
-    async function loadAppointments() {
-        if (!currentUser) return [];
-        try {
-            const { data } = await supabase.from('appointments').select('*').eq('patient_id', currentUser.id).order('timestamp', { ascending: false });
-            if (data) return data;
-        } catch(e) {}
-        // Fallback to mock
-        return [];
-    }
-
-    async function createAppointment(doctor_id, timestamp, service_tier, reason) {
-        const appointment = {
-            patient_id: currentUser.id,
-            doctor_id: doctor_id,
-            timestamp: timestamp,
-            service_tier: service_tier,
-            reason: reason,
-            status: 'SCHEDULED',
-            price_credits: 150
-        };
-        
-        // Save to localStorage
-        const existing = JSON.parse(localStorage.getItem('dl_appointments') || '[]');
-        appointment.id = Date.now();
-        appointment.created_at = new Date().toISOString();
-        existing.push(appointment);
-        localStorage.setItem('dl_appointments', JSON.stringify(existing));
-        
-        return appointment;
-    }
-
-    // Update credits
-    function updateCredits(newCredits) {
-        if (currentUser) {
-            currentUser.credits = newCredits;
-            localStorage.setItem('dl_current_user', JSON.stringify(currentUser));
-            
-            // Update in storage
-            const users = JSON.parse(localStorage.getItem('dl_users') || '[]');
-            const idx = users.findIndex(u => u.id === currentUser.id);
-            if (idx >= 0) {
-                users[idx].credits = newCredits;
-                localStorage.setItem('dl_users', JSON.stringify(users));
-            }
-        }
-    }
 
     const serviceTiers = [
         { id: 'QUICK_CHAT', name: 'Quick Chat', desc: '10 minutes - Quick consultation', base: 50 },
@@ -523,25 +466,21 @@
         if (!currentUser) { alert('Please login first'); return; }
         
         try {
-            // Use local function for demo
-            const appointment = await createAppointment(
-                selectedDoctor.id,
-                new Date(datetime).toISOString(),
-                selectedTier.id,
-                reason
-            );
-            
-            // Deduct credits
             const price = selectedTier.base || 150;
-            updateCredits(currentUser.credits - price);
+            const appointment = await apiCall('/api/appointments', {
+                method: 'POST',
+                body: JSON.stringify({
+                    doctor_id: selectedDoctor.id,
+                    timestamp: new Date(datetime).toISOString(),
+                    service_tier: selectedTier.id,
+                    reason: reason,
+                })
+            });
             
-            alert('Appointment booked successfully!\n\nCost: ' + price + ' credits\nRemaining: ' + (currentUser.credits - price) + ' credits');
+            alert('Appointment booked successfully!\n\nCost: ' + price + ' credits');
             closeBookingModal();
             loadDoctors();
             loadAppointments();
-            
-            // Update display
-            document.getElementById('userCredits').textContent = (currentUser.credits - price) + ' Credits';
         } catch (e) {
             alert('Error booking: ' + e.message);
             console.error('Booking error:', e);

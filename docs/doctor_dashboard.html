@@ -1277,19 +1277,6 @@
             }
         }
 
-        function _pollDocResult(resp, div) {
-            div.textContent = 'Submitted (ID: ' + resp.request_id + '). Polling...';
-            const ps = Date.now();
-            const iv = setInterval(async () => {
-                if (Date.now() - ps > 120000) { clearInterval(iv); div.textContent = 'Timed out.'; return; }
-                try {
-                    const s = await apiCall('/api/somnia/agent/result/' + resp.request_id);
-                    if (s.status === 'success') { clearInterval(iv); div.innerHTML = '<strong>Result:</strong><br>' + s.result; }
-                    else if (['failed','timedout','archived'].includes(s.status)) { clearInterval(iv); div.innerHTML = '<strong>Agent ' + s.status + ':</strong> ' + (s.result || 'No result'); }
-                } catch(e) {}
-            }, 3000);
-        }
-
         async function docRunSummaryStt() {
             const input = document.getElementById('docSummaryInput').value.trim();
             if (!input) { toast('Enter notes', 'warning'); return; }
@@ -1300,7 +1287,7 @@
                     method: 'POST',
                     body: JSON.stringify({ agent_type: 'llm', prompt: 'Generate a visit summary from: ' + input, system_prompt: 'You are a medical scribe.' })
                 });
-                _pollDocResult(resp, div);
+                _pollDocResult(resp, div, 'Visit Summary');
             } catch(e) { div.textContent = 'Error: ' + e.message; }
         }
 
@@ -1315,7 +1302,7 @@
                     method: 'POST',
                     body: JSON.stringify({ agent_type: 'llm', prompt: 'Check interactions: ' + meds.join(', '), system_prompt: 'You are a clinical pharmacist.' })
                 });
-                _pollDocResult(resp, div);
+                _pollDocResult(resp, div, 'Drug Interactions');
             } catch(e) { div.textContent = 'Error: ' + e.message; }
         }
 
@@ -1329,28 +1316,26 @@
                     method: 'POST',
                     body: JSON.stringify({ agent_type: 'llm', prompt: 'Create health tips about: ' + input, system_prompt: 'You are a patient education specialist.' })
                 });
-                _pollDocResult(resp, div);
+                _pollDocResult(resp, div, 'Health Tips');
             } catch(e) { div.textContent = 'Error: ' + e.message; }
         }
-
-        let docPollInterval = null;
 
         function _pollDocResult(resp, div, label) {
             const maxMs = 120000;
             const start = Date.now();
             div.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitted (ID: ' + resp.request_id + '). Polling...</div>';
-            docPollInterval = setInterval(async () => {
+            const pollInt = setInterval(async () => {
                 const elapsed = Date.now() - start;
                 const pct = Math.min(95, (elapsed / maxMs) * 100);
                 const bar = div.querySelector('.poll-progress-fill');
                 const st = div.querySelector('div:last-child');
                 if (bar) bar.style.width = pct + '%';
                 if (st) st.textContent = 'Waiting for agent... (' + Math.floor(elapsed / 1000) + 's)';
-                if (elapsed > maxMs) { clearInterval(docPollInterval); div.innerHTML = '<strong>Timed out</strong> — no response after 120s. Try again.'; return; }
+                if (elapsed > maxMs) { clearInterval(pollInt); div.innerHTML = '<strong>Timed out</strong> — no response after 120s. Try again.'; return; }
                 try {
                     const s = await apiCall('/api/somnia/agent/result/' + resp.request_id);
-                    if (s.status === 'success') { clearInterval(docPollInterval); if (bar) bar.style.width = '100%'; div.innerHTML = '<strong>' + label + ':</strong><br>' + s.result; }
-                    else if (['failed','timedout','archived'].includes(s.status)) { clearInterval(docPollInterval); div.innerHTML = '<strong>Agent ' + s.status + ':</strong> ' + (s.result || 'No result'); }
+                    if (s.status === 'success') { clearInterval(pollInt); if (bar) bar.style.width = '100%'; div.innerHTML = '<strong>' + label + ':</strong><br>' + s.result; }
+                    else if (['failed','timedout','archived'].includes(s.status)) { clearInterval(pollInt); div.innerHTML = '<strong>Agent ' + s.status + ':</strong> ' + (s.result || 'No result'); }
                 } catch(e) {}
             }, 3000);
         }

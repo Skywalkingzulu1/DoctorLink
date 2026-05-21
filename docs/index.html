@@ -1242,8 +1242,6 @@
             }
         }
 
-        let pollInterval = null;
-
         async function runSymptomCheck() {
             const input = document.getElementById('symptomInput').value.trim();
             if (!input) { toast('Please describe your symptoms', 'warning'); return; }
@@ -1257,25 +1255,32 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling for result...';
                 let pollStart = Date.now();
-                pollInterval = setInterval(async () => {
+                const pollInt = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInterval);
+                        clearInterval(pollInt);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInterval);
-                            resultDiv.innerHTML = '<strong>Result:</strong><br>' + status.result;
+                            clearInterval(pollInt);
+
+                            // Fetch latest user data from backend to update credits
+                            try {
+                                const me = await apiCall('/api/auth/me');
+                                if (me && me.credits !== undefined) currentUser.credits = me.credits;
+                                document.getElementById('userCredits').textContent = currentUser.credits + ' Credits';
+                            } catch(freshErr) {}
+                            resultDiv.innerHTML = '<strong>Assessment:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInterval);
-                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result available');
+                            clearInterval(pollInt);
+                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         } else {
-                            resultDiv.textContent = 'Waiting for agent response (ID: ' + resp.request_id + ')...';
+                            resultDiv.textContent = 'Waiting for response...';
                         }
                     } catch(e) {
-                        resultDiv.textContent = 'Polling: ' + e.message;
+                        resultDiv.textContent = 'Polling error: ' + e.message;
                     }
                 }, 3000);
             } catch (e) {
@@ -1301,19 +1306,19 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling for result...';
                 let pollStart = Date.now();
-                pollInterval = setInterval(async () => {
+                const pollInt = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInterval);
+                        clearInterval(pollInt);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInterval);
+                            clearInterval(pollInt);
                             resultDiv.innerHTML = '<strong>Interaction Result:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInterval);
+                            clearInterval(pollInt);
                             resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         } else {
                             resultDiv.textContent = 'Waiting for response...';
@@ -1411,19 +1416,19 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling...';
                 let pollStart = Date.now();
-                pollInterval = setInterval(async () => {
+                const pollInt = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInterval);
+                        clearInterval(pollInt);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInterval);
+                            clearInterval(pollInt);
                             resultDiv.innerHTML = '<strong>Health Tips:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInterval);
+                            clearInterval(pollInt);
                             resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         }
                     } catch(e) {
@@ -1452,19 +1457,19 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling...';
                 let pollStart = Date.now();
-                pollInterval = setInterval(async () => {
+                const pollInt = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInterval);
+                        clearInterval(pollInt);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInterval);
+                            clearInterval(pollInt);
                             resultDiv.innerHTML = '<strong>Summary:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInterval);
+                            clearInterval(pollInt);
                             resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         }
                     } catch(e) {
