@@ -43,6 +43,7 @@ class DoctorResponse(BaseModel):
     consultation_fee: int
     is_available: bool
     hpcsa_number: str | None = None
+    practice_number: str | None = None
     verification_status: str = "pending"
     profile_completed: bool = False
     photo_url: str | None = None

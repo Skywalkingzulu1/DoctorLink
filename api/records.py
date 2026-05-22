@@ -26,6 +26,7 @@ class MedicalRecordResponse(BaseModel):
     summary: str
     diagnosis: str | None
     created_at: str
+    doctor_name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -57,13 +58,15 @@ def list_records(
     else:
         records = db.query(MedicalRecord).all()
 
-    return [
-        {
-            "created_at": r.created_at.isoformat() if r.created_at else "",
-            **MedicalRecord.model_validate(r).model_dump(),
-        }
-        for r in records
-    ]
+    result = []
+    for r in records:
+        data = MedicalRecord.model_validate(r).model_dump()
+        data["created_at"] = r.created_at.isoformat() if r.created_at else ""
+        # Get doctor name
+        doctor = db.query(Doctor).filter(Doctor.id == r.doctor_id).first()
+        data["doctor_name"] = doctor.name if doctor else None
+        result.append(data)
+    return result
 
 
 @router.post(

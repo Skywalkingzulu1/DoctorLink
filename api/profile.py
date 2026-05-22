@@ -40,6 +40,7 @@ class DoctorProfileUpdate(BaseModel):
     consultation_fee: int | None = None
     hpcsa_number: str | None = None
     id_number: str | None = None
+    practice_number: str | None = None
     photo_url: str | None = None
 
 
@@ -56,6 +57,7 @@ class DoctorProfileResponse(BaseModel):
     is_available: bool
     hpcsa_number: str | None
     id_number: str | None
+    practice_number: str | None
     verification_status: str
     profile_completed: bool
     photo_url: str | None
@@ -138,6 +140,8 @@ def update_doctor_profile(
         doctor.hpcsa_number = request.hpcsa_number
     if request.id_number is not None:
         doctor.id_number = request.id_number
+    if request.practice_number is not None:
+        doctor.practice_number = request.practice_number
     if request.photo_url is not None:
         doctor.photo_url = request.photo_url
 

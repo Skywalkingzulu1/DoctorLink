@@ -30,6 +30,7 @@ class PrescriptionResponse(BaseModel):
     medication: str
     dosage: str
     instructions: str | None
+    created_at: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -62,7 +63,12 @@ def list_prescriptions(
     else:
         prescriptions = db.query(Prescription).all()
 
-    return prescriptions
+    result = []
+    for p in prescriptions:
+        data = Prescription.model_validate(p).model_dump()
+        data["created_at"] = p.created_at.isoformat() if p.created_at else None
+        result.append(data)
+    return result
 
 
 @router.post(

@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS "Doctors" (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     hpcsa_number TEXT,
     id_number TEXT,
+    practice_number TEXT,
     verification_status TEXT DEFAULT 'pending',
     profile_completed BOOLEAN DEFAULT FALSE,
     total_earnings INTEGER DEFAULT 0,
@@ -99,6 +100,18 @@ CREATE TABLE IF NOT EXISTS transactions (
     payment_status TEXT DEFAULT 'pending',
     payfast_payment_id TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Referrals Table
+CREATE TABLE IF NOT EXISTS referrals (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    referrer_id BIGINT REFERENCES "Profiles"(id) ON DELETE CASCADE NOT NULL,
+    referee_id BIGINT REFERENCES "Profiles"(id) ON DELETE SET NULL,
+    code TEXT UNIQUE NOT NULL,
+    status TEXT DEFAULT 'pending',
+    reward_credits INTEGER DEFAULT 50,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    completed_at TIMESTAMPTZ
 );
 
 -- Tips Table

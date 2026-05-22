@@ -137,7 +137,11 @@
                 }
                 
                 alert('Registration successful! Please login.');
-                window.location.href = 'index.html';
+                if (role === 'DOCTOR') {
+                    window.location.href = 'onboarding.html?email=' + encodeURIComponent(email);
+                } else {
+                    window.location.href = 'index.html';
+                }
             } catch (e) {
                 errorDiv.textContent = e.message;
                 errorDiv.style.display = 'block';

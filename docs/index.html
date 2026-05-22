@@ -276,6 +276,7 @@
                 <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
                 <div class="menu-item" data-page="health-tools"><i class="fas fa-robot"></i> Health Tools</div>
                 <div class="menu-item" data-page="payments"><i class="fas fa-credit-card"></i> Credits & T-800</div>
+                <div class="menu-item" data-page="referrals"><i class="fas fa-share-alt"></i> Referrals</div>
                 <div class="menu-item" data-page="profile"><i class="fas fa-user"></i> My Profile</div>
                 <div class="menu-item" onclick="window.location='somnia.html'"><i class="fas fa-microchip"></i> Somnia Agents</div>
                 <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
@@ -376,6 +377,38 @@
                             <thead><tr><th>Date</th><th>Medication</th><th>Dosage</th><th>Instructions</th></tr></thead>
                             <tbody id="prescriptionsTable"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- REFERRALS -->
+                <div id="page-referrals" class="hidden">
+                    <h2 class="page-title">Refer a Friend</h2>
+                    <div style="max-width:700px;margin:0 auto">
+                        <div class="card" style="text-align:center;background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:2rem">
+                            <i class="fas fa-share-alt" style="font-size:3rem;margin-bottom:1rem"></i>
+                            <h3 style="margin-bottom:0.5rem">Share & Earn Credits</h3>
+                            <p style="opacity:0.9;margin-bottom:1.5rem">Refer friends and earn 50 credits when they join DoctorLink!</p>
+                            <div style="display:flex;gap:0.5rem;max-width:500px;margin:0 auto">
+                                <input type="text" id="patientReferralLink" class="form-input" readonly style="flex:1;text-align:center;font-family:monospace;font-weight:600" placeholder="Loading...">
+                                <button class="btn" style="background:#fff;color:#059669;flex-shrink:0" onclick="copyPatientReferralLink()"><i class="fas fa-copy"></i> Copy</button>
+                            </div>
+                            <div style="margin-top:1rem;font-size:0.85rem;opacity:0.8">Your code: <strong id="patientReferralCode">---</strong></div>
+                        </div>
+                        <div class="card" style="margin-top:1rem">
+                            <div class="card-title">Referral Stats</div>
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem;text-align:center">
+                                <div><div class="stat-value" id="patRefTotal">0</div><div class="stat-label">Total Referrals</div></div>
+                                <div><div class="stat-value" id="patRefCompleted">0</div><div class="stat-label">Completed</div></div>
+                                <div><div class="stat-value" id="patRefRewards">0</div><div class="stat-label">Credits Earned</div></div>
+                            </div>
+                        </div>
+                        <div class="card" style="margin-top:1rem">
+                            <div class="card-title">Referral History</div>
+                            <table class="table">
+                                <thead><tr><th>Date</th><th>Referee</th><th>Status</th><th>Reward</th></tr></thead>
+                                <tbody id="patientReferralsTable"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -899,6 +932,7 @@
             if (page === 'health-tools') loadCreditCosts();
             if (page === 'payments') { loadPayments(); loadEscrow(); }
             if (page === 'profile') loadProfile();
+            if (page === 'referrals') loadPatientReferrals();
         }
 
         // ========== DASHBOARD ==========
@@ -1097,8 +1131,8 @@
                 tbody.innerHTML = records.map(r => `
                     <tr>
                         <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                        <td>Doctor</td>
-                        <td>${r.summary.substring(0, 50)}...</td>
+                        <td>${r.doctor_name || 'Doctor'}</td>
+                        <td>${r.summary ? r.summary.substring(0, 50) + '...' : '-'}</td>
                     </tr>
                 `).join('');
             } catch (e) {
@@ -1643,6 +1677,52 @@
 
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
+        }
+
+        // ========== REFERRALS (PATIENT) ==========
+        async function loadPatientReferrals() {
+            try {
+                const stats = await apiCall('/api/referrals/stats');
+                document.getElementById('patRefTotal').textContent = stats.total_referrals;
+                document.getElementById('patRefCompleted').textContent = stats.completed_referrals;
+                document.getElementById('patRefRewards').textContent = stats.total_rewards;
+
+                const codeInfo = await apiCall('/api/referrals/my-code');
+                if (codeInfo.code) {
+                    document.getElementById('patientReferralCode').textContent = codeInfo.code;
+                    document.getElementById('patientReferralLink').value = codeInfo.link || '';
+                } else {
+                    const gen = await apiCall('/api/referrals/generate-code', { method: 'POST' });
+                    document.getElementById('patientReferralCode').textContent = gen.code;
+                    const base = window.location.origin + '/DoctorLink';
+                    document.getElementById('patientReferralLink').value = base + '/register.html?ref=' + gen.code;
+                }
+
+                const list = await apiCall('/api/referrals');
+                const tbody = document.getElementById('patientReferralsTable');
+                if (!list.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No referrals yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = list.map(r => `
+                    <tr>
+                        <td>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
+                        <td>${r.referee_name || 'Pending'}</td>
+                        <td><span class="status ${r.status === 'completed' ? 'status-completed' : 'status-pending'}">${r.status}</span></td>
+                        <td>${r.status === 'completed' ? r.reward_credits + ' credits' : '-'}</td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error('Patient load referrals error:', e);
+            }
+        }
+
+        function copyPatientReferralLink() {
+            const input = document.getElementById('patientReferralLink');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                toast('Referral link copied!', 'success');
+            });
         }
 
         // Check session on load

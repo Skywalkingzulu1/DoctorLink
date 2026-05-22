@@ -198,6 +198,7 @@
                 <div class="menu-item" data-page="pricing"><i class="fas fa-tag"></i> Pricing</div>
                 <div class="menu-item" data-page="ai-tools"><i class="fas fa-robot"></i> AI Tools</div>
                 <div class="menu-item" data-page="subscription"><i class="fas fa-crown"></i> Subscription</div>
+                <div class="menu-item" data-page="referrals"><i class="fas fa-share-alt"></i> Referrals</div>
                 <div class="menu-item" data-page="settings"><i class="fas fa-cog"></i> Settings</div>
                 <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
             </div>
@@ -494,6 +495,38 @@
                     </div>
                 </div>
 
+                <!-- REFERRALS -->
+                <div id="page-referrals" class="hidden">
+                    <h2 class="page-title">Referrals</h2>
+                    <div style="max-width:700px;margin:0 auto">
+                        <div class="card" style="text-align:center;background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:2rem">
+                            <i class="fas fa-share-alt" style="font-size:3rem;margin-bottom:1rem"></i>
+                            <h3 style="margin-bottom:0.5rem">Refer a Colleague</h3>
+                            <p style="opacity:0.9;margin-bottom:1.5rem">Share your referral link and earn 50 credits for every doctor who joins!</p>
+                            <div style="display:flex;gap:0.5rem;max-width:500px;margin:0 auto">
+                                <input type="text" id="referralLinkInput" class="form-input" readonly style="flex:1;text-align:center;font-family:monospace;font-weight:600" placeholder="Loading...">
+                                <button class="btn" style="background:#fff;color:#059669;flex-shrink:0" onclick="copyReferralLink()"><i class="fas fa-copy"></i> Copy</button>
+                            </div>
+                            <div style="margin-top:1rem;font-size:0.85rem;opacity:0.8">Your code: <strong id="referralCodeDisplay">---</strong></div>
+                        </div>
+                        <div class="card" style="margin-top:1rem">
+                            <div class="card-title">Referral Stats</div>
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem;text-align:center">
+                                <div><div class="stat-value" id="refTotal">0</div><div class="stat-label">Total Referrals</div></div>
+                                <div><div class="stat-value" id="refCompleted">0</div><div class="stat-label">Completed</div></div>
+                                <div><div class="stat-value" id="refRewards">0</div><div class="stat-label">Credits Earned</div></div>
+                            </div>
+                        </div>
+                        <div class="card" style="margin-top:1rem">
+                            <div class="card-title">Referral History</div>
+                            <table class="table">
+                                <thead><tr><th>Date</th><th>Referee</th><th>Status</th><th>Reward</th></tr></thead>
+                                <tbody id="referralsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- SETTINGS -->
                 <div id="page-settings" class="hidden">
                     <h2 class="page-title">Doctor Settings</h2>
@@ -530,6 +563,10 @@
                         <div class="form-group">
                             <label class="form-label">HPCSA Number (Optional - for full verification)</label>
                             <input type="text" id="docHpcsa" class="form-input" placeholder="e.g., MP12345">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Practice Number</label>
+                            <input type="text" id="docPracticeNum" class="form-input" placeholder="e.g., 1234567">
                         </div>
                         <button class="btn btn-primary" onclick="saveDoctorSettings()">Save Profile</button>
                         <button class="btn btn-secondary" onclick="requestVerification()" style="margin-left:0.5rem">Request Verification</button>
@@ -829,7 +866,9 @@
                     document.getElementById('docSpecialty').value = profile.specialty || '';
                     document.getElementById('docArea').value = profile.area || '';
                     document.getElementById('docFee').value = profile.consultation_fee || 150;
+                    document.getElementById('docPracticeNum').value = profile.practice_number || '';
                     navTo('settings');
+                    initDashboard();
                     return;
                 }
                 
@@ -839,6 +878,7 @@
                 document.getElementById('docArea').value = profile.area || '';
                 document.getElementById('docFee').value = profile.consultation_fee || 150;
                 document.getElementById('docHpcsa').value = profile.hpcsa_number || '';
+                document.getElementById('docPracticeNum').value = profile.practice_number || '';
                 
                 initDashboard();
             } catch(e) {
@@ -888,6 +928,7 @@
             if (page === 'pricing') loadPricingPage();
             if (page === 'ai-tools') loadDocCreditCosts();
             if (page === 'subscription') loadSubscriptionStatus();
+            if (page === 'referrals') loadReferrals();
         }
 
         // ========== DASHBOARD ==========
@@ -903,11 +944,12 @@
                 document.getElementById('statPending').textContent = pending;
                 document.getElementById('statActive').textContent = active;
                 document.getElementById('statCompleted').textContent = completed;
-                document.getElementById('statEarnings').textContent = completed * 150; // Estimate
+                document.getElementById('statEarnings').textContent = '...';
                 
                 // Load earnings
                 try {
                     const earnings = await apiCall('/api/credits/doctor/earnings');
+                    document.getElementById('statEarnings').textContent = earnings.total_earnings + ' credits';
                     document.getElementById('totalEarnings').textContent = earnings.total_earnings + ' credits';
                     document.getElementById('pendingEarnings').textContent = earnings.pending_earnings + ' credits';
                     
@@ -1135,6 +1177,8 @@
                 const specialty = document.getElementById('docSpecialty').value.trim();
                 const area = document.getElementById('docArea').value.trim();
                 const fee = parseInt(document.getElementById('docFee').value) || 150;
+                const hpcsa = document.getElementById('docHpcsa').value.trim();
+                const practiceNum = document.getElementById('docPracticeNum').value.trim();
                 
                 if (!name || !specialty || !area) {
                     toast('Please fill in name, specialty, and area.', 'warning');
@@ -1147,7 +1191,9 @@
                         name: name,
                         specialty: specialty,
                         area: area,
-                        consultation_fee: fee
+                        consultation_fee: fee,
+                        hpcsa_number: hpcsa || null,
+                        practice_number: practiceNum || null
                     })
                 });
                 
@@ -1405,8 +1451,11 @@
         async function subscribeNow() {
             if (!window.ethereum) {
                 toast('Please install MetaMask to subscribe.', 'error');
+                return;
+            }
+            if (!mmAccount) {
                 await connectMetaMask();
-                if (!window.ethereum) return;
+                if (!mmAccount) return;
             }
 
             const sponsorAddr = '0xbC26b85eaDF0e2ab1f2B5E7de048D52E80bCa3Ca';
@@ -1468,6 +1517,52 @@
             btn.classList.remove('loading'); btn.disabled = false;
         }
 
+        // ========== REFERRALS ==========
+        async function loadReferrals() {
+            try {
+                const stats = await apiCall('/api/referrals/stats');
+                document.getElementById('refTotal').textContent = stats.total_referrals;
+                document.getElementById('refCompleted').textContent = stats.completed_referrals;
+                document.getElementById('refRewards').textContent = stats.total_rewards;
+
+                const codeInfo = await apiCall('/api/referrals/my-code');
+                if (codeInfo.code) {
+                    document.getElementById('referralCodeDisplay').textContent = codeInfo.code;
+                    document.getElementById('referralLinkInput').value = codeInfo.link || '';
+                } else {
+                    const gen = await apiCall('/api/referrals/generate-code', { method: 'POST' });
+                    document.getElementById('referralCodeDisplay').textContent = gen.code;
+                    const base = window.location.origin + '/DoctorLink';
+                    document.getElementById('referralLinkInput').value = base + '/register.html?ref=' + gen.code;
+                }
+
+                const list = await apiCall('/api/referrals');
+                const tbody = document.getElementById('referralsTable');
+                if (!list.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No referrals yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = list.map(r => `
+                    <tr>
+                        <td>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
+                        <td>${r.referee_name || 'Pending'}</td>
+                        <td><span class="status ${r.status === 'completed' ? 'status-completed' : 'status-pending'}">${r.status}</span></td>
+                        <td>${r.status === 'completed' ? r.reward_credits + ' credits' : '-'}</td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error('Load referrals error:', e);
+            }
+        }
+
+        function copyReferralLink() {
+            const input = document.getElementById('referralLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                toast('Referral link copied!', 'success');
+            });
+        }
+
         // ========== VERIFICATION ==========
         function updateVerificationDisplay(profile) {
             const statusDiv = document.getElementById('verificationStatus');
@@ -1492,27 +1587,11 @@
             
             if (statusDiv) statusDiv.innerHTML = statusHtml;
             if (bannerDiv) {
-                bannerDiv.style.display = 'block';
-                bannerDiv.style.padding = '1rem';
-                bannerDiv.style.borderRadius = '8px';
-                bannerDiv.style = bannerHtml;
+                bannerDiv.style.cssText = 'display:block;padding:1rem;border-radius:8px;';
                 bannerDiv.innerHTML = statusHtml;
             }
         }
 
-        // Check session on load
-        if (authToken) {
-            apiCall('/api/auth/me').then(user => {
-                currentUser = user;
-                if (user.role !== 'DOCTOR') {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                showApp();
-            }).catch(() => {
-                localStorage.removeItem('token');
-            });
-        }
     </script>
 </body>
 </html>

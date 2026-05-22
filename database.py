@@ -135,6 +135,7 @@ class Doctor(Base):
     # Verification fields
     hpcsa_number = Column(String, nullable=True)
     id_number = Column(String, nullable=True)
+    practice_number = Column(String, nullable=True)
     verification_status = Column(
         String, default="pending"
     )  # pending, basic, verified, rejected
@@ -360,3 +361,16 @@ class Tip(Base):
     appointment = relationship("Appointment")
     patient = relationship("User", foreign_keys=[patient_id])
     doctor = relationship("Doctor", foreign_keys=[doctor_id])
+
+
+class Referral(Base):
+    __tablename__ = "referrals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    referrer_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
+    referee_id = Column(Integer, ForeignKey("Profiles.id"), nullable=True)
+    code = Column(String, unique=True, nullable=False)
+    status = Column(String, default="pending")  # pending, completed, rewarded
+    reward_credits = Column(Integer, default=50)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
