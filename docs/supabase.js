@@ -9,7 +9,7 @@ let currentUser = null;
 let supabaseSession = null;
 
 // Initialize Supabase (mock for static HTML - will be replaced by real client)
-class Doctors on WheelsSupabase {
+class DoctorLinkSupabase {
     constructor() {
         this.authState = null;
     }
@@ -141,7 +141,7 @@ class Doctors on WheelsSupabase {
 }
 
 // Create global instance
-const supabase = new Doctors on WheelsSupabase();
+const supabase = new DoctorLinkSupabase();
 
 // Check for existing session
 const savedUser = localStorage.getItem('dl_current_user');
