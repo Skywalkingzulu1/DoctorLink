@@ -108,6 +108,7 @@ class User(Base):
     inconvenience_discount_reason = Column(String, nullable=True)
 
     # Relationships
+    patient_profile = relationship("Patient", back_populates="user", uselist=False)
     appointments = relationship(
         "Appointment", back_populates="patient", foreign_keys="Appointment.patient_id"
     )
@@ -187,6 +188,7 @@ class Appointment(Base):
     appointment_type = Column(SQLEnum(AppointmentType), default=AppointmentType.VIDEO)
     status = Column(SQLEnum(AppointmentStatus), default=AppointmentStatus.SCHEDULED)
     reason = Column(Text, nullable=True)
+    location = Column(String, nullable=True) # For in-person visits
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     price_credits = Column(Integer, default=150)
@@ -213,6 +215,11 @@ class Appointment(Base):
     somnia_release_tx = Column(String, nullable=True)
     somnia_refund_tx = Column(String, nullable=True)
     somnia_agent_results = Column(Text, nullable=True)
+
+    # Rich Triage & Noting Tools
+    triage_data = Column(Text, nullable=True) # JSON: symptom_duration, pain_scale, vitals, meds, allergies, history, travel, flags, etc.
+    triage_tools_results = Column(Text, nullable=True) # JSON: Results of the 10 doctor tools
+    payment_method = Column(String, default="credits") # credits, yoco, somnia, t800
 
     # Relationships
     patient = relationship(
@@ -262,18 +269,21 @@ class Transaction(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
+    appointment_id = Column(Integer, ForeignKey("appointments.id"), nullable=True)
     amount = Column(Integer, nullable=False)
+    currency = Column(String, default="ZAR")
     transaction_type = Column(
         String, nullable=False
     )  # credit_purchase, appointment_payment
     description = Column(String, nullable=True)
-    payment_method = Column(String, nullable=True)  # payfast, manual
+    payment_method = Column(String, nullable=True)  # payfast, manual, yoco
     payment_status = Column(String, default="pending")  # pending, completed, failed
     payfast_payment_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     user = relationship("User", back_populates="transactions")
+    appointment = relationship("Appointment")
 
 
 class History(Base):
@@ -374,3 +384,42 @@ class Referral(Base):
     reward_credits = Column(Integer, default=50)
     created_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
+
+
+class Patient(Base):
+    __tablename__ = "Patients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False, unique=True)
+    preferred_name = Column(String, nullable=True)
+    dob = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    pronouns = Column(String, nullable=True)
+    marital_status = Column(String, nullable=True)
+    language = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    emergency_contact_json = Column(Text, nullable=True)  # JSON string
+    insurance_json = Column(Text, nullable=True)  # JSON string
+    pharmacy_json = Column(Text, nullable=True)  # JSON string
+    referral_json = Column(Text, nullable=True)  # JSON string
+    medical_history_json = Column(Text, nullable=True)  # JSON string
+    lifestyle_json = Column(Text, nullable=True)  # JSON string
+    preventive_json = Column(Text, nullable=True)  # JSON string
+    mental_health_json = Column(Text, nullable=True)  # JSON string
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationship
+    user = relationship("User", back_populates="patient_profile")
+
+
+class AiResponse(Base):
+    __tablename__ = "ai_responses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=True)
+    feature = Column(String, nullable=True) # symptom_check, scribe, etc.
+    prompt = Column(Text, nullable=True)
+    result = Column(Text, nullable=True)
+    status = Column(String, default="success")
+    created_at = Column(DateTime, default=datetime.utcnow)

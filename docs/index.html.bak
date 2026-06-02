@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorLink - South Africa's Healthcare Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--light);color:var(--text);line-height:1.5}
+        
+        /* Layout */
+        .app{display:flex;min-height:100vh}
+        .sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto}
+        .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border)}
+        .sidebar-header h1{font-size:1.3rem;color:var(--primary);font-weight:800}
+        .sidebar-header h1 span{color:var(--secondary)}
+        .sidebar-menu{padding:1rem 0}
+        .menu-item{padding:0.8rem 1.5rem;cursor:pointer;display:flex;align-items:center;gap:0.8rem;color:var(--text-light);transition:all 0.2s}
+        .menu-item:hover,.menu-item.active{background:var(--light);color:var(--primary);border-left:3px solid var(--primary)}
+        .menu-item i{width:20px}
+        .menu-badge{background:var(--accent);color:#fff;padding:0.1rem 0.5rem;border-radius:10px;font-size:0.7rem;margin-left:auto}
+        
+        .main{flex:1;margin-left:260px}
+        .top-bar{background:var(--white);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+        .top-bar .user-info{display:flex;align-items:center;gap:1rem}
+        .wallet{background:var(--accent);color:#fff;padding:0.3rem 1rem;border-radius:20px;font-weight:600;font-size:0.9rem}
+        
+        .content{padding:2rem}
+        .page-title{font-size:1.8rem;margin-bottom:1.5rem}
+        
+        /* Cards */
+        .card{background:var(--white);border-radius:12px;padding:1.5rem;margin-bottom:1rem;border:1px solid var(--border)}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+        .card-title{font-size:1.1rem;font-weight:600}
+        
+        /* Forms */
+        .form-group{margin-bottom:1rem}
+        .form-label{display:block;margin-bottom:0.3rem;font-weight:500;font-size:0.9rem}
+        .form-input,.form-select,.form-textarea{width:100%;padding:0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.95rem}
+        .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,82,204,0.1)}
+        
+        /* Buttons */
+        .btn{padding:0.7rem 1.5rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:var(--primary-dark)}
+        .btn-secondary{background:var(--light);color:var(--text);border:1px solid var(--border)}
+        .btn-accent{background:var(--accent);color:#fff}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-sm{padding:0.4rem 0.8rem;font-size:0.85rem}
+        
+        /* Grid */
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+        .grid-2{grid-template-columns:repeat(2,1fr)}
+        
+        /* Tables */
+        .table{width:100%;border-collapse:collapse}
+        .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
+        .table th{background:var(--light);font-weight:600;color:var(--text-light)}
+        .table tr:hover{background:var(--light)}
+        
+        /* Status Pills */
+        .status{padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600}
+        .status-scheduled{background:#eef2ff;color:var(--primary)}
+        .status-active{background:#e3fcef;color:var(--accent)}
+        .status-completed{background:var(--light);color:var(--text-light)}
+        .status-cancelled{background:#ffebe6;color:var(--danger)}
+        
+        /* Auth Page */
+        .auth-page{min-height:100vh;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;padding:2rem}
+        .auth-card{background:var(--white);padding:2.5rem;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:450px}
+        .auth-card h1{text-align:center;color:var(--primary);font-size:2rem;margin-bottom:0.5rem}
+        .auth-card h1 span{color:var(--secondary)}
+        .auth-card p{text-align:center;color:var(--text-light);margin-bottom:2rem}
+        
+        /* Tabs */
+        .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+        .tab{padding:1rem 1.5rem;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;transition:all 0.2s}
+        .tab:hover,.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        
+        /* Modal */
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+        .modal.active{display:flex}
+        .modal-content{background:var(--white);padding:2rem;border-radius:16px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+        .modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light)}
+        
+        /* Stats */
+        .stats{grid-template-columns:repeat(4,1fr)}
+        .stat-card{background:var(--white);padding:1.5rem;border-radius:12px;border:1px solid var(--border);text-align:center}
+        .stat-value{font-size:2rem;font-weight:700;color:var(--primary)}
+        .stat-label{color:var(--text-light);font-size:0.85rem}
+        
+        /* Search */
+        .search-bar{display:flex;gap:1rem;margin-bottom:1.5rem}
+        .search-bar input{flex:1;padding:0.8rem;border:1px solid var(--border);border-radius:8px}
+        
+        /* Empty State */
+        .empty{text-align:center;padding:3rem;color:var(--text-light)}
+        .empty i{font-size:3rem;margin-bottom:1rem}
+        
+        /* Hidden */
+        .hidden{display:none!important}
+        
+        /* Loading */
+        .loading{text-align:center;padding:2rem;color:var(--text-light)}
+        
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <!-- AUTH PAGE -->
+    <div id="authPage" class="auth-page">
+        <div class="auth-card">
+            <h1>Doctor<span>Link</span></h1>
+            <p id="authSubtitle">South Africa's Leading Healthcare Platform</p>
+            <div id="authError" style="color:var(--danger);background:#ffebe6;padding:0.8rem;border-radius:8px;margin-bottom:1rem;display:none"></div>
+            <form id="authForm">
+                <div id="nameField" class="form-group" style="display:none">
+                    <input type="text" id="authName" class="form-input" placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="authEmail" class="form-input" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="authPassword" class="form-input" placeholder="Password" required>
+                </div>
+                <div id="roleField" class="form-group" style="display:none">
+                    <select id="authRole" class="form-select">
+                        <option value="PATIENT">Patient</option>
+                        <option value="DOCTOR">Doctor</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%" id="authBtn">Login</button>
+            </form>
+            <div style="text-align:center;margin-top:1.5rem;color:var(--text-light)">
+                <span id="authSwitchText">Don't have an account?</span> 
+                <a href="#" id="authSwitch" style="color:var(--primary);font-weight:600">Register</a>
+            </div>
+            <div style="text-align:center;margin-top:1rem;padding:1rem;background:var(--light);border-radius:8px;font-size:0.85rem">
+                <strong>Demo:</strong> patient@doctorlink.co.za / test123
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="appPage" class="app hidden">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>Doctor<span>Link</span></h1>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</div>
+                <div class="menu-item" data-page="doctors"><i class="fas fa-user-md"></i> Find Doctors</div>
+                <div class="menu-item" data-page="appointments"><i class="fas fa-calendar"></i> Appointments <span class="menu-badge" id="apptBadge">0</span></div>
+                <div class="menu-item" data-page="records"><i class="fas fa-file-medical"></i> Medical Records</div>
+                <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
+                <div class="menu-item" data-page="payments"><i class="fas fa-credit-card"></i> Credits & Payments</div>
+                <div class="menu-item" data-page="profile"><i class="fas fa-user"></i> My Profile</div>
+                <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="top-bar">
+                <div style="font-weight:600" id="pageTitle">Dashboard</div>
+                <div class="user-info">
+                    <span id="userName">User</span>
+                    <span class="wallet" id="userCredits">0 Credits</span>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- DASHBOARD -->
+                <div id="page-dashboard">
+                    <div class="stats grid" style="margin-bottom:2rem">
+                        <div class="stat-card"><div class="stat-value" id="statAppointments">0</div><div class="stat-label">Appointments</div></div>
+                        <div class="stat-card"><div class="stat-value" id="statCredits">0</div><div class="stat-label">Credits</div></div>
+                        <div class="stat-card"><div class="stat-value" id="statDoctors">0</div><div class="stat-label">Doctors</div></div>
+                        <div class="stat-card"><div class="stat-value" id="statRecords">0</div><div class="stat-label">Records</div></div>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title">Upcoming Appointments</div></div>
+                            <div id="dashboardAppts"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><div class="card-title">Recent Records</div></div>
+                            <div id="dashboardRecords"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FIND DOCTORS -->
+                <div id="page-doctors" class="hidden">
+                    <h2 class="page-title">Find Doctors in Johannesburg</h2>
+                    <div class="search-bar">
+                        <input type="text" id="docSearch" placeholder="Search doctors..." onkeyup="if(event.key==='Enter')searchDoctors()">
+                        <select id="docSpecialty" class="form-select" style="width:200px" onchange="searchDoctors()">
+                            <option value="">All Specialties</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="searchDoctors()">Search</button>
+                    </div>
+                    <div class="grid" id="doctorsGrid"></div>
+                </div>
+
+                <!-- APPOINTMENTS -->
+                <div id="page-appointments" class="hidden">
+                    <h2 class="page-title">My Appointments</h2>
+                    <div class="tabs">
+                        <div class="tab active" onclick="filterAppts('all',this)">All</div>
+                        <div class="tab" onclick="filterAppts('SCHEDULED',this)">Scheduled</div>
+                        <div class="tab" onclick="filterAppts('ACTIVE',this)">Active</div>
+                        <div class="tab" onclick="filterAppts('COMPLETED',this)">Completed</div>
+                    </div>
+                    <div class="card">
+                        <table class="table">
+                            <thead><tr><th>Doctor</th><th>Date</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="appointmentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- MEDICAL RECORDS -->
+                <div id="page-records" class="hidden">
+                    <h2 class="page-title">Medical Records</h2>
+                    <div class="card">
+                        <table class="table">
+                            <thead><tr><th>Date</th><th>Doctor</th><th>Summary</th></tr></thead>
+                            <tbody id="recordsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PRESCRIPTIONS -->
+                <div id="page-prescriptions" class="hidden">
+                    <h2 class="page-title">My Prescriptions</h2>
+                    <div class="card">
+                        <table class="table">
+                            <thead><tr><th>Date</th><th>Medication</th><th>Dosage</th><th>Instructions</th></tr></thead>
+                            <tbody id="prescriptionsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PAYMENTS -->
+                <div id="page-payments" class="hidden">
+                    <h2 class="page-title">Credits & Payments</h2>
+                    <div class="grid" style="margin-bottom:2rem">
+                        <div class="card" style="text-align:center">
+                            <div style="font-size:3rem;color:var(--accent);margin-bottom:1rem"><i class="fas fa-coins"></i></div>
+                            <div style="font-size:2.5rem;font-weight:700" id="creditBalance">0</div>
+                            <div style="color:var(--text-light)">Current Balance</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-title">Buy Credits</div>
+                        <div class="grid" style="margin-top:1rem">
+                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--primary)" onclick="purchaseCredits(100)">
+                                <div style="font-size:1.5rem;font-weight:700">100</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R99</div>
+                            </div>
+                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--border)" onclick="purchaseCredits(250)">
+                                <div style="font-size:1.5rem;font-weight:700">250</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R199</div>
+                            </div>
+                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--border)" onclick="purchaseCredits(500)">
+                                <div style="font-size:1.5rem;font-weight:700">500</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R349</div>
+                            </div>
+                            <div class="card" style="text-align:center;cursor:pointer;border:2px solid var(--border)" onclick="purchaseCredits(1000)">
+                                <div style="font-size:1.5rem;font-weight:700">1000</div><div>Credits</div><div style="color:var(--accent);margin-top:0.5rem">R599</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:1.5rem">
+                        <div class="card-title">Transaction History</div>
+                        <table class="table">
+                            <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+                            <tbody id="transactionsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PROFILE -->
+                <div id="page-profile" class="hidden">
+                    <h2 class="page-title">My Profile</h2>
+                    <div class="card">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input type="text" id="profileName" class="form-input" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="profileEmail" class="form-input" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" id="profilePhone" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Role</label>
+                                <input type="text" id="profileRole" class="form-input" readonly>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOKING MODAL -->
+    <div id="bookModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Book Appointment</h3>
+                <button class="modal-close" onclick="closeModal('bookModal')">&times;</button>
+            </div>
+            <div id="bookDoctorInfo"></div>
+            <div class="form-group">
+                <label class="form-label">Appointment Type</label>
+                <select id="bookType" class="form-select">
+                    <option value="VIDEO">Video Consultation</option>
+                    <option value="INPERSON">In-Person Visit</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date & Time</label>
+                <input type="datetime-local" id="bookDateTime" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reason for Visit</label>
+                <textarea id="bookReason" class="form-textarea" placeholder="Describe your symptoms..."></textarea>
+            </div>
+            <div style="background:var(--light);padding:1rem;border-radius:8px;margin:1rem 0">
+                <strong>Cost:</strong> <span id="bookCost">0</span> Credits
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== API CONFIG ==========
+        const API_BASE = '';
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+        let selectedDoctor = null;
+
+        // ========== API HELPERS ==========
+        async function apiCall(endpoint, options = {}) {
+            const url = API_BASE + endpoint;
+            const headers = { 'Content-Type': 'application/json' };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            
+            try {
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) { logout(); throw new Error('Session expired'); }
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'API error');
+                return data;
+            } catch (e) {
+                console.error('API Error:', e);
+                throw e;
+            }
+        }
+
+        // ========== AUTH ==========
+        let isLogin = true;
+
+        document.getElementById('authSwitch').onclick = e => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            document.getElementById('authSubtitle').textContent = isLogin ? 'Welcome Back' : 'Join South Africa\'s Healthcare Platform';
+            document.getElementById('authBtn').textContent = isLogin ? 'Login' : 'Create Account';
+            document.getElementById('authSwitchText').textContent = isLogin ? 'Don\'t have an account?' : 'Already have an account?';
+            document.getElementById('authSwitch').textContent = isLogin ? 'Register' : 'Login';
+            document.getElementById('nameField').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('roleField').style.display = isLogin ? 'none' : 'block';
+        };
+
+        document.getElementById('authForm').onsubmit = async e => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const err = document.getElementById('authError');
+            err.style.display = 'none';
+            
+            console.log('Form submitted, email:', email, 'isLogin:', isLogin);
+
+            try {
+                if (isLogin) {
+                    const formData = new FormData();
+                    formData.append('username', email);
+                    formData.append('password', password);
+                    
+                    console.log('FormData created, entries:');
+                    for (let [k, v] of formData) console.log('  ', k, '=', v);
+                    
+                    console.log('Fetching from:', API_BASE + '/api/auth/login');
+                    
+                    const response = await fetch(API_BASE + '/api/auth/login', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('Got response, status:', response.status);
+                    
+                    if (!response.ok) {
+                        const data = await response.json();
+                        console.log('Error response:', data);
+                        err.textContent = data.detail || 'Invalid credentials';
+                        err.style.display = 'block';
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Login success:', data);
+                    authToken = data.access_token;
+                    currentUser = data.user;
+                    localStorage.setItem('token', authToken);
+                    showApp();
+                } else {
+                    const name = document.getElementById('authName').value;
+                    const role = document.getElementById('authRole').value;
+                    
+                    await apiCall('/api/auth/register', {
+                        method: 'POST',
+                        body: JSON.stringify({ email, password, name, role })
+                    });
+                    
+                    alert('Registration successful! Please login.');
+                    isLogin = true;
+                    document.getElementById('authSwitch').click();
+                }
+            } catch (e) {
+                err.textContent = 'Connection error. Please try again.';
+                err.style.display = 'block';
+            }
+        };
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('token');
+            window.location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.name;
+            updateCredits();
+            initDashboard();
+            loadDoctors();
+        }
+
+        function updateCredits() {
+            // Fetch fresh credits from API
+            apiCall('/api/credits/balance').then(data => {
+                currentUser.credits = data.credits;
+                document.getElementById('userCredits').textContent = data.credits + ' Credits';
+                document.getElementById('statCredits').textContent = data.credits;
+            }).catch(() => {});
+            
+            // Update appointment badge
+            apiCall('/api/appointments').then(appts => {
+                const pending = appts.filter(a => a.status === 'SCHEDULED').length;
+                document.getElementById('apptBadge').textContent = pending;
+            }).catch(() => {});
+        }
+
+        // ========== NAVIGATION ==========
+        document.querySelectorAll('.menu-item[data-page]').forEach(item => {
+            item.onclick = () => navTo(item.dataset.page);
+        });
+
+        function navTo(page) {
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+            document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + page)?.classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            
+            if (page === 'appointments') loadAppointments();
+            if (page === 'records') loadRecords();
+            if (page === 'prescriptions') loadPrescriptions();
+            if (page === 'payments') loadPayments();
+            if (page === 'profile') loadProfile();
+        }
+
+        // ========== DASHBOARD ==========
+        async function initDashboard() {
+            try {
+                const [appts, doctors, records] = await Promise.all([
+                    apiCall('/api/appointments'),
+                    apiCall('/api/doctors'),
+                    apiCall('/api/records')
+                ]);
+                
+                document.getElementById('statAppointments').textContent = appts.length;
+                document.getElementById('statCredits').textContent = currentUser.credits;
+                document.getElementById('statDoctors').textContent = doctors.length;
+                document.getElementById('statRecords').textContent = records.length;
+                
+                // Upcoming appointments
+                const upcoming = appts.filter(a => a.status === 'SCHEDULED' || a.status === 'ACTIVE').slice(0, 3);
+                const apptsContainer = document.getElementById('dashboardAppts');
+                if (upcoming.length === 0) {
+                    apptsContainer.innerHTML = '<div class="empty"><p>No upcoming appointments</p></div>';
+                } else {
+                    apptsContainer.innerHTML = upcoming.map(a => `
+                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                            <strong>${a.doctor_name || 'Doctor'}</strong><br>
+                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
+                            <span class="status status-${a.status.toLowerCase()}">${a.status}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                // Recent records
+                const recordsContainer = document.getElementById('dashboardRecords');
+                if (records.length === 0) {
+                    recordsContainer.innerHTML = '<div class="empty"><p>No medical records</p></div>';
+                } else {
+                    recordsContainer.innerHTML = records.slice(0, 3).map(r => `
+                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
+                            <strong>Visit Summary</strong><br>
+                            <small>${r.summary.substring(0, 50)}...</small>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Dashboard error:', e);
+            }
+        }
+
+        // ========== DOCTORS ==========
+        async function loadDoctors() {
+            try {
+                const doctors = await apiCall('/api/doctors');
+                renderDoctors(doctors);
+                
+                // Populate specialty dropdown
+                const specialties = [...new Set(doctors.map(d => d.specialty))];
+                const select = document.getElementById('docSpecialty');
+                select.innerHTML = '<option value="">All Specialties</option>' + 
+                    specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+            } catch (e) {
+                console.error('Load doctors error:', e);
+            }
+        }
+
+        async function searchDoctors() {
+            const q = document.getElementById('docSearch').value;
+            const spec = document.getElementById('docSpecialty').value;
+            
+            let url = '/api/doctors';
+            const params = [];
+            if (q) params.push(`specialty=${encodeURIComponent(q)}`);
+            if (spec) params.push(`specialty=${encodeURIComponent(spec)}`);
+            if (params.length) url += '?' + params.join('&');
+            
+            try {
+                const doctors = await apiCall(url);
+                renderDoctors(doctors);
+            } catch (e) {
+                console.error('Search error:', e);
+            }
+        }
+
+        function renderDoctors(doctors) {
+            const grid = document.getElementById('doctorsGrid');
+            if (!doctors.length) {
+                grid.innerHTML = '<div class="empty">No doctors found</div>';
+                return;
+            }
+            
+            grid.innerHTML = doctors.map(d => {
+                // Verification badge
+                let badge = '';
+                if (d.verification_status === 'verified') {
+                    badge = '<div style="color:#36b37e;font-size:0.8rem;font-weight:bold">★ Verified Doctor</div>';
+                } else if (d.verification_status === 'basic') {
+                    badge = '<div style="color:#0052cc;font-size:0.8rem;font-weight:bold">✓ Verified</div>';
+                } else {
+                    badge = '<div style="color:#6b778c;font-size:0.8rem">Pending Verification</div>';
+                }
+                
+                return `
+                <div class="card">
+                    <div style="text-align:center;padding:1rem"><i class="fas fa-user-md" style="font-size:3rem;color:var(--text-light)"></i></div>
+                    ${badge}
+                    <h3 style="margin:0.5rem 0">${d.name}</h3>
+                    <div class="meta"><i class="fas fa-stethoscope"></i> ${d.specialty}</div>
+                    <div class="meta"><i class="fas fa-map-marker-alt"></i> ${d.area}</div>
+                    <div class="meta"><i class="fas fa-star"></i> ${d.rating} (${d.review_count} reviews)</div>
+                    <div class="meta"><i class="fas fa-coins"></i> ${d.consultation_fee} credits</div>
+                    <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="openBookModal(${d.id})">Book Appointment</button>
+                </div>
+            `}).join('');
+        }
+
+        // ========== APPOINTMENTS ==========
+        async function loadAppointments(filter = 'all') {
+            try {
+                const url = filter === 'all' ? '/api/appointments' : `/api/appointments?status_filter=${filter}`;
+                const appts = await apiCall(url);
+                
+                const tbody = document.getElementById('appointmentsTable');
+                if (!appts.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = appts.map(a => {
+                    const isScheduled = a.status === 'SCHEDULED';
+                    const isActive = a.status === 'ACTIVE';
+                    const isCompleted = a.status === 'COMPLETED';
+                    
+                    let actionButtons = '';
+                    if (isActive) {
+                        actionButtons = '<button class="btn btn-sm btn-accent" onclick="joinCall(' + a.id + ')">Join Call</button>';
+                    } else if (isScheduled) {
+                        actionButtons = '<button class="btn btn-sm btn-secondary" onclick="joinWaitingRoom(' + a.id + ')">Join Waiting Room</button>' +
+                                        '<button class="btn btn-sm btn-danger" style="margin-left:0.5rem" onclick="cancelAppt(' + a.id + ')">Cancel</button>';
+                    } else if (isCompleted) {
+                        actionButtons = '<span style="color:var(--text-light)">Completed</span>';
+                    }
+                    
+                    return '<tr>' +
+                        '<td>' + (a.doctor_name || 'Doctor') + '</td>' +
+                        '<td>' + new Date(a.timestamp).toLocaleDateString() + '</td>' +
+                        '<td>' + a.appointment_type + '</td>' +
+                        '<td><span class="status status-' + a.status.toLowerCase() + '">' + a.status + '</span></td>' +
+                        '<td>' + actionButtons + '</td>' +
+                    '</tr>';
+                }).join('');
+            } catch (e) {
+                console.error('Load appointments error:', e);
+            }
+        }
+
+        function filterAppts(status, tab) {
+            document.querySelectorAll('#page-appointments .tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            loadAppointments(status);
+        }
+
+        async function cancelAppt(id) {
+            if (!confirm('Cancel this appointment?')) return;
+            try {
+                await apiCall(`/api/appointments/${id}`, { method: 'DELETE' });
+                loadAppointments();
+            } catch (e) {
+                alert('Failed to cancel');
+            }
+        }
+
+        function joinCall(id) {
+            window.location.href = 'room.html?appointment_id=' + id;
+        }
+        
+        async function joinWaitingRoom(id) {
+            try {
+                const result = await apiCall(`/api/waiting-room/join/${id}`, { method: 'POST' });
+                if (result.waiting) {
+                    alert(`You're in position ${result.position} in the waiting room. Please wait.`);
+                    // Refresh to see updated status
+                    loadAppointments();
+                } else {
+                    alert(result.message || 'Appointment not ready yet');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // ========== RECORDS ==========
+        async function loadRecords() {
+            try {
+                const records = await apiCall('/api/records');
+                const tbody = document.getElementById('recordsTable');
+                
+                if (!records.length) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="empty">No medical records</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = records.map(r => `
+                    <tr>
+                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                        <td>Doctor</td>
+                        <td>${r.summary.substring(0, 50)}...</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load records error:', e);
+            }
+        }
+
+        // ========== PRESCRIPTIONS ==========
+        async function loadPrescriptions() {
+            try {
+                const scripts = await apiCall('/api/prescriptions');
+                const tbody = document.getElementById('prescriptionsTable');
+                
+                if (!scripts.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No prescriptions</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = scripts.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                        <td>${p.medication}</td>
+                        <td>${p.dosage}</td>
+                        <td>${p.instructions || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load prescriptions error:', e);
+            }
+        }
+
+        // ========== PAYMENTS ==========
+        async function loadPayments() {
+            try {
+                const balance = await apiCall('/api/credits/balance');
+                document.getElementById('creditBalance').textContent = balance.credits;
+                
+                const txns = await apiCall('/api/credits/transactions');
+                const tbody = document.getElementById('transactionsTable');
+                
+                if (!txns.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No transactions</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = txns.map(t => `
+                    <tr>
+                        <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                        <td>${t.description || t.transaction_type}</td>
+                        <td style="color:${t.payment_status === 'completed' ? 'var(--accent)' : 'var(--text-light)'}">${t.amount}</td>
+                        <td>${t.payment_status}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Load payments error:', e);
+            }
+        }
+
+        async function purchaseCredits(amount) {
+            if (!confirm(`Purchase ${amount} credits for R${amount}?`)) return;
+            try {
+                const result = await apiCall('/api/credits/purchase', {
+                    method: 'POST',
+                    body: JSON.stringify({ amount })
+                });
+                currentUser.credits = result.new_balance;
+                updateCredits();
+                loadPayments();
+                alert(`Successfully purchased ${amount} credits!`);
+            } catch (e) {
+                alert('Purchase failed: ' + e.message);
+            }
+        }
+
+        // ========== PROFILE ==========
+        function loadProfile() {
+            document.getElementById('profileName').value = currentUser.name;
+            document.getElementById('profileEmail').value = currentUser.email;
+            document.getElementById('profilePhone').value = currentUser.phone || '';
+            document.getElementById('profileRole').value = currentUser.role;
+        }
+
+        function saveProfile() {
+            alert('Profile saved!');
+        }
+
+        // ========== BOOKING ==========
+        function openBookModal(docId) {
+            apiCall(`/api/doctors/${docId}`).then(doctor => {
+                selectedDoctor = doctor;
+                document.getElementById('bookDoctorInfo').innerHTML = `
+                    <div style="background:var(--light);padding:1rem;border-radius:8px;margin-bottom:1rem">
+                        <strong>${doctor.name}</strong><br>
+                        <span>${doctor.specialty} - ${doctor.area}</span>
+                    </div>
+                `;
+                document.getElementById('bookCost').textContent = doctor.consultation_fee;
+                document.getElementById('bookModal').classList.add('active');
+            });
+        }
+
+        async function confirmBooking() {
+            const type = document.getElementById('bookType').value;
+            const datetime = document.getElementById('bookDateTime').value;
+            const reason = document.getElementById('bookReason').value;
+            
+            if (!datetime) { alert('Please select date and time'); return; }
+            
+            try {
+                await apiCall('/api/appointments', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        doctor_id: selectedDoctor.id,
+                        timestamp: new Date(datetime).toISOString(),
+                        appointment_type: type,
+                        reason: reason
+                    })
+                });
+                
+                closeModal('bookModal');
+                alert('Appointment booked successfully!');
+                currentUser.credits -= selectedDoctor.consultation_fee;
+                updateCredits();
+            } catch (e) {
+                alert('Booking failed: ' + e.message);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Check session on load
+        if (authToken) {
+            apiCall('/api/auth/me').then(user => {
+                currentUser = user;
+                showApp();
+            }).catch(() => {
+                localStorage.removeItem('token');
+            });
+        }
+    </script>
+</body>
+</html>

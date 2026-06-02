@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DoctorLink - South Africa's Healthcare Platform</title>
+    <title>Doctors on Wheels - South Africa's Healthcare Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="config.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
@@ -231,7 +230,7 @@
     <!-- AUTH PAGE -->
     <div id="authPage" class="auth-page">
         <div class="auth-card">
-            <h1>Doctor<span>Link</span></h1>
+            <h1>Doctors on <span>Wheels</span></h1>
             <p id="authSubtitle">South Africa's Leading Healthcare Platform</p>
             <div id="authError" style="color:var(--danger);background:#ffebe6;padding:0.8rem;border-radius:8px;margin-bottom:1rem;display:none"></div>
             <form id="authForm">
@@ -266,19 +265,18 @@
     <div id="appPage" class="app hidden">
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1>Doctor<span>Link</span></h1>
+                <h1>Doctors on <span>Wheels</span></h1>
             </div>
             <div class="sidebar-menu">
                 <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</div>
+                <div class="menu-item" data-page="consultation" id="menu-consultation" style="background:rgba(54,179,126,0.05);color:var(--accent)"><i class="fas fa-video"></i> Consultation Room</div>
                 <div class="menu-item" data-page="doctors"><i class="fas fa-user-md"></i> Find Doctors</div>
                 <div class="menu-item" data-page="appointments"><i class="fas fa-calendar"></i> Appointments <span class="menu-badge" id="apptBadge">0</span></div>
                 <div class="menu-item" data-page="records"><i class="fas fa-file-medical"></i> Medical Records</div>
                 <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
                 <div class="menu-item" data-page="health-tools"><i class="fas fa-robot"></i> Health Tools</div>
                 <div class="menu-item" data-page="payments"><i class="fas fa-credit-card"></i> Credits & T-800</div>
-                <div class="menu-item" data-page="referrals"><i class="fas fa-share-alt"></i> Referrals</div>
                 <div class="menu-item" data-page="profile"><i class="fas fa-user"></i> My Profile</div>
-                <div class="menu-item" onclick="window.location='somnia.html'"><i class="fas fa-microchip"></i> Somnia Agents</div>
                 <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
             </div>
         </div>
@@ -288,21 +286,15 @@
                 <div style="font-weight:600" id="pageTitle">Dashboard</div>
                 <div class="user-info">
                     <div id="somniaWalletInfo" style="text-align:right;margin-right:1rem;font-size:0.8rem;color:var(--text-light)">
-                        <div id="userAddress" style="font-family:monospace;cursor:pointer;" onclick="mmAccount ? copyAddress() : null" title="Click to copy address">0x...</div>
+                        <div style="display:flex;align-items:center;gap:5px;justify-content:flex-end">
+                            <i class="fas fa-shield-alt" style="color:var(--accent)"></i>
+                            <span style="font-weight:600;color:var(--text)">Secure Wallet</span>
+                        </div>
                         <div id="userSttBalance" style="color:var(--accent);font-weight:700">0.00 STT</div>
-                        <span id="connectMmBtnWrapper">
-                            <button id="connectMmBtn" onclick="connectMetaMask()" style="background:var(--secondary);color:#fff;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px">Connect MetaMask</button>
-                        </span>
-                        <span id="walletDropdownWrapper" class="wallet-dropdown" style="display:none;">
-                            <button onclick="showWalletDropdown()" style="background:var(--accent);color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px;display:flex;align-items:center;gap:4px"><span id="walletAddressDisplay">0x...</span> ▾</button>
-                            <div class="wallet-dropdown-menu" id="walletDropdownMenu">
-                                <div class="wallet-dropdown-item" onclick="copyAddress()">📋 Copy Address</div>
-                                <div class="wallet-dropdown-item danger" onclick="disconnectWallet()">✕ Disconnect</div>
-                            </div>
-                        </span>
+                        <div id="userAddress" style="font-family:monospace;cursor:pointer;opacity:0.5;font-size:0.7rem" onclick="copyAddress()" title="Click to copy ID">0x...</div>
                     </div>
                     <span id="userName">User</span>
-                    <span class="wallet" id="userCredits">0 Credits</span>
+                    <span class="wallet" id="userCredits" style="background:var(--primary)">0 Credits</span>
                 </div>
             </div>
 
@@ -380,44 +372,12 @@
                     </div>
                 </div>
 
-                <!-- REFERRALS -->
-                <div id="page-referrals" class="hidden">
-                    <h2 class="page-title">Refer a Friend</h2>
-                    <div style="max-width:700px;margin:0 auto">
-                        <div class="card" style="text-align:center;background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:2rem">
-                            <i class="fas fa-share-alt" style="font-size:3rem;margin-bottom:1rem"></i>
-                            <h3 style="margin-bottom:0.5rem">Share & Earn Credits</h3>
-                            <p style="opacity:0.9;margin-bottom:1.5rem">Refer friends and earn 50 credits when they join DoctorLink!</p>
-                            <div style="display:flex;gap:0.5rem;max-width:500px;margin:0 auto">
-                                <input type="text" id="patientReferralLink" class="form-input" readonly style="flex:1;text-align:center;font-family:monospace;font-weight:600" placeholder="Loading...">
-                                <button class="btn" style="background:#fff;color:#059669;flex-shrink:0" onclick="copyPatientReferralLink()"><i class="fas fa-copy"></i> Copy</button>
-                            </div>
-                            <div style="margin-top:1rem;font-size:0.85rem;opacity:0.8">Your code: <strong id="patientReferralCode">---</strong></div>
-                        </div>
-                        <div class="card" style="margin-top:1rem">
-                            <div class="card-title">Referral Stats</div>
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem;text-align:center">
-                                <div><div class="stat-value" id="patRefTotal">0</div><div class="stat-label">Total Referrals</div></div>
-                                <div><div class="stat-value" id="patRefCompleted">0</div><div class="stat-label">Completed</div></div>
-                                <div><div class="stat-value" id="patRefRewards">0</div><div class="stat-label">Credits Earned</div></div>
-                            </div>
-                        </div>
-                        <div class="card" style="margin-top:1rem">
-                            <div class="card-title">Referral History</div>
-                            <table class="table">
-                                <thead><tr><th>Date</th><th>Referee</th><th>Status</th><th>Reward</th></tr></thead>
-                                <tbody id="patientReferralsTable"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- HEALTH TOOLS -->
                 <div id="page-health-tools" class="hidden">
                     <h2 class="page-title">AI Health Tools</h2>
-                    <p style="color:var(--text-light);margin-bottom:1.5rem">Powered by Somnia LLM Inference Agents</p>
+                    <p style="color:var(--text-light);margin-bottom:1.5rem">Powered by Doctors on Wheels Secure AI Network</p>
                     <div id="sttCostBadge" style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-light);display:none;">
-                        <span style="background:#059669;color:white;padding:2px 8px;border-radius:4px;font-weight:bold;">STT</span>
+                        <span style="background:#059669;color:white;padding:2px 8px;border-radius:4px;font-weight:bold;">Secure Token</span>
                         <span id="sttCostText">Loading cost...</span>
                     </div>
 
@@ -432,7 +392,7 @@
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="btn btn-primary" onclick="runSymptomCheck()"><i class="fas fa-search"></i> Check Symptoms (5 credits)</button>
-                            <button class="btn btn-outline" onclick="runSymptomCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            <button class="btn btn-outline" onclick="runSymptomCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">Verified</span> Use Tokens</button>
                             </div>
                             <div id="symptomResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;white-space:pre-wrap"></div>
                         </div>
@@ -447,7 +407,7 @@
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="btn btn-primary" onclick="runDrugCheck()"><i class="fas fa-flask"></i> Check Interactions (5 credits)</button>
-                            <button class="btn btn-outline" onclick="runDrugCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
+                            <button class="btn btn-outline" onclick="runDrugCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">Verified</span> Use Tokens</button>
                             </div>
                             <div id="drugResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#fefce8;border-radius:8px;border:1px solid #fde68a;white-space:pre-wrap"></div>
                         </div>
@@ -580,6 +540,17 @@
                         <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
                     </div>
                 </div>
+
+                <!-- CONSULTATION (IFRAME) -->
+                <div id="page-consultation" class="hidden" style="height: calc(100vh - 160px); overflow: hidden; margin: -1rem; border-radius: 0;">
+                    <div id="noConsultation" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f4f5f7; color:var(--text-light); text-align:center; padding:2rem;">
+                        <i class="fas fa-video-slash" style="font-size:4rem; margin-bottom:1.5rem; opacity:0.3"></i>
+                        <h3>No Active Consultation</h3>
+                        <p style="max-width:400px; margin-top:0.5rem">Book an appointment or join an existing call from your dashboard.</p>
+                        <button class="btn btn-primary" style="margin-top:1.5rem" onclick="navTo('appointments')">My Appointments</button>
+                    </div>
+                    <iframe id="consultationFrame" src="about:blank" class="hidden" style="width: 100%; height: 100%; border: none; background: #172b4d;"></iframe>
+                </div>
             </div>
         </div>
     </div>
@@ -594,10 +565,14 @@
             <div id="bookDoctorInfo"></div>
             <div class="form-group">
                 <label class="form-label">Appointment Type</label>
-                <select id="bookType" class="form-select">
+                <select id="bookType" class="form-select" onchange="toggleBookingLocation()">
                     <option value="VIDEO">Video Consultation</option>
                     <option value="INPERSON">In-Person Visit</option>
                 </select>
+            </div>
+            <div class="form-group" id="bookLocationGroup" style="display:none">
+                <label class="form-label">Meeting Location (Address)</label>
+                <input type="text" id="bookLocation" class="form-input" placeholder="Enter meeting address...">
             </div>
             <div class="form-group">
                 <label class="form-label">Date & Time</label>
@@ -605,7 +580,21 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Reason for Visit</label>
-                <textarea id="bookReason" class="form-textarea" placeholder="Describe your symptoms..."></textarea>
+                <textarea id="bookReason" class="form-textarea" placeholder="Describe your symptoms..." rows="2"></textarea>
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Duration</label>
+                    <input type="text" id="bookDuration" class="form-input" placeholder="e.g. 2 days">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Severity (1-10)</label>
+                    <select id="bookSeverity" class="form-input">
+                        <option value="5">5 - Moderate</option>
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                        <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                    </select>
+                </div>
             </div>
             <div style="background:var(--light);padding:1rem;border-radius:8px;margin:1rem 0">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
@@ -614,21 +603,53 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">
                     <strong>T800 Equivalent:</strong> <span id="bookCostT800">0</span> <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">T800</span>
                 </div>
-                <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;padding-top:0.5rem;border-top:1px solid var(--border)">
-                    <label style="font-weight:600;font-size:0.85rem"><input type="checkbox" id="payWithSomnia" style="width:18px;height:18px;margin-right:6px">Pay with Somnia STT</label>
-                    <label style="font-weight:600;font-size:0.85rem" title="Get T800 from Payments page"><input type="checkbox" id="payWithT800" style="width:18px;height:18px;margin-right:6px">Pay with <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">T800</span></label>
+                <div style="display:flex;flex-direction:column;gap:0.8rem;padding-top:0.5rem;border-top:1px solid var(--border)">
+                    <label style="font-weight:600;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer">
+                        <input type="radio" name="payMethod" id="payWithCredits" checked style="width:18px;height:18px"> Pay with Credits
+                    </label>
+                    <label style="font-weight:600;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer">
+                        <input type="radio" name="payMethod" id="payWithYoco" style="width:18px;height:18px"> Pay with Yoco (Fiat)
+                    </label>
+                    <label style="font-weight:600;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer" title="Blockchain-backed escrow for maximum security">
+                        <input type="radio" name="payMethod" id="payWithSomnia" style="width:18px;height:18px"> Verified Secure (STT)
+                    </label>
+                    <label style="font-weight:600;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer" title="Use your earned rewards to pay">
+                        <input type="radio" name="payMethod" id="payWithT800" style="width:18px;height:18px"> Pay with Rewards (T800)
+                    </label>
                     <span id="t800BookHint" style="font-size:0.75rem;color:var(--text-light)"></span>
                 </div>
             </div>
             <button class="btn btn-primary" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
+        </div>
     </div>
-</div>
+
+    <!-- WAITING ROOM MODAL -->
+    <div id="waitingRoomModal" class="modal">
+        <div class="modal-content" style="text-align:center;padding:2.5rem">
+            <div style="margin-bottom:1.5rem">
+                <i class="fas fa-clock" style="font-size:3.5rem;color:var(--primary);animation:pulse 2s infinite"></i>
+            </div>
+            <h2 style="margin-bottom:0.5rem">Virtual Waiting Room</h2>
+            <p id="waitingRoomStatus" style="color:var(--text-light);margin-bottom:1.5rem">Joining the queue...</p>
+            
+            <div id="waitingPositionCard" class="card" style="background:var(--light);border:none;margin-bottom:1.5rem;display:none">
+                <div style="font-size:0.9rem;color:var(--text-light)">Your position in queue</div>
+                <div id="waitingPosition" style="font-size:3rem;font-weight:800;color:var(--primary)">1</div>
+            </div>
+            
+            <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:2rem">
+                Please don't close this window. You will be automatically redirected to the consultation room when the doctor is ready.
+            </p>
+            
+            <button class="btn btn-secondary" style="width:100%" onclick="leaveWaitingRoom()">Leave Waiting Room</button>
+        </div>
+    </div>
 
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
         // ========== API CONFIG ==========
-        const API_BASE = window.API_BASE_URL;
+        const API_BASE = '';
         let authToken = localStorage.getItem('token');
         let currentUser = null;
         let selectedDoctor = null;
@@ -932,7 +953,6 @@
             if (page === 'health-tools') loadCreditCosts();
             if (page === 'payments') { loadPayments(); loadEscrow(); }
             if (page === 'profile') loadProfile();
-            if (page === 'referrals') loadPatientReferrals();
         }
 
         // ========== DASHBOARD ==========
@@ -1099,22 +1119,88 @@
         }
 
         function joinCall(id) {
-            window.location.href = 'room.html?appointment_id=' + id;
+            const frame = document.getElementById('consultationFrame');
+            frame.src = `room.html?appointment_id=${id}`;
+            document.getElementById('menu-consultation').style.display = 'flex';
+            navTo('consultation');
         }
         
+        let waitingRoomInterval = null;
+        let currentWaitingApptId = null;
+
         async function joinWaitingRoom(id) {
+            currentWaitingApptId = id;
             try {
                 const result = await apiCall(`/api/waiting-room/join/${id}`, { method: 'POST' });
+                
+                // Show modal
+                const modal = document.getElementById('waitingRoomModal');
+                const status = document.getElementById('waitingRoomStatus');
+                const posCard = document.getElementById('waitingPositionCard');
+                const posText = document.getElementById('waitingPosition');
+                
+                modal.classList.add('active');
+                
                 if (result.waiting) {
-                    alert(`You're in position ${result.position} in the waiting room. Please wait.`);
-                    // Refresh to see updated status
-                    loadAppointments();
+                    status.textContent = 'You are in the queue. Please wait for the doctor to admit you.';
+                    posCard.style.display = 'block';
+                    posText.textContent = result.position;
+                    
+                    // Start polling
+                    startWaitingRoomPolling(id);
                 } else {
-                    toast(result.message || 'Appointment not ready yet', 'warning');
+                    status.textContent = result.message || 'Appointment not ready yet.';
+                    posCard.style.display = 'none';
+                    
+                    // Even if not "waiting" yet (e.g. too early), we can poll or just let them stay
+                    startWaitingRoomPolling(id);
                 }
             } catch (e) {
                 toast('Error: ' + e.message, 'error');
             }
+        }
+
+        function startWaitingRoomPolling(id) {
+            if (waitingRoomInterval) clearInterval(waitingRoomInterval);
+            
+            waitingRoomInterval = setInterval(async () => {
+                try {
+                    const appt = await apiCall(`/api/appointments/${id}`);
+                    
+                    if (appt.status === 'ACTIVE') {
+                        clearInterval(waitingRoomInterval);
+                        document.getElementById('waitingRoomStatus').textContent = 'Doctor is ready! Redirecting...';
+                        toast('Doctor is ready! Joining call...', 'success');
+                        setTimeout(() => {
+                            joinCall(id);
+                        }, 1500);
+                    } else if (appt.status === 'CANCELLED') {
+                        clearInterval(waitingRoomInterval);
+                        alert('This appointment was cancelled.');
+                        closeModal('waitingRoomModal');
+                        loadAppointments();
+                    } else {
+                        // Update position by re-joining (which is idempotent and returns current position)
+                        const result = await apiCall(`/api/waiting-room/join/${id}`, { method: 'POST' });
+                        if (result.waiting) {
+                            document.getElementById('waitingPosition').textContent = result.position;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Polling error:', e);
+                }
+            }, 5000);
+        }
+
+        async function leaveWaitingRoom() {
+            if (waitingRoomInterval) clearInterval(waitingRoomInterval);
+            if (currentWaitingApptId) {
+                try {
+                    await apiCall(`/api/waiting-room/leave/${currentWaitingApptId}`, { method: 'POST' });
+                } catch(e) {}
+            }
+            closeModal('waitingRoomModal');
+            currentWaitingApptId = null;
         }
 
         // ========== RECORDS ==========
@@ -1131,8 +1217,8 @@
                 tbody.innerHTML = records.map(r => `
                     <tr>
                         <td>${new Date(r.created_at).toLocaleDateString()}</td>
-                        <td>${r.doctor_name || 'Doctor'}</td>
-                        <td>${r.summary ? r.summary.substring(0, 50) + '...' : '-'}</td>
+                        <td>Doctor</td>
+                        <td>${r.summary.substring(0, 50)}...</td>
                     </tr>
                 `).join('');
             } catch (e) {
@@ -1276,6 +1362,8 @@
             }
         }
 
+        let pollInterval = null;
+
         async function runSymptomCheck() {
             const input = document.getElementById('symptomInput').value.trim();
             if (!input) { toast('Please describe your symptoms', 'warning'); return; }
@@ -1289,32 +1377,25 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling for result...';
                 let pollStart = Date.now();
-                const pollInt = setInterval(async () => {
+                pollInterval = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInt);
+                        clearInterval(pollInterval);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInt);
-
-                            // Fetch latest user data from backend to update credits
-                            try {
-                                const me = await apiCall('/api/auth/me');
-                                if (me && me.credits !== undefined) currentUser.credits = me.credits;
-                                document.getElementById('userCredits').textContent = currentUser.credits + ' Credits';
-                            } catch(freshErr) {}
-                            resultDiv.innerHTML = '<strong>Assessment:</strong><br>' + status.result;
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Result:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInt);
-                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
+                            clearInterval(pollInterval);
+                            resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result available');
                         } else {
-                            resultDiv.textContent = 'Waiting for response...';
+                            resultDiv.textContent = 'Waiting for agent response (ID: ' + resp.request_id + ')...';
                         }
                     } catch(e) {
-                        resultDiv.textContent = 'Polling error: ' + e.message;
+                        resultDiv.textContent = 'Polling: ' + e.message;
                     }
                 }, 3000);
             } catch (e) {
@@ -1340,19 +1421,19 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling for result...';
                 let pollStart = Date.now();
-                const pollInt = setInterval(async () => {
+                pollInterval = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInt);
+                        clearInterval(pollInterval);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInt);
+                            clearInterval(pollInterval);
                             resultDiv.innerHTML = '<strong>Interaction Result:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInt);
+                            clearInterval(pollInterval);
                             resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         } else {
                             resultDiv.textContent = 'Waiting for response...';
@@ -1450,19 +1531,19 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling...';
                 let pollStart = Date.now();
-                const pollInt = setInterval(async () => {
+                pollInterval = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInt);
+                        clearInterval(pollInterval);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInt);
+                            clearInterval(pollInterval);
                             resultDiv.innerHTML = '<strong>Health Tips:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInt);
+                            clearInterval(pollInterval);
                             resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         }
                     } catch(e) {
@@ -1491,19 +1572,19 @@
                 });
                 resultDiv.textContent = 'Request submitted (ID: ' + resp.request_id + '). Polling...';
                 let pollStart = Date.now();
-                const pollInt = setInterval(async () => {
+                pollInterval = setInterval(async () => {
                     if (Date.now() - pollStart > 120000) {
-                        clearInterval(pollInt);
+                        clearInterval(pollInterval);
                         resultDiv.textContent = 'Timed out waiting for agent response. Please try again.';
                         return;
                     }
                     try {
                         const status = await apiCall('/api/somnia/agent/result/' + resp.request_id);
                         if (status.status === 'success') {
-                            clearInterval(pollInt);
+                            clearInterval(pollInterval);
                             resultDiv.innerHTML = '<strong>Summary:</strong><br>' + status.result;
                         } else if (['failed', 'timedout', 'archived'].includes(status.status)) {
-                            clearInterval(pollInt);
+                            clearInterval(pollInterval);
                             resultDiv.innerHTML = '<strong>Agent ' + status.status + ':</strong> ' + (status.result || 'No result');
                         }
                     } catch(e) {
@@ -1532,6 +1613,12 @@
         }
 
         // ========== BOOKING ==========
+        function toggleBookingLocation() {
+            const type = document.getElementById('bookType').value;
+            const group = document.getElementById('bookLocationGroup');
+            group.style.display = (type === 'INPERSON') ? 'block' : 'none';
+        }
+
         async function openBookModal(docId) {
             try {
                 const doctor = await apiCall(`/api/doctors/${docId}`);
@@ -1542,9 +1629,12 @@
                         <span>${doctor.specialty} - ${doctor.area}</span>
                     </div>
                 `;
-                document.getElementById('bookCost').textContent = doctor.consultation_fee;
+                const bookCostEl = document.getElementById('bookCost');
+                if (bookCostEl) bookCostEl.textContent = doctor.consultation_fee;
+                
                 const t800Cost = doctor.consultation_fee * 10;
-                document.getElementById('bookCostT800').textContent = t800Cost;
+                const bookCostT800El = document.getElementById('bookCostT800');
+                if (bookCostT800El) bookCostT800El.textContent = t800Cost;
 
                 // Check user's T800 balance and update checkbox state
                 let t800Bal = 0;
@@ -1554,17 +1644,26 @@
                 } catch(e) {}
                 const payWithT800 = document.getElementById('payWithT800');
                 const t800Hint = document.getElementById('t800BookHint');
-                payWithT800.checked = false;
+                if (payWithT800) payWithT800.checked = false;
+                
                 if (t800Bal >= t800Cost) {
-                    payWithT800.disabled = false;
-                    payWithT800.title = `You have ${t800Bal.toFixed(0)} T800 — enough to pay`;
-                    t800Hint.textContent = `✓ You have ${t800Bal.toFixed(0)} T800`;
-                    t800Hint.style.color = 'var(--accent)';
+                    if (payWithT800) {
+                        payWithT800.disabled = false;
+                        payWithT800.title = `You have ${t800Bal.toFixed(0)} T800 — enough to pay`;
+                    }
+                    if (t800Hint) {
+                        t800Hint.textContent = `✓ You have ${t800Bal.toFixed(0)} T800`;
+                        t800Hint.style.color = 'var(--accent)';
+                    }
                 } else {
-                    payWithT800.disabled = true;
-                    payWithT800.title = `Need ${t800Cost} T800, you have ${t800Bal.toFixed(0)}. Claim free T800 from Payments page`;
-                    t800Hint.textContent = `Need ${t800Cost} T800 — you have ${t800Bal.toFixed(0)} (get free T800 in Payments)`;
-                    t800Hint.style.color = 'var(--text-light)';
+                    if (payWithT800) {
+                        payWithT800.disabled = true;
+                        payWithT800.title = `Need ${t800Cost} T800, you have ${t800Bal.toFixed(0)}. Claim free T800 from Payments page`;
+                    }
+                    if (t800Hint) {
+                        t800Hint.textContent = `Need ${t800Cost} T800 — you have ${t800Bal.toFixed(0)} (get free T800 in Payments)`;
+                        t800Hint.style.color = 'var(--text-light)';
+                    }
                 }
 
                 document.getElementById('bookModal').classList.add('active');
@@ -1573,67 +1672,101 @@
             }
         }
 
-        async function confirmBooking() {
-            const type = document.getElementById('bookType').value;
-            const datetime = document.getElementById('bookDateTime').value;
-            const reason = document.getElementById('bookReason').value;
-            const useSomnia = document.getElementById('payWithSomnia').checked;
-            const useT800 = document.getElementById('payWithT800').checked;
-            
-            if (!datetime) { toast('Please select date and time', 'warning'); return; }
+    async function confirmBooking() {
+        const type = document.getElementById('bookType').value;
+        const datetime = document.getElementById('bookDateTime').value;
+        const reason = document.getElementById('bookReason').value;
+        const location = document.getElementById('bookLocation').value;
+        
+        const payMethod = document.querySelector('input[name="payMethod"]:checked')?.id;
+        
+        if (!datetime) { toast('Please select date and time', 'warning'); return; }
+        if (type === 'INPERSON' && !location.trim()) { toast('Please enter a meeting address for in-person visit', 'warning'); return; }
 
-            const bookBtn = document.querySelector('#bookModal .btn-primary');
-            if (bookBtn) { bookBtn.classList.add('loading'); bookBtn.disabled = true; }
-            
-            try {
-                const appt = await apiCall('/api/appointments', {
+        const bookBtn = document.querySelector('#bookModal .btn-primary');
+        if (bookBtn) { bookBtn.classList.add('loading'); bookBtn.disabled = true; }
+        
+        try {
+            const appt = await apiCall('/api/appointments', {
+                method: 'POST',
+                body: JSON.stringify({
+                    doctor_id: selectedDoctor.id,
+                    timestamp: new Date(datetime).toISOString(),
+                    appointment_type: type,
+                    reason: reason,
+                    location: location,
+                    payment_method: payMethod === 'payWithYoco' ? 'yoco' : 
+                                    payMethod === 'payWithSomnia' ? 'somnia' : 
+                                    payMethod === 'payWithT800' ? 't800' : 'credits',
+                    triage_data: JSON.stringify({
+                        duration: document.getElementById('bookDuration').value,
+                        severity: document.getElementById('bookSeverity').value
+                    })
+                })
+            });
+
+            // 1. Give T800 Reward
+            toast('Booking reward: T800 tokens sent to your wallet! 🎁', 'success');
+
+            // 2. Handle Selected Payment Method
+            if (payMethod === 'payWithYoco') {
+                const yoco = await apiCall('/api/yoco/initiate', {
                     method: 'POST',
                     body: JSON.stringify({
-                        doctor_id: selectedDoctor.id,
-                        timestamp: new Date(datetime).toISOString(),
-                        appointment_type: type,
-                        reason: reason
+                        appointment_id: appt.id,
+                        amount_zar: selectedDoctor.consultation_fee
                     })
                 });
-
-                let paymentMethod = 'credits';
-                if (useSomnia) paymentMethod = 'stt';
-                if (useT800) paymentMethod = 't800';
+                toast('Redirecting to Yoco Checkout...', 'info');
                 
-                if (paymentMethod === 'stt') {
-                    toast('Initiating Somnia On-Chain Escrow...', 'info', 3000);
-                    try {
-                        const escrowResult = await apiCall(`/api/appointments/${appt.id}/pay-with-somnia`, {
-                            method: 'POST'
-                        });
-                        toast('STT payment deposited! Hash: ' + escrowResult.somnia_tx_hash.substring(0, 10) + '... ✓', 'success');
-                    } catch (escrowErr) {
-                        toast('On-chain escrow failed: ' + escrowErr.message + '. Using credits instead.', 'error');
-                    }
-                } else if (paymentMethod === 't800') {
-                    toast('Initiating T800 token payment...', 'info', 3000);
-                    try {
-                        const t800Result = await apiCall(`/api/appointments/${appt.id}/pay-with-t800`, {
-                            method: 'POST'
-                        });
-                        toast('T800 payment sent successfully ✓', 'success');
-                    } catch (t800Err) {
-                        toast('T800 payment failed: ' + t800Err.message + '. Booking completed with credits.', 'error');
-                    }
-                } else {
-                    toast('Appointment booked successfully ✓', 'success');
+                // Redirect immediately. Whether it's a live Yoco URL or our fallback ?mock_yoco URL,
+                // we must redirect to break this flow, otherwise it falls through to the SOAP redirect below.
+                if (yoco.checkout_url) {
+                    window.location.href = yoco.checkout_url;
+                    return; // Crucial: Stop execution here!
                 }
-                
-                closeModal('bookModal');
-                updateCredits();
-                updateSomniaBalance();
-                if (typeof loadPayments === 'function') loadPayments();
-                if (typeof loadEscrow === 'function') loadEscrow();
-            } catch (e) {
-                toast('Booking failed: ' + e.message, 'error');
+
+            } else if (payMethod === 'payWithSomnia') {
+                toast('Initiating Somnia On-Chain Escrow...', 'info');
+                const escrowResult = await apiCall(`/api/appointments/${appt.id}/pay-with-somnia`, {
+                    method: 'POST'
+                });
+                toast('STT payment deposited on-chain ✓', 'success');
+
+            } else if (payMethod === 'payWithT800') {
+                toast('Initiating T800 token payment...', 'info');
+                await apiCall(`/api/appointments/${appt.id}/pay-with-t800`, {
+                    method: 'POST'
+                });
+                toast('T800 payment sent successfully ✓', 'success');
+
+            } else {
+                toast('Appointment booked successfully ✓', 'success');
             }
-            if (bookBtn) { bookBtn.classList.remove('loading'); bookBtn.disabled = false; }
+            
+            // 3. Cleanup UI
+            closeModal('bookModal');
+            document.getElementById('bookDateTime').value = '';
+            document.getElementById('bookReason').value = '';
+            document.getElementById('bookLocation').value = '';
+            
+            // 4. Redirect to Questionnaire (SOAP)
+            setTimeout(() => {
+                window.location.href = `patient_questionnaire.html?appointment_id=${appt.id}&return=index.html`;
+            }, 1000);
+
+            // 5. Update State
+            updateCredits();
+            updateSomniaBalance();
+            initDashboard();
+            if (typeof loadPayments === 'function') loadPayments();
+            if (typeof loadEscrow === 'function') loadEscrow();
+
+        } catch (e) {
+            toast('Booking failed: ' + e.message, 'error');
         }
+        if (bookBtn) { bookBtn.classList.remove('loading'); bookBtn.disabled = false; }
+    }
 
         async function loadEscrow() {
             const container = document.getElementById('escrowList');
@@ -1679,51 +1812,18 @@
             document.getElementById(id).classList.remove('active');
         }
 
-        // ========== REFERRALS (PATIENT) ==========
-        async function loadPatientReferrals() {
-            try {
-                const stats = await apiCall('/api/referrals/stats');
-                document.getElementById('patRefTotal').textContent = stats.total_referrals;
-                document.getElementById('patRefCompleted').textContent = stats.completed_referrals;
-                document.getElementById('patRefRewards').textContent = stats.total_rewards;
-
-                const codeInfo = await apiCall('/api/referrals/my-code');
-                if (codeInfo.code) {
-                    document.getElementById('patientReferralCode').textContent = codeInfo.code;
-                    document.getElementById('patientReferralLink').value = codeInfo.link || '';
-                } else {
-                    const gen = await apiCall('/api/referrals/generate-code', { method: 'POST' });
-                    document.getElementById('patientReferralCode').textContent = gen.code;
-                    const base = window.location.origin + '/DoctorLink';
-                    document.getElementById('patientReferralLink').value = base + '/register.html?ref=' + gen.code;
-                }
-
-                const list = await apiCall('/api/referrals');
-                const tbody = document.getElementById('patientReferralsTable');
-                if (!list.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No referrals yet</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = list.map(r => `
-                    <tr>
-                        <td>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
-                        <td>${r.referee_name || 'Pending'}</td>
-                        <td><span class="status ${r.status === 'completed' ? 'status-completed' : 'status-pending'}">${r.status}</span></td>
-                        <td>${r.status === 'completed' ? r.reward_credits + ' credits' : '-'}</td>
-                    </tr>
-                `).join('');
-            } catch(e) {
-                console.error('Patient load referrals error:', e);
+        // Message listener for iframe communication
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'navTo') {
+                navTo(event.data.page);
             }
-        }
-
-        function copyPatientReferralLink() {
-            const input = document.getElementById('patientReferralLink');
-            input.select();
-            navigator.clipboard.writeText(input.value).then(() => {
-                toast('Referral link copied!', 'success');
-            });
-        }
+            if (event.data && event.data.type === 'callEnded') {
+                document.getElementById('consultationFrame').src = 'about:blank';
+                document.getElementById('menu-consultation').style.display = 'none';
+                navTo('dashboard');
+                loadAppointments();
+            }
+        });
 
         // Check session on load
         if (authToken) {

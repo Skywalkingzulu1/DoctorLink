@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DoctorLink - Register</title>
+    <title>Doctors on Wheels - Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="config.js"></script>
     <style>
         :root {
             --primary: #0052cc;
@@ -80,7 +79,7 @@
 </head>
 <body>
     <div class="register-card">
-        <h1>Doctor<span>Link</span></h1>
+        <h1>Doctors on <span>Wheels</span></h1>
         <p>Join South Africa's Medical Network</p>
         
         <div id="error-message"></div>
@@ -125,7 +124,7 @@
             errorDiv.style.display = 'none';
 
             try {
-                const response = await fetch(window.API_BASE_URL + '/api/auth/register', {
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, password, role })
@@ -135,12 +134,34 @@
                     const data = await response.json();
                     throw new Error(data.detail || 'Registration failed');
                 }
+
+                // Auto-login to get token
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('username', email);
+                    formData.append('password', password);
+
+                    const loginRes = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
+                    });
+
+                    if (loginRes.ok) {
+                        const loginData = await loginRes.json();
+                        localStorage.setItem('token', loginData.access_token);
+                        localStorage.setItem('user', JSON.stringify(loginData.user));
+                    }
+                } catch (loginErr) {
+                    console.error('Auto-login failed:', loginErr);
+                }
                 
-                alert('Registration successful! Please login.');
-                if (role === 'DOCTOR') {
-                    window.location.href = 'onboarding.html?email=' + encodeURIComponent(email);
+                // Redirect based on role
+                if (role === 'PATIENT') {
+                    window.location.href = 'patient_onboarding.html';
                 } else {
-                    window.location.href = 'index.html';
+                    alert('Registration successful! Please login.');
+                    window.location.href = 'login.html';
                 }
             } catch (e) {
                 errorDiv.textContent = e.message;

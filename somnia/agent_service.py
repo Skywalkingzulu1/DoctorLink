@@ -5,6 +5,7 @@ Agent fees paid from sponsor contract pool. Credit deduction per invocation.
 import json
 import time
 import threading
+from datetime import datetime
 from typing import Optional
 from web3 import Web3
 from web3.exceptions import ContractCustomError
@@ -12,7 +13,7 @@ from eth_abi import encode, decode
 from sqlalchemy.orm import Session
 from config import settings
 from somnia.client import somnia
-from database import SessionLocal, User
+from database import SessionLocal, User, AiResponse
 
 AGENT_ID_LLM = 12847293847561029384
 AGENT_ID_JSON = 13174292974160097713
@@ -45,6 +46,10 @@ REQUEST_FINALIZED_SIG_BYTES = Web3.keccak(
 
 AGENT_INVOKED_SIG_BYTES = Web3.keccak(
     text="AgentInvoked(uint256,uint256,uint256)"
+)
+
+AGENT_RESPONSE_SIG_BYTES = Web3.keccak(
+    text="AgentResponse(uint256,uint8,bytes)"
 )
 
 INFER_STRING_SELECTOR = Web3.keccak(
@@ -188,6 +193,35 @@ def _is_request_not_found(e: Exception) -> bool:
     return "requestnotfound" in error_str.replace(" ", "").replace("_", "")
 
 
+def save_ai_response(request_id: int, user_id: Optional[int], feature: str, prompt: str, result: Optional[str], status: str = "success"):
+    """Persist AI agent response to Filebase JSON database."""
+    db: Session = SessionLocal()
+    try:
+        # Check if already exists (update if so)
+        existing = db.query(AiResponse).filter(AiResponse.request_id == request_id).first()
+        if existing:
+            if result:
+                existing.result = result
+            existing.status = status
+            existing.created_at = datetime.utcnow()
+        else:
+            resp = AiResponse(
+                request_id=request_id,
+                user_id=user_id,
+                feature=feature,
+                prompt=prompt,
+                result=result,
+                status=status
+            )
+            db.add(resp)
+        db.commit()
+        print(f"[Somnia] AI response for request {request_id} saved to Filebase.")
+    except Exception as e:
+        print(f"[Somnia] Error saving AI response to Filebase: {e}")
+    finally:
+        db.close()
+
+
 def deduct_credits(user_id: int, feature: str) -> bool:
     """Deduct credits from user for AI invocation. Returns True if enough credits."""
     cost = AI_CREDIT_COSTS.get(feature, 5)
@@ -277,6 +311,10 @@ def _send_agent_tx(agent_id: int, payload: bytes) -> int:
             try:
                 request_id = int.from_bytes(topics[1], byteorder="big")
                 _start_polling(request_id)
+                
+                # Pre-save pending state
+                save_ai_response(request_id, None, "invoke", "on-chain", None, "pending")
+                
                 return request_id
             except (ValueError, IndexError):
                 continue
@@ -357,6 +395,22 @@ def get_t800_fee() -> int:
     return agent_router.functions.t800PerInvocation().call()
 
 
+def transfer_t800_to_user(address: str, amount_ether: float) -> str:
+    """Transfer T800 tokens from the platform/deployer to a user."""
+    if not t800_token:
+        print("[Somnia] T800 token not configured. Skipping transfer.")
+        return ""
+    try:
+        amount_wei = Web3.to_wei(amount_ether, "ether")
+        tx = somnia.build_tx(t800_token, t800_token.functions.transfer, Web3.to_checksum_address(address), amount_wei)
+        receipt = somnia.send_tx(tx)
+        print(f"[Somnia] Transferred {amount_ether} T800 to {address}. Tx: {receipt.transactionHash.hex()}")
+        return receipt.transactionHash.hex()
+    except Exception as e:
+        print(f"[Somnia] Failed to transfer T800 to {address}: {e}")
+        return ""
+
+
 def get_router_stt_balance() -> float:
     """Check STT pool balance in AgentPaymentRouter."""
     if not agent_router:
@@ -378,10 +432,16 @@ def invoke_llm_agent(prompt: str, system_prompt: str = "You are a helpful medica
 
 
 def invoke_llm_agent_for_user(user_id: int, prompt: str, feature: str, system_prompt: str = "You are a helpful medical assistant.") -> int:
-    """Invoke LLM agent, deducting credits from user first."""
+    """Invoke LLM agent, deducting credits from user first and tracking in Filebase."""
     if not deduct_credits(user_id, feature):
         raise ValueError(f"Insufficient credits. Need {AI_CREDIT_COSTS.get(feature, 5)} credits for {feature}.")
-    return invoke_llm_agent(prompt, system_prompt)
+    
+    request_id = invoke_llm_agent(prompt, system_prompt)
+    
+    # Associate user and prompt metadata
+    save_ai_response(request_id, user_id, feature, prompt, None, "pending")
+    
+    return request_id
 
 
 def invoke_json_api_agent(url: str, selector_path: str = "") -> int:
@@ -423,50 +483,95 @@ def _decode_request(req: tuple) -> tuple:
     return status_str, None
 
 
-def _poll_for_result(request_id: int, timeout: int = 120):
-    """Background poll: check getRequest on each new block for responses."""
+def _poll_for_result(request_id: int, timeout: int = 180):
+    """Aggressive background poll: check getRequest on every block for responses."""
     w3 = somnia.w3
-    last_block = w3.eth.block_number
     deadline = time.time() + timeout
 
     while time.time() < deadline:
         try:
-            current_block = w3.eth.block_number
-            if current_block <= last_block:
-                time.sleep(1)
-                continue
-            last_block = current_block
-
-            req = platform.functions.getRequest(request_id).call(block_identifier=current_block)
+            # Check Platform contract
+            req = platform.functions.getRequest(request_id).call()
             responses = req[5]
             if responses and len(responses) > 0:
                 status_str, result_text = _decode_request(req)
                 result = AgentResult(request_id, status_str, result_text)
+                
                 with _cache_lock:
                     _result_cache[request_id] = result
+                
+                # Persist to Filebase on completion
+                if status_str == "success":
+                    save_ai_response(request_id, None, "callback", "restored", result_text, "success")
                 return
-            time.sleep(1)
+            
+            time.sleep(1) 
         except Exception as e:
             if _is_request_not_found(e):
+                # Request finalized and cleared from Platform state
+                # Check Sponsor logs
                 result = _check_finalized(request_id)
                 with _cache_lock:
                     _result_cache[request_id] = result
+                
+                if result.status == "success":
+                    save_ai_response(request_id, None, "log_recovery", "restored", result.result, "success")
                 return
             time.sleep(1)
 
     result = AgentResult(request_id, "timeout", None)
     with _cache_lock:
         _result_cache[request_id] = result
+    save_ai_response(request_id, None, "timeout", "timedout", None, "timeout")
 
 
 def _check_finalized(request_id: int) -> AgentResult:
-    """Check RequestFinalized events as fallback (max 1000 block range)."""
+    """Aggressive fallback: Scan Sponsor logs within RPC limits (1000 blocks)."""
     w3 = somnia.w3
     cb = w3.eth.block_number
-    fb = max(0, cb - 1000)
+    # Strict 1000 block limit for public RPCs
+    fb = max(0, cb - 999)
 
+    request_id_bytes = request_id.to_bytes(32, byteorder="big")
+
+    # 1. Check Sponsor Contract for the actual result
+    if somnia.sponsor_contract_address:
+        for attempt in range(3):
+            try:
+                logs = w3.eth.get_logs({
+                    "address": somnia.sponsor_contract_address,
+                    "fromBlock": fb,
+                    "toBlock": cb,
+                    "topics": [AGENT_RESPONSE_SIG_BYTES, request_id_bytes],
+                })
+                if logs:
+                    log = logs[0]
+                    data = log.get("data")
+                    # data is status (uint8) + result (bytes)
+                    status_code, result_bytes = decode(["uint8", "bytes"], data)
+                    
+                    status_map = {0: "none", 1: "pending", 2: "success", 3: "failed", 4: "timedout"}
+                    status_str = status_map.get(status_code, "unknown")
+                    
+                    result_text = None
+                    if status_code == 2 and result_bytes:
+                        try:
+                            # Try decoding as clinical assessment string
+                            result_text = decode(["string"], result_bytes)[0]
+                        except Exception:
+                            result_text = result_bytes.hex()
+                    
+                    return AgentResult(request_id, status_str, result_text)
+                break # No logs found, move to fallback
+            except Exception as e:
+                if "block range" in str(e).lower():
+                    # Shrink range even further if RPC is very strict
+                    fb = max(fb, cb - 500)
+                print(f"[Somnia] Log retrieval attempt {attempt+1} failed: {e}")
+                time.sleep(1)
+
+    # 2. Fallback to Platform Contract (status only)
     try:
-        request_id_bytes = request_id.to_bytes(32, byteorder="big")
         logs = w3.eth.get_logs({
             "address": platform.address,
             "fromBlock": fb,
@@ -506,14 +611,24 @@ def _try_fetch_onchain(request_id: int) -> AgentResult | None:
         return None
 
 
-def get_agent_result(request_id: int, wait: bool = True, timeout: int = 60) -> AgentResult:
-    """Get agent result. If wait=True, polls until result available."""
+def get_agent_result(request_id: int, wait: bool = True, timeout: int = 150) -> AgentResult:
+    """Get agent result with persistent retries and Filebase recovery."""
     with _cache_lock:
         if request_id in _result_cache:
             return _result_cache[request_id]
 
+    # Check Filebase first
+    db: Session = SessionLocal()
+    try:
+        stored = db.query(AiResponse).filter(AiResponse.request_id == request_id).first()
+        if stored and stored.status == "success" and stored.result:
+            return AgentResult(request_id, "success", stored.result)
+    except Exception:
+        pass
+    finally:
+        db.close()
+
     if not wait:
-        # Try a quick on-chain check (just once) — catches already-finalized requests
         result = _try_fetch_onchain(request_id)
         if result:
             with _cache_lock:
@@ -528,11 +643,11 @@ def get_agent_result(request_id: int, wait: bool = True, timeout: int = 60) -> A
                 return _result_cache[request_id]
 
         result = _try_fetch_onchain(request_id)
-        if result:
+        if result and result.status != "pending":
             with _cache_lock:
                 _result_cache[request_id] = result
             return result
 
-        time.sleep(2)
+        time.sleep(3)
 
     return AgentResult(request_id, "timeout", None)

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DoctorLink - Patient App</title>
+    <title>Doctors on Wheels - Patient App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
@@ -73,7 +73,7 @@
 <body>
     <div id="authPage" class="auth-page">
         <div class="auth-card">
-            <h1>Doctor<span>Link</span></h1>
+            <h1>Doctors on <span>Wheels</span></h1>
             <p>Login to your account</p>
             <div id="authError" style="color:var(--danger);background:#ffebe6;padding:0.8rem;border-radius:8px;margin-bottom:1rem;display:none"></div>
             <form id="authForm">
@@ -93,7 +93,7 @@
     <div id="appPage" class="app hidden">
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1>Doctor<span>Link</span></h1>
+                <h1>Doctors on <span>Wheels</span></h1>
             </div>
             <div class="sidebar-menu">
                 <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</div>
@@ -195,12 +195,49 @@
                 <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:0.5rem;border-top:1px solid var(--border);padding-top:0.5rem"><span>Total:</span><span id="totalPrice">0</span></div>
             </div>
             <div class="form-group">
-                <label class="form-label">Select Date & Time</label>
-                <input type="datetime-local" id="bookingDateTime" class="form-input">
+                <label class="form-label">Visit Type</label>
+                <select id="bookingType" class="form-select" onchange="toggleLocationField()">
+                    <option value="VIDEO">Video Call</option>
+                    <option value="INPERSON">Home Visit (Doctor comes to you)</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">Reason for Visit (Optional)</label>
-                <textarea id="bookingReason" class="form-input" rows="2" placeholder="Describe your symptoms..."></textarea>
+            <div class="form-group hidden" id="locationGroup">
+                <label class="form-label">Your Address for Home Visit</label>
+                <input type="text" id="bookingLocation" class="form-input" placeholder="Enter full physical address">
+            </div>
+            
+            <div style="border-top:1px solid var(--border); margin-top:1.5rem; padding-top:1.5rem;">
+                <h3 style="margin-bottom:1rem;">Rich Triage Questionnaire</h3>
+                <div class="form-group">
+                    <label class="form-label">Chief Complaint (Main Reason)</label>
+                    <textarea id="triageReason" class="form-textarea" rows="2" placeholder="e.g. Severe headache, high fever"></textarea>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Duration of Symptoms</label>
+                        <input type="text" id="triageDuration" class="form-input" placeholder="e.g. 3 days">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pain Scale (0-10)</label>
+                        <input type="number" id="triagePain" class="form-input" min="0" max="10">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Medications</label>
+                    <input type="text" id="triageMeds" class="form-input" placeholder="List medications you are taking">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Known Allergies</label>
+                    <input type="text" id="triageAllergies" class="form-input" placeholder="List any allergies">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pre-existing Conditions</label>
+                    <input type="text" id="triageConditions" class="form-input" placeholder="e.g. Diabetes, Asthma">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Any 'Red Flags'? (e.g. Chest pain, difficulty breathing)</label>
+                    <input type="text" id="triageFlags" class="form-input" placeholder="Describe any urgent symptoms">
+                </div>
             </div>
             <button class="btn btn-primary" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
             <button class="btn btn-secondary" style="width:100%;margin-top:0.5rem" onclick="closeBookingModal()">Cancel</button>
@@ -367,19 +404,40 @@
         }).join('');
     }
 
+    function openQuestionnaire() {
+        // Save current selection to sessionStorage so we can restore it after redirect
+        sessionStorage.setItem('pending_booking_doctor_id', selectedDoctor.id);
+        sessionStorage.setItem('pending_booking_tier_id', selectedTier.id);
+
+        window.location.href = 'patient_questionnaire.html?return=' + encodeURIComponent(window.location.href);
+    }
+
     async function openBooking(doctorId) {
-        selectedDoctor = await apiCall('/api/doctors/' + doctorId);
-        selectedTier = serviceTiers[1]; // Default to VIDEO_CALL
-        
-        document.getElementById('bookingDoctorInfo').innerHTML = '<div class="card"><h3>' + selectedDoctor.name + '</h3><div>' + selectedDoctor.specialty + ' - ' + selectedDoctor.area + '</div></div>';
-        
-        updateServiceTiers();
-        document.getElementById('bookingModal').style.display = 'block';
-        
-        // Set default datetime to now + 1 hour
-        const now = new Date();
-        now.setHours(now.getHours() + 1);
-        document.getElementById('bookingDateTime').value = now.toISOString().slice(0, 16);
+        try {
+            selectedDoctor = await apiCall('/api/doctors/' + doctorId);
+
+            // Restore tier if we're returning from questionnaire
+            const savedTierId = sessionStorage.getItem('pending_booking_tier_id');
+            selectedTier = savedTierId ? serviceTiers.find(t => t.id === savedTierId) : serviceTiers[1];
+
+            const docInfo = document.getElementById('bookingDoctorInfo');
+            if (docInfo) {
+                docInfo.innerHTML = '<div class="card"><h3>' + selectedDoctor.name + '</h3><div>' + selectedDoctor.specialty + ' - ' + selectedDoctor.area + '</div></div>';
+            }
+
+            updateServiceTiers();
+            
+            const modal = document.getElementById('bookingModal');
+            if (modal) modal.style.display = 'block';
+
+            // Set default datetime to now + 1 hour
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            const dtInput = document.getElementById('bookingDateTime');
+            if (dtInput) dtInput.value = now.toISOString().slice(0, 16);
+        } catch(e) {
+            alert('Error loading doctor: ' + e.message);
+        }
     }
 
     function updateServiceTiers() {
@@ -423,11 +481,34 @@
         }
     }
 
+    function toggleLocationField() {
+        const type = document.getElementById('bookingType').value;
+        const group = document.getElementById('locationGroup');
+        if (type === 'INPERSON') group.classList.remove('hidden');
+        else group.classList.add('hidden');
+    }
+
     async function confirmBooking() {
         const datetime = document.getElementById('bookingDateTime').value;
-        const reason = document.getElementById('bookingReason').value;
+        const reasonEl = document.getElementById('bookingReason');
+        const reason = reasonEl ? reasonEl.value : document.getElementById('triageReason').value;
+        const type = document.getElementById('bookingType').value;
+        const location = document.getElementById('bookingLocation').value;
         
+        // Collect Rich Triage Data
+        const triageData = {
+            chief_complaint: document.getElementById('triageReason').value,
+            duration: document.getElementById('triageDuration').value,
+            pain_scale: document.getElementById('triagePain').value,
+            medications: document.getElementById('triageMeds').value,
+            allergies: document.getElementById('triageAllergies').value,
+            pre_existing_conditions: document.getElementById('triageConditions').value,
+            red_flags: document.getElementById('triageFlags').value,
+            timestamp: new Date().toISOString()
+        };
+
         if (!datetime) { alert('Please select a date and time'); return; }
+        if (type === 'INPERSON' && !location) { alert('Please enter your address for the home visit'); return; }
         if (!authToken) { alert('Please login first'); return; }
         
         try {
@@ -436,21 +517,19 @@
                 body: JSON.stringify({
                     doctor_id: selectedDoctor.id,
                     timestamp: new Date(datetime).toISOString(),
+                    appointment_type: type,
                     service_tier: selectedTier.id,
-                    reason: reason
+                    reason: reason || triageData.chief_complaint,
+                    location: type === 'INPERSON' ? location : null,
+                    triage_data: JSON.stringify(triageData)
                 })
             });
             
-            alert('Appointment booked successfully!');
-            closeBookingModal();
-            loadDoctors();
-            
-            // Refresh user to get updated credits
-            currentUser = await apiCall('/api/auth/me');
-            updateCreditsDisplay();
-            checkDiscount();
+            // Success! Instead of alert, redirect to questionnaire for rich info
+            alert('Appointment created! Please provide some more information for your doctor.');
+            window.location.href = `patient_questionnaire.html?appointment_id=${appointment.id}&return=index_v2.html`;
         } catch (e) {
-            alert('Error booking: ' + e.message + '\nToken: ' + (authToken ? 'OK' : 'MISSING'));
+            alert('Error booking: ' + e.message);
             console.error('Booking error:', e);
         }
     }

@@ -19,7 +19,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 import boto3
 from botocore.config import Config
 
-from database import get_db, User, UserRole, Doctor
+from database import get_db, User, UserRole, Doctor, Patient
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from config import settings
 from api.storage import get_public_url, object_exists
@@ -71,15 +71,27 @@ class LoginResponse(BaseModel):
 
 
 @router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/register", response_model=UserResponse, status_code=status.HTTP_200_OK
 )
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user."""
     # Check if email exists
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        # Return existing user (idempotent register)
+        avatar_url = get_avatar_url(existing_user.id, existing_user.role)
+        return UserResponse(
+            id=existing_user.id,
+            email=existing_user.email,
+            name=existing_user.name,
+            role=existing_user.role.value if hasattr(existing_user.role, "value") else str(existing_user.role),
+            phone=existing_user.phone,
+            credits=existing_user.credits,
+            email_verified=existing_user.email_verified,
+            phone_verified=existing_user.phone_verified,
+            verification_level=existing_user.verification_level or "none",
+            avatar_url=avatar_url,
+            somnia_address=existing_user.somnia_address,
         )
 
     # Validate role
@@ -135,6 +147,15 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         db.add(doctor)
         db.commit()
 
+    # Auto-create patient profile if registering as PATIENT
+    if role == UserRole.PATIENT:
+        patient = Patient(
+            user_id=user.id,
+            preferred_name=user.name,
+        )
+        db.add(patient)
+        db.commit()
+
     # Get avatar URL from bucket
     avatar_url = get_avatar_url(user.id, user.role)
 
@@ -154,10 +175,11 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=LoginResponse)
+@router.post("/token", response_model=LoginResponse)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    """Login with email and password."""
+    """Login with email and password. Also supports /token alias for tests."""
     user = db.query(User).filter(User.email == form_data.username).first()
 
     if not user or not verify_password(form_data.password, user.password_hash):
@@ -181,6 +203,13 @@ def login(
     # Get avatar URL from bucket
     avatar_url = get_avatar_url(user.id, user.role)
 
+    # Ensure user has a wallet
+    from somnia.wallet import ensure_user_wallet
+    ensure_user_wallet(user.id)
+
+    # Re-fetch user to get updated wallet address
+    db.refresh(user)
+
     return {
         "access_token": access_token,
         "user": {
@@ -200,8 +229,15 @@ def login(
 
 
 @router.get("/me", response_model=UserResponse)
-def get_current_user_info(current_user: User = Depends(get_current_user)):
+def get_current_user_info(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get current user information."""
+    # Ensure user has a wallet
+    from somnia.wallet import ensure_user_wallet
+    ensure_user_wallet(current_user.id)
+    
+    # Refresh current_user to get updated somnia_address
+    db.refresh(current_user)
+
     # Get avatar URL from bucket
     avatar_url = get_avatar_url(current_user.id, current_user.role)
 

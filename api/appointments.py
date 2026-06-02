@@ -27,7 +27,10 @@ from database import (
 )
 from auth import get_current_user, require_role
 from api.storage import get_public_url, get_presigned_url, object_exists
-from somnia.wallet import ensure_user_wallet
+from somnia.wallet import ensure_user_wallet, get_user_wallet
+from somnia.agent_service import transfer_t800_to_user
+from api.somnia_agent import run_all_triage_tools
+import json
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
@@ -95,12 +98,15 @@ class AppointmentResponse(BaseModel):
     appointment_type: str
     status: str
     reason: str | None
+    location: str | None = None
     price_credits: int | None = None
     service_tier: str | None = None
     base_price: int | None = None
     platform_fee: int | None = None
     doctor_earnings: int | None = None
     escrow_status: str | None = None
+    triage_data: str | None = None
+    triage_tools_results: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -123,6 +129,9 @@ class CreateAppointmentRequest(BaseModel):
     appointment_type: str = "VIDEO"
     service_tier: str = "VIDEO_CALL"
     reason: str | None = None
+    location: str | None = None
+    triage_data: str | None = None  # JSON string from client
+    payment_method: str = "credits"  # credits, yoco, somnia, t800
 
 
 class UpdateAppointmentRequest(BaseModel):
@@ -195,6 +204,9 @@ def list_appointments(
                 "report_url": report_url,
                 "prescription_url": prescription_url,
                 "avatar_url": avatar_url,
+                "location": a.location,
+                "triage_data": a.triage_data,
+                "triage_tools_results": a.triage_tools_results,
             }
         )
 
@@ -202,9 +214,9 @@ def list_appointments(
 
 
 @router.post(
-    "", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED
+    "", response_model=AppointmentResponse, status_code=status.HTTP_200_OK
 )
-def create_appointment(
+async def create_appointment(
     request: CreateAppointmentRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -242,12 +254,13 @@ def create_appointment(
             discount = min(current_user.inconvenience_discount_amount, base_price)
             final_price = base_price - discount
 
-        # Check credits
-        if current_user.credits < final_price:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient credits. Need {final_price} credits.",
-            )
+        # Check credits - Bypass if using fiat (Yoco) or on-chain STT
+        if request.payment_method == "credits":
+            if current_user.credits < final_price:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Insufficient credits. Need {final_price} credits. Try paying with Yoco.",
+                )
 
         # Calculate earnings split
         platform_fee, doctor_earnings = calculate_earnings(base_price)
@@ -259,6 +272,7 @@ def create_appointment(
             timestamp=request.timestamp,
             appointment_type=AppointmentType(request.appointment_type),
             reason=request.reason,
+            location=request.location,
             status=AppointmentStatus.SCHEDULED,
             price_credits=final_price,
             service_tier=tier,
@@ -266,26 +280,46 @@ def create_appointment(
             platform_fee=platform_fee,
             doctor_earnings=doctor_earnings,
             escrow_status=EscrowStatus.PENDING,
+            triage_data=request.triage_data,
+            payment_method=request.payment_method,
         )
         db.add(appointment)
+        
+        # Only deduct credits and clear discounts if paying with credits
+        if request.payment_method == "credits":
+            # Deduct credits from patient
+            current_user.credits -= final_price
 
-        # Deduct credits from patient
-        current_user.credits -= final_price
+            # Clear inconvenience discount after use
+            if current_user.inconvenience_discount_active:
+                current_user.inconvenience_discount_active = False
+                current_user.inconvenience_discount_amount = 0
+                current_user.inconvenience_discount_reason = None
 
-        # Clear inconvenience discount after use
-        if current_user.inconvenience_discount_active:
-            current_user.inconvenience_discount_active = False
-            current_user.inconvenience_discount_amount = 0
-            current_user.inconvenience_discount_reason = None
+            # Ensure user changes are tracked in this session
+            db.merge(current_user)
+        
+        db.commit()  # Persist everything
+        db.refresh(appointment)  # Load generated ID
 
-        db.commit()
-        db.refresh(appointment)
+        # Run 10 Specialized AI Triage & Noting Tools
+        if request.triage_data:
+            try:
+                results = await run_all_triage_tools(request.triage_data)
+                appointment.triage_tools_results = json.dumps(results)
+                db.commit() # Save AI results
+            except Exception as e:
+                print(f"AI Triage tools failed: {e}")
 
-        # Ensure patient has a Somnia wallet for on-chain payments
+        # Send T800 reward automatically on booking (1 T800 = R1.00)
         try:
-            ensure_user_wallet(current_user.id)
+            patient_wallet = ensure_user_wallet(current_user.id)
+            if patient_wallet and patient_wallet.get("address"):
+                # Transfer amount equal to the base price in Rands
+                reward_amount = float(base_price)
+                transfer_t800_to_user(patient_wallet["address"], reward_amount)
         except Exception as e:
-            print(f"Somnia wallet creation skipped: {e}")
+            print(f"[Somnia] T800 reward transfer failed: {e}")
 
         return appointment
     except Exception as e:
@@ -680,6 +714,60 @@ def pay_with_t800(
     }
 
 
+@router.post("/{appointment_id}/complete")
+def complete_appointment(
+    appointment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Mark appointment as COMPLETED and release escrow/credits to doctor."""
+    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    # Only doctor or patient can complete (usually doctor)
+    doctor_obj = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
+    is_doctor = doctor_obj and doctor_obj.user_id == current_user.id
+    is_patient = appointment.patient_id == current_user.id
+
+    if not is_doctor and not is_patient:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if appointment.status == AppointmentStatus.COMPLETED:
+        return {"message": "Already completed"}
+
+    appointment.status = AppointmentStatus.COMPLETED
+    appointment.ended_at = datetime.utcnow()
+    if appointment.started_at:
+        duration = (appointment.ended_at - appointment.started_at).total_seconds() / 60
+        appointment.duration_minutes = int(duration)
+
+    # 1. Handle Somnia Escrow Release
+    if appointment.escrow_status == EscrowStatus.HELD and appointment.somnia_tx_hash:
+        try:
+            from somnia.escrow_service import release_escrow
+            release_result = release_escrow(appointment_id)
+            appointment.escrow_status = EscrowStatus.RELEASED
+            appointment.somnia_release_tx = release_result["tx_hash"]
+            print(f"DEBUG: On-chain escrow released for appt {appointment_id}")
+        except Exception as e:
+            print(f"ERROR: Failed to release on-chain escrow: {e}")
+
+    # 2. Handle Credits Transfer
+    if not appointment.somnia_tx_hash and appointment.payment_method != "t800":
+        if doctor_obj and doctor_obj.user_id:
+            doctor_user = db.query(User).filter(User.id == doctor_obj.user_id).first()
+            if doctor_user:
+                earnings = appointment.doctor_earnings or int(
+                    (appointment.price_credits or 150) * 0.8
+                )
+                doctor_user.credits = (doctor_user.credits or 0) + earnings
+                print(f"DEBUG: Transferred {earnings} credits to doctor {doctor_user.id}")
+
+    db.commit()
+    return {"message": "Appointment completed and payment processed"}
+
+
 @router.get("/{appointment_id}/somnia-status")
 def get_somnia_status(
     appointment_id: int,
@@ -703,3 +791,41 @@ def get_somnia_status(
         "somnia_refund_tx": appointment.somnia_refund_tx,
         "agent_results": appointment.somnia_agent_results,
     }
+
+
+@router.post("/{appointment_id}/questionnaire")
+def update_appointment_questionnaire(
+    appointment_id: int,
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update appointment triage data with additional questionnaire answers."""
+    appointment = (
+        db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    )
+    if not appointment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found"
+        )
+    
+    # Verify ownership (patient)
+    if appointment.patient_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
+    
+    # Merge existing triage_data with new questionnaire data
+    try:
+        current_triage = {}
+        if appointment.triage_data:
+            current_triage = json.loads(appointment.triage_data)
+        
+        current_triage["questionnaire"] = data
+        appointment.triage_data = json.dumps(current_triage)
+        db.commit()
+        return {"message": "Questionnaire submitted successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

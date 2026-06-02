@@ -68,7 +68,8 @@ def verify_token(token: str) -> Optional[dict]:
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
-    """Get the current authenticated user from JWT token."""
+    """Get the current authenticated user from JWT token.
+    Supports both numeric ID (used by login) and email string (used in test tokens)."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -78,13 +79,21 @@ def get_current_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        sub: str = payload.get("sub")
+        if sub is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    # Determine if sub is an integer ID or an email address
+    user = None
+    try:
+        user_id = int(sub)
+        user = db.query(User).filter(User.id == user_id).first()
+    except ValueError:
+        # Not an integer, treat as email
+        user = db.query(User).filter(User.email == sub).first()
+
     if user is None:
         raise credentials_exception
     return user

@@ -37,6 +37,7 @@ from api.telehealth import router as telehealth_router
 from api.somnia_agent import router as somnia_agent_router
 from api.somnia_escrow import router as somnia_escrow_router
 from api.somnia_subscription import router as somnia_subscription_router
+from api.yoco import router as yoco_router
 from api.somnia_admin import router as somnia_admin_router
 from api.somnia_onchain import router as somnia_onchain_router
 from api.referrals import router as referrals_router
@@ -103,6 +104,7 @@ app.include_router(storage_router, prefix="/api/storage")
 app.include_router(somnia_agent_router, prefix="")
 app.include_router(somnia_escrow_router, prefix="")
 app.include_router(somnia_subscription_router, prefix="")
+app.include_router(yoco_router, prefix="")
 app.include_router(somnia_admin_router, prefix="")
 app.include_router(somnia_onchain_router, prefix="")
 app.include_router(referrals_router, prefix="")

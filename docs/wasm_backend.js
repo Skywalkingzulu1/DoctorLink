@@ -1,4 +1,4 @@
-// DoctorLink Wasm Backend - Pyodide + SQLite
+// Doctors on Wheels Wasm Backend - Pyodide + SQLite
 // This replaces the Python backend with WebAssembly
 
 const WasmBackend = {

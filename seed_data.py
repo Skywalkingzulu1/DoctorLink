@@ -33,34 +33,21 @@ def seed_database():
     doctors = [
         {
             "id": 1,
-            "user_id": 1,
-            "name": "Dr. Sarah Zulu",
-            "specialty": "General Practitioner",
-            "area": "Johannesburg",
-            "bio": "Experienced GP with 10+ years in telemedicine.",
-            "rating": 4.9,
-            "review_count": 124,
+            "user_id": 2, # Linked to Dr. Sam user
+            "name": "Dr. Sam Luzulane",
+            "specialty": "Emergency Medicine",
+            "area": "Gauteng",
+            "bio": "Emergency medicine specialist with 15 years experience.",
+            "rating": 5.0,
+            "review_count": 0,
             "consultation_fee": 150,
             "is_online": True,
             "is_available": True,
             "quick_chat_price": 50,
             "video_call_price": 150,
-            "full_consultation_price": 250
-        },
-        {
-            "id": 2,
-            "name": "Dr. Andile Khumalo",
-            "specialty": "Pediatrician",
-            "area": "Cape Town",
-            "bio": "Specializing in child healthcare and nutrition.",
-            "rating": 4.8,
-            "review_count": 89,
-            "consultation_fee": 200,
-            "is_online": True,
-            "is_available": True,
-            "quick_chat_price": 70,
-            "video_call_price": 200,
-            "full_consultation_price": 350
+            "full_consultation_price": 250,
+            "hpcsa_number": "MP 0123456",
+            "id_number": "8501015000081"
         }
     ]
     

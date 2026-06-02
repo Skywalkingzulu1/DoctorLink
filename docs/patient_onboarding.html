@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Onboarding - Doctors on Wheels</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="config.js"></script>
+    <style>
+        :root {
+            --primary: #0052cc;
+            --primary-dark: #0747a6;
+            --secondary: #00a3bf;
+            --accent: #36b37e;
+            --bg: #f4f5f7;
+            --white: #ffffff;
+            --text: #172b4d;
+            --text-light: #6b778c;
+            --border: #dfe1e6;
+            --error: #de350b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .onboard-card {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 100%;
+        }
+        .onboard-card h1 { color: var(--primary); font-weight: 800; margin-bottom: 0.3rem; }
+        .onboard-card h1 span { color: var(--secondary); }
+        .onboard-card .subtitle { color: var(--text-light); margin-bottom: 2rem; font-size: 0.95rem; }
+        
+        .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 2rem; justify-content: center; }
+        .step-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+        .step-dot.active { background: var(--primary); transform: scale(1.2); }
+        .step-dot.completed { background: var(--accent); }
+
+        .form-step { display: none; }
+        .form-step.active { display: block; animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-section-title { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; border-bottom: 2px solid var(--bg); padding-bottom: 0.5rem; }
+        
+        .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .form-group { flex: 1; margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 0.8rem; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 1rem;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+        
+        .checkbox-group { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+        .checkbox-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+        .checkbox-item input { width: auto; }
+
+        .btn-group { display: flex; gap: 1rem; margin-top: 2rem; }
+        .btn {
+            flex: 1; padding: 1rem; border: none; border-radius: 8px;
+            background: var(--primary); color: white; font-size: 1rem;
+            font-weight: 600; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn:hover { background: var(--primary-dark); }
+        .btn.secondary { background: var(--bg); color: var(--text); }
+        .btn.secondary:hover { background: var(--border); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #error-message {
+            color: var(--error); background: #ffebe6; padding: 0.8rem;
+            border-radius: 8px; margin-bottom: 1rem; display: none; font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row { flex-direction: column; gap: 0; }
+            .checkbox-group { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboard-card">
+        <h1>Doctors on <span>Wheels</span></h1>
+        <p class="subtitle">New Patient Onboarding Questionnaire</p>
+
+        <div class="step-indicator">
+            <div class="step-dot active" data-step="1"></div>
+            <div class="step-dot" data-step="2"></div>
+            <div class="step-dot" data-step="3"></div>
+            <div class="step-dot" data-step="4"></div>
+            <div class="step-dot" data-step="5"></div>
+        </div>
+
+        <div id="error-message"></div>
+
+        <form id="onboardForm">
+            <!-- Step 1: Patient Information -->
+            <div class="form-step active" id="step1">
+                <div class="form-section-title">1. Patient Information</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Preferred Name</label>
+                        <input type="text" id="preferred_name" placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="dob">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="gender">
+                            <option value="">Select...</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Non-binary">Non-binary</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Pronouns</label>
+                        <input type="text" id="pronouns" placeholder="e.g. He/Him">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Marital Status</label>
+                        <select id="marital_status">
+                            <option value="">Select...</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Primary Language</label>
+                        <input type="text" id="language" placeholder="e.g. English">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Home Address</label>
+                    <textarea id="address" rows="2" placeholder="Street, City, Province, Code"></textarea>
+                </div>
+                <div class="form-section-title" style="font-size: 1rem; margin-top: 1rem;">Emergency Contact</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Name</label>
+                        <input type="text" id="emergency_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship</label>
+                        <input type="text" id="emergency_rel">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="emergency_phone">
+                </div>
+            </div>
+
+            <!-- Step 2: Insurance & Referral -->
+            <div class="form-step" id="step2">
+                <div class="form-section-title">2. Insurance & Referral</div>
+                <div class="form-group">
+                    <label>Insurance Provider</label>
+                    <input type="text" id="ins_provider">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Member ID</label>
+                        <input type="text" id="ins_id">
+                    </div>
+                    <div class="form-group">
+                        <label>Group Number</label>
+                        <input type="text" id="ins_group">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Policy Holder Name</label>
+                        <input type="text" id="ins_holder">
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship to Patient</label>
+                        <input type="text" id="ins_rel">
+                    </div>
+                </div>
+                <hr style="margin-bottom: 1.5rem; border: 0; border-top: 1px solid var(--border);">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Preferred Pharmacy</label>
+                        <input type="text" id="pharmacy_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Pharmacy Phone</label>
+                        <input type="tel" id="pharmacy_phone">
+                    </div>
+                </div>
+                <div class="form-section-title" style="font-size: 1rem; margin-top: 1rem;">Referral Information</div>
+                <div class="form-group">
+                    <label>Primary Care Physician</label>
+                    <input type="text" id="pcp">
+                </div>
+                <div class="form-group">
+                    <label>How did you hear about us?</label>
+                    <select id="referral_source">
+                        <option value="">Select...</option>
+                        <option value="Physician Referral">Physician Referral</option>
+                        <option value="Insurance Directory">Insurance Directory</option>
+                        <option value="Family/Friend">Family/Friend</option>
+                        <option value="Online Search">Online Search</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 3: Medical History -->
+            <div class="form-step" id="step3">
+                <div class="form-section-title">3. Medical History</div>
+                <div class="form-group">
+                    <label>Current Health Concerns / Symptoms</label>
+                    <textarea id="symptoms" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Current Medications</label>
+                    <textarea id="medications" rows="2" placeholder="Name, dosage, frequency"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Allergies</label>
+                    <input type="text" id="allergies" placeholder="Medications, food, environmental">
+                </div>
+                <div class="form-group">
+                    <label>Past Medical Conditions (Check all that apply)</label>
+                    <div class="checkbox-group" id="past_conditions">
+                        <label class="checkbox-item"><input type="checkbox" value="Diabetes"> Diabetes</label>
+                        <label class="checkbox-item"><input type="checkbox" value="High Blood Pressure"> High Blood Pressure</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Heart Disease"> Heart Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Asthma"> Asthma</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Cancer"> Cancer</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Depression/Anxiety"> Depression/Anxiety</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Thyroid Disease"> Thyroid Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Kidney Disease"> Kidney Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Arthritis"> Arthritis</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Surgical History</label>
+                    <textarea id="surgeries" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Family Medical History (Check all that apply)</label>
+                    <div class="checkbox-group" id="family_history">
+                        <label class="checkbox-item"><input type="checkbox" value="Heart Disease"> Heart Disease</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Diabetes"> Diabetes</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Cancer"> Cancer</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Stroke"> Stroke</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Mental Health"> Mental Health</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Autoimmune"> Autoimmune</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Lifestyle & Preventive -->
+            <div class="form-step" id="step4">
+                <div class="form-section-title">4. Lifestyle & Social History</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tobacco Use</label>
+                        <select id="tobacco">
+                            <option value="Never">Never</option>
+                            <option value="Former">Former Smoker</option>
+                            <option value="Current">Current Smoker</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Alcohol Use</label>
+                        <select id="alcohol">
+                            <option value="None">None</option>
+                            <option value="Occasional">Occasional</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Daily">Daily</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Exercise Frequency</label>
+                        <select id="exercise">
+                            <option value="Rarely">Rarely</option>
+                            <option value="1-2 times/week">1-2 times/week</option>
+                            <option value="3-5 times/week">3-5 times/week</option>
+                            <option value="Daily">Daily</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Living Situation</label>
+                        <select id="living">
+                            <option value="Lives Alone">Lives Alone</option>
+                            <option value="Lives with Family/Partner">Lives with Family/Partner</option>
+                            <option value="Assisted Living">Assisted Living</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section-title" style="font-size: 1rem; margin-top: 1rem;">Preventive History</div>
+                <div class="form-group">
+                    <label>Last Vaccination / Screening Dates</label>
+                    <textarea id="last_screenings" rows="2" placeholder="e.g. Flu Vaccine: Oct 2023, Tetanus: 2021"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Vaccination History (Check all received)</label>
+                    <div class="checkbox-group" id="vaccines">
+                        <label class="checkbox-item"><input type="checkbox" value="Flu"> Flu Vaccine</label>
+                        <label class="checkbox-item"><input type="checkbox" value="COVID-19"> COVID-19 Vaccine</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Tetanus"> Tetanus Booster</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Pneumonia"> Pneumonia Vaccine</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Shingles"> Shingles Vaccine</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Mental Health & Consent -->
+            <div class="form-step" id="step5">
+                <div class="form-section-title">5. Mental Health & Consent</div>
+                <div class="form-group">
+                    <label>How often have you felt down, depressed, or hopeless in the last 2 weeks?</label>
+                    <select id="mood_down">
+                        <option value="Not at all">Not at all</option>
+                        <option value="Several days">Several days</option>
+                        <option value="More than half the days">More than half the days</option>
+                        <option value="Nearly every day">Nearly every day</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>How often have you felt little interest or pleasure in doing things?</label>
+                    <select id="mood_interest">
+                        <option value="Not at all">Not at all</option>
+                        <option value="Several days">Several days</option>
+                        <option value="More than half the days">More than half the days</option>
+                        <option value="Nearly every day">Nearly every day</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Would you like to discuss mental health with your provider?</label>
+                    <select id="discuss_mh">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="form-section-title" style="font-size: 1rem; margin-top: 1rem;">Consent & Preferences</div>
+                <div class="form-group">
+                    <label>Preferred Communication Method</label>
+                    <select id="comm_pref">
+                        <option value="Phone">Phone</option>
+                        <option value="Text Message">Text Message</option>
+                        <option value="Email">Email</option>
+                        <option value="Patient Portal">Patient Portal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-item"><input type="checkbox" id="consent_checkbox" required> I certify that the information provided is accurate to the best of my knowledge.</label>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn secondary" id="prevBtn" style="display: none;"><i class="fas fa-arrow-left"></i> Previous</button>
+                <button type="button" class="btn" id="nextBtn">Next <i class="fas fa-arrow-right"></i></button>
+                <button type="submit" class="btn" id="submitBtn" style="display: none;"><i class="fas fa-check"></i> Submit Questionnaire</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE = window.API_BASE_URL;
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const dots = document.querySelectorAll('.step-dot');
+        const steps = document.querySelectorAll('.form-step');
+
+        function updateStep() {
+            steps.forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            dots.forEach((dot, idx) => {
+                dot.classList.remove('active', 'completed');
+                if (idx + 1 === currentStep) dot.classList.add('active');
+                if (idx + 1 < currentStep) dot.classList.add('completed');
+            });
+
+            prevBtn.style.display = currentStep === 1 ? 'none' : 'flex';
+            if (currentStep === totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'flex';
+            } else {
+                nextBtn.style.display = 'flex';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStep();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStep();
+            }
+        });
+
+        document.getElementById('onboardForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Session expired. Please login again.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            // Gather data
+            const getCheckedValues = (selector) => {
+                return Array.from(document.querySelectorAll(`${selector} input:checked`)).map(el => el.value);
+            };
+
+            const payload = {
+                preferred_name: document.getElementById('preferred_name').value,
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                pronouns: document.getElementById('pronouns').value,
+                marital_status: document.getElementById('marital_status').value,
+                language: document.getElementById('language').value,
+                address: document.getElementById('address').value,
+                emergency_contact_json: JSON.stringify({
+                    name: document.getElementById('emergency_name').value,
+                    relationship: document.getElementById('emergency_rel').value,
+                    phone: document.getElementById('emergency_phone').value
+                }),
+                insurance_json: JSON.stringify({
+                    provider: document.getElementById('ins_provider').value,
+                    member_id: document.getElementById('ins_id').value,
+                    group: document.getElementById('ins_group').value,
+                    holder: document.getElementById('ins_holder').value,
+                    holder_rel: document.getElementById('ins_rel').value
+                }),
+                pharmacy_json: JSON.stringify({
+                    name: document.getElementById('pharmacy_name').value,
+                    phone: document.getElementById('pharmacy_phone').value
+                }),
+                referral_json: JSON.stringify({
+                    pcp: document.getElementById('pcp').value,
+                    source: document.getElementById('referral_source').value
+                }),
+                medical_history_json: JSON.stringify({
+                    symptoms: document.getElementById('symptoms').value,
+                    medications: document.getElementById('medications').value,
+                    allergies: document.getElementById('allergies').value,
+                    past_conditions: getCheckedValues('#past_conditions'),
+                    surgeries: document.getElementById('surgeries').value,
+                    family_history: getCheckedValues('#family_history')
+                }),
+                lifestyle_json: JSON.stringify({
+                    tobacco: document.getElementById('tobacco').value,
+                    alcohol: document.getElementById('alcohol').value,
+                    exercise: document.getElementById('exercise').value,
+                    living: document.getElementById('living').value
+                }),
+                preventive_json: JSON.stringify({
+                    last_screenings: document.getElementById('last_screenings').value,
+                    vaccines: getCheckedValues('#vaccines')
+                }),
+                mental_health_json: JSON.stringify({
+                    mood_down: document.getElementById('mood_down').value,
+                    mood_interest: document.getElementById('mood_interest').value,
+                    discuss_mh: document.getElementById('discuss_mh').value,
+                    comm_pref: document.getElementById('comm_pref').value
+                })
+            };
+
+            try {
+                const res = await fetch(API_BASE + '/api/profile/patient', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || 'Failed to save questionnaire');
+                }
+
+                alert('Onboarding complete! Redirecting to dashboard...');
+                window.location.href = 'index_v2.html';
+            } catch (err) {
+                document.getElementById('error-message').textContent = err.message;
+                document.getElementById('error-message').style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Submit Questionnaire';
+            }
+        });
+    </script>
+</body>
+</html>

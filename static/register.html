@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DoctorLink - Register</title>
+    <title>Doctors on Wheels - Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -79,7 +79,7 @@
 </head>
 <body>
     <div class="register-card">
-        <h1>Doctor<span>Link</span></h1>
+        <h1>Doctors on <span>Wheels</span></h1>
         <p>Join South Africa's Medical Network</p>
         
         <div id="error-message"></div>
@@ -134,9 +134,35 @@
                     const data = await response.json();
                     throw new Error(data.detail || 'Registration failed');
                 }
+
+                // Auto-login to get token
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('username', email);
+                    formData.append('password', password);
+
+                    const loginRes = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
+                    });
+
+                    if (loginRes.ok) {
+                        const loginData = await loginRes.json();
+                        localStorage.setItem('token', loginData.access_token);
+                        localStorage.setItem('user', JSON.stringify(loginData.user));
+                    }
+                } catch (loginErr) {
+                    console.error('Auto-login failed:', loginErr);
+                }
                 
-                alert('Registration successful! Please login.');
-                window.location.href = 'index_v2.html';
+                // Redirect based on role
+                if (role === 'PATIENT') {
+                    window.location.href = 'patient_onboarding.html';
+                } else {
+                    alert('Registration successful! Please login.');
+                    window.location.href = 'login.html';
+                }
             } catch (e) {
                 errorDiv.textContent = e.message;
                 errorDiv.style.display = 'block';

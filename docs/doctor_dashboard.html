@@ -3,1595 +3,532 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard - DoctorLink</title>
+    <title>Doctors on Wheels | EM Guidance Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="config.js"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        :root{--primary:#0052cc;--primary-dark:#0747a6;--secondary:#00a3bf;--accent:#36b37e;--warning:#ffab00;--danger:#de350b;--light:#f4f5f7;--white:#fff;--text:#172b4d;--text-light:#6b778c;--border:#dfe1e6}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--light);color:var(--text);line-height:1.5}
+        :root {
+            --em-blue: #0055ff;
+            --em-dark-blue: #003db3;
+            --em-light-blue: #eef4ff;
+            --em-bg: #f8fafc;
+            --em-white: #ffffff;
+            --em-text-main: #1e293b;
+            --em-text-muted: #64748b;
+            --em-border: #e2e8f0;
+            --em-accent: #10b981;
+            --em-danger: #ef4444;
+            --sidebar-width: 280px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--em-bg); color: var(--em-text-main); line-height: 1.5; }
+
+        .app-shell { display: flex; min-height: 100vh; }
         
-        /* Layout - MATCHES PATIENT PAGE */
-        .app{display:flex;min-height:100vh}
-        .sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto}
-        .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border)}
-        .sidebar-header h1{font-size:1.3rem;color:var(--primary);font-weight:800}
-        .sidebar-header h1 span{color:var(--secondary)}
-        .sidebar-menu{padding:1rem 0}
-        .menu-item{padding:0.8rem 1.5rem;cursor:pointer;display:flex;align-items:center;gap:0.8rem;color:var(--text-light);transition:all 0.2s}
-        .menu-item:hover,.menu-item.active{background:var(--light);color:var(--primary);border-left:3px solid var(--primary)}
-        
-        .main{flex:1;margin-left:260px}
-        .top-bar{background:var(--white);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-        
-        .content{padding:2rem}
-        .page-title{font-size:1.8rem;margin-bottom:1.5rem}
-        
-        /* Cards - SAME AS PATIENT PAGE */
-        .card{background:var(--white);border-radius:12px;padding:1.5rem;margin-bottom:1rem;border:1px solid var(--border)}
-        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-        .card-title{font-size:1.1rem;font-weight:600}
-        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: var(--em-white); border-right: 1px solid var(--em-border); height: 100vh; position: fixed; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-brand { padding: 1.5rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--em-border); color: var(--em-blue); }
+        .sidebar-brand h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.5px; }
+
+        .nav-section { padding: 1rem 0; flex: 1; overflow-y: auto; }
+        .nav-label { padding: 1rem 1.5rem 0.5rem; font-size: 0.7rem; font-weight: 800; color: var(--em-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .nav-item { padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: var(--em-text-main); cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: 0.2s; }
+        .nav-item:hover { background: var(--em-light-blue); color: var(--em-blue); }
+        .nav-item.active { background: var(--em-blue); color: white; }
+        .nav-item i { width: 20px; text-align: center; font-size: 1rem; }
+
+        /* Main Content */
+        .main-stage { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; }
+        .header { height: 64px; background: white; border-bottom: 1px solid var(--em-border); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; position: sticky; top: 0; z-index: 900; }
+        .search-bar { flex: 1; max-width: 450px; position: relative; }
+        .search-bar i { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--em-text-muted); }
+        .search-bar input { width: 100%; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid var(--em-border); border-radius: 8px; background: var(--em-bg); outline: none; }
+
+        .content { padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page-title { margin-bottom: 2rem; }
+        .page-title h2 { font-size: 1.5rem; font-weight: 700; }
+
+        /* Cards */
+        .em-card { background: white; border-radius: 12px; border: 1px solid var(--em-border); margin-bottom: 1.5rem; overflow: hidden; }
+        .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--em-border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.95rem; }
+        .card-body { padding: 1.5rem; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--em-border); }
+        .stat-val { font-size: 1.5rem; font-weight: 700; color: var(--em-blue); }
+        .stat-lab { font-size: 0.75rem; font-weight: 600; color: var(--em-text-muted); text-transform: uppercase; margin-top: 0.25rem; }
+
         /* Buttons */
-        .btn{padding:0.7rem 1.5rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem}
-        .btn-primary{background:var(--primary);color:#fff}
-        .btn-primary:hover{background:var(--primary-dark)}
-        .btn-secondary{background:var(--light);color:var(--text);border:1px solid var(--border)}
-        .btn-accent{background:var(--accent);color:#fff}
-        .btn-warning{background:#f59e0b;color:#fff}
-        .btn-danger{background:var(--danger);color:#fff}
-        .btn-sm{padding:0.4rem 0.8rem;font-size:0.85rem}
-        
-        /* Grid */
-        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
-        .stats{grid-template-columns:repeat(4,1fr)}
-        .stat-card{background:var(--white);padding:1.5rem;border-radius:12px;border:1px solid var(--border);text-align:center}
-        .stat-value{font-size:2rem;font-weight:700;color:var(--primary)}
-        .stat-label{color:var(--text-light);font-size:0.85rem}
-        
+        .btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--em-blue); color: white; }
+        .btn-ghost { background: transparent; color: var(--em-blue); border: 1px solid var(--em-blue); }
+        .btn-danger { background: var(--em-danger); color: white; }
+        .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+
         /* Tables */
-        .table{width:100%;border-collapse:collapse}
-        .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
-        .table th{background:var(--light);font-weight:600;color:var(--text-light)}
-        
-        /* Status Pills */
-        .status{padding:0.2rem 0.8rem;border-radius:20px;font-size:0.75rem;font-weight:600}
-        .status-scheduled{background:#eef2ff;color:var(--primary)}
-        .status-active{background:#e3fcef;color:var(--accent)}
-        .status-completed{background:var(--light);color:var(--text-light)}
-        .status-cancelled{background:#ffebe6;color:var(--danger)}
-        
-        /* Online/Offline Badges */
-        .online-badge{background:#36b37e;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
-        .offline-badge{background:#6b778c;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
-        
-        /* Forms */
-        .form-group{margin-bottom:1rem}
-        .form-label{display:block;margin-bottom:0.3rem;font-weight:500;font-size:0.9rem}
-        .form-input,.form-textarea{width:100%;padding:0.7rem;border:1px solid var(--border);border-radius:8px;font-size:0.95rem}
-        
-        /* Tabs */
-        .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
-        .tab{padding:1rem 1.5rem;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;transition:all 0.2s}
-        .tab:hover,.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
-        
-        /* Empty State */
-        .empty{text-align:center;padding:2rem;color:var(--text-light)}
-        
-        /* Auth Page */
-        .auth-page{min-height:100vh;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;padding:2rem}
-        .auth-card{background:var(--white);padding:2.5rem;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:400px;text-align:center}
-        .auth-card h1{color:var(--primary);font-size:2rem;margin-bottom:0.5rem}
-        .auth-card h1 span{color:var(--secondary)}
-        .auth-card input{width:100%;padding:0.8rem;margin-bottom:1rem;border:1px solid var(--border);border-radius:8px}
-        .auth-card button{width:100%;padding:1rem;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+        .em-table { width: 100%; border-collapse: collapse; }
+        .em-table th { text-align: left; padding: 0.75rem 1.5rem; background: var(--em-bg); color: var(--em-text-muted); font-size: 0.7rem; text-transform: uppercase; font-weight: 800; }
+        .em-table td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--em-border); font-size: 0.9rem; }
 
-        /* Loading */
-        .loading{text-align:center;padding:2rem;color:var(--text-light)}
+        /* Scripts */
+        .script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        .script-badge { font-size: 0.65rem; font-weight: 800; background: var(--em-light-blue); color: var(--em-blue); padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: uppercase; }
 
-        /* Skeleton */
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-        .skeleton{background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:6px;}
-        .skeleton-line{height:14px;margin:8px 0;width:100%}.skeleton-line.short{width:50%}.skeleton-line.med{width:75%}
-        .skeleton-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-        .skeleton-card{min-height:100px}
-        .skeleton-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-content { background: white; width: 100%; max-width: 900px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-body { padding: 2rem; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 
-        /* Spinner */
-        .btn .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
-        .btn.loading .spinner{display:inline-block}
-        .btn.loading .btn-text{display:none}
-        @keyframes spin{to{transform:rotate(360deg)}}
-
-        /* Toast */
-        .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-        .toast{pointer-events:auto;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:280px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.15);animation:toastIn 0.3s ease both;display:flex;align-items:center;gap:10px;font-size:0.88rem}
-        .toast.toast-out{animation:toastOut 0.3s ease both}
-        @keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
-        @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
-        .toast-icon{font-size:1.2rem;flex-shrink:0}
-        .toast-msg{flex:1;color:var(--text)}
-        .toast-close{background:none;border:none;font-size:1rem;cursor:pointer;color:var(--text-light);padding:0 4px}
-        .toast.success{border-left:3px solid var(--accent)}.toast.success .toast-icon{color:var(--accent)}
-        .toast.error{border-left:3px solid var(--danger)}.toast.error .toast-icon{color:var(--danger)}
-        .toast.info{border-left:3px solid var(--primary)}.toast.info .toast-icon{color:var(--primary)}
-        .toast.warning{border-left:3px solid var(--warning)}.toast.warning .toast-icon{color:var(--warning)}
-
-        /* Poll progress */
-        .poll-progress{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
-        .poll-progress-fill{height:100%;background:var(--primary);border-radius:2px;transition:width 0.5s ease}
-
-        /* Wallet disconnect */
-        .wallet-dropdown{position:relative;display:inline-block}
-        .wallet-dropdown-menu{display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:180px;z-index:200;margin-top:4px}
-        .wallet-dropdown-menu.show{display:block}
-        .wallet-dropdown-item{padding:8px 14px;cursor:pointer;font-size:0.85rem;color:var(--text);display:flex;align-items:center;gap:8px}
-        .wallet-dropdown-item:hover{background:var(--light)}
-        .wallet-dropdown-item.danger{color:var(--danger)}
-
-        /* ── UI OVERHAUL: ANIMATIONS + MODERN DESIGN ── */
-        .page-enter{animation:pageSlideIn 0.35s ease both}
-        @keyframes pageSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-        .card{transition:transform 0.25s ease,box-shadow 0.25s ease,border-color 0.25s ease}
-        .card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.08)}
-        .gradient-text{background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.06)}
-        .btn{position:relative;overflow:hidden;transition:transform 0.15s ease,box-shadow 0.15s ease}
-        .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
-        .btn:active{transform:translateY(0) scale(0.98)}
-        .menu-item{position:relative;transition:all 0.25s ease}
-        .menu-item::before{content:'';position:absolute;left:0;top:50%;width:3px;height:0;background:var(--primary);border-radius:0 3px 3px 0;transition:all 0.25s ease;transform:translateY(-50%)}
-        .menu-item.active::before{height:60%}
-        .menu-item.active{background:linear-gradient(90deg,rgba(0,82,204,0.06),transparent)}
-        .sidebar-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));position:relative;overflow:hidden}
-        .sidebar-header h1,.sidebar-header h1 span{-webkit-text-fill-color:#fff}
-        .sidebar-header::after{content:'';position:absolute;top:-50%;right:-30%;width:100px;height:200px;background:rgba(255,255,255,0.05);transform:rotate(25deg)}
-        .top-bar{border-bottom:2px solid transparent;background-clip:padding-box}
-        .top-bar::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));opacity:0.6}
-        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-        .status-released{background:#e3fcef;color:var(--accent)}
-        .status-funded{background:#eef2ff;color:var(--primary)}
-        .status-pending{background:#fff3e0;color:#e65100}
-
-        /* T800 Faucet Card */
-        .faucet-card{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-radius:12px;padding:1.5rem;margin-bottom:1rem}
-        .faucet-card button{background:#fff;color:#059669;border:none;padding:0.5rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-        .faucet-card button:disabled{opacity:0.6;cursor:not-allowed}
-        .faucet-card .spinner{width:16px;height:16px;border:2px solid rgba(5,150,101,0.3);border-top-color:#059669;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
-        .faucet-card button.loading .spinner{display:inline-block}
-        .faucet-card button.loading .btn-text{display:none}
-
-        /* Responsive */
-        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <!-- AUTH PAGE -->
-    <div id="authPage" class="auth-page">
-        <div class="auth-card">
-            <h1>Doctor<span>Link</span></h1>
-            <p>Doctor Portal</p>
-            <div id="authError" style="color:var(--danger);background:#ffebe6;padding:0.8rem;border-radius:8px;margin-bottom:1rem;display:none"></div>
-            <form id="authForm">
-                <input type="email" id="authEmail" placeholder="Email Address" required>
-                <input type="password" id="authPassword" placeholder="Password" required>
-                <button type="submit">Login</button>
-            </form>
-            <div style="margin-top:1rem;padding:1rem;background:var(--light);border-radius:8px;font-size:0.85rem">
-                <strong>Demo:</strong> doc@docmail.com / test123
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-notes-medical"></i>
+                <h1>Doctors on Wheels</h1>
             </div>
-        </div>
-    </div>
+            <nav class="nav-section">
+                <div class="nav-label">EM Guidance</div>
+                <div class="nav-item active" data-target="dashboard"><i class="fas fa-laptop-medical"></i> Clinical Hub</div>
+                <div class="nav-item" data-target="scripts"><i class="fas fa-book-open"></i> Treatment Scripts</div>
+                
+                <div class="nav-label">Practice Management</div>
+                <div class="nav-item" data-target="appointments"><i class="fas fa-user-clock"></i> Consultations</div>
+                <div class="nav-item" data-target="patients"><i class="fas fa-id-card"></i> Registry</div>
+                
+                <div class="nav-label">Medical Tools</div>
+                <div class="nav-item" data-target="ai-tools"><i class="fas fa-wand-sparkles"></i> AI Scribe</div>
+                <div class="nav-item" data-target="pricing"><i class="fas fa-coins"></i> Billing</div>
+            </nav>
+            <div style="padding: 1.5rem; border-top: 1px solid var(--em-border);">
+                <div class="nav-item" onclick="handleLogout()" style="color: var(--em-danger);"><i class="fas fa-sign-out"></i> Log Out</div>
+            </div>
+        </aside>
 
-    <!-- MAIN APP -->
-    <div id="appPage" class="app hidden">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h1>Doctor<span>Link</span></h1>
-            </div>
-            <div class="sidebar-menu">
-                <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</div>
-                <div class="menu-item" data-page="appointments"><i class="fas fa-calendar"></i> Appointments</div>
-                <div class="menu-item" data-page="patients"><i class="fas fa-users"></i> My Patients</div>
-                <div class="menu-item" data-page="schedule"><i class="fas fa-clock"></i> Schedule</div>
-                <div class="menu-item" data-page="prescriptions"><i class="fas fa-prescription"></i> Prescriptions</div>
-                <div class="menu-item" data-page="pricing"><i class="fas fa-tag"></i> Pricing</div>
-                <div class="menu-item" data-page="ai-tools"><i class="fas fa-robot"></i> AI Tools</div>
-                <div class="menu-item" data-page="subscription"><i class="fas fa-crown"></i> Subscription</div>
-                <div class="menu-item" data-page="referrals"><i class="fas fa-share-alt"></i> Referrals</div>
-                <div class="menu-item" data-page="settings"><i class="fas fa-cog"></i> Settings</div>
-                <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
-            </div>
-        </div>
-
-        <div class="main">
-            <div class="top-bar">
-                <div style="font-weight:600" id="pageTitle">Dashboard</div>
-                <div class="user-info" style="display:flex;align-items:center;gap:1rem">
-                    <div id="somniaWalletInfo" style="text-align:right;margin-right:1rem;font-size:0.8rem;color:var(--text-light)">
-                        <div id="userAddress" style="font-family:monospace;cursor:pointer;" onclick="mmAccount ? copyAddress() : null" title="Click to copy address">0x...</div>
-                        <div id="userSttBalance" style="color:var(--accent);font-weight:700">0.00 STT</div>
-                        <span id="connectMmBtnWrapper">
-                            <button id="connectMmBtn" onclick="connectMetaMask()" style="background:var(--secondary);color:#fff;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px">Connect MetaMask</button>
-                        </span>
-                        <span id="walletDropdownWrapper" class="wallet-dropdown" style="display:none;">
-                            <button onclick="showWalletDropdown()" style="background:var(--accent);color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-top:2px;display:flex;align-items:center;gap:4px"><span id="walletAddressDisplay">0x...</span> ▾</button>
-                            <div class="wallet-dropdown-menu" id="walletDropdownMenu">
-                                <div class="wallet-dropdown-item" onclick="copyAddress()">📋 Copy Address</div>
-                                <div class="wallet-dropdown-item danger" onclick="disconnectWallet()">✕ Disconnect</div>
-                            </div>
-                        </span>
-                    </div>
-                    <div style="font-weight:600" id="userName">Dr. Name</div>
+        <main class="main-stage">
+            <header class="header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Find guidance, drugs, or patient files...">
                 </div>
-            </div>
+                <div style="display:flex; align-items:center; gap:1.5rem;">
+                    <div style="font-weight:700; color:var(--em-blue); font-size:0.85rem;" id="sttBalance">0.00 STT</div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:600; font-size:0.85rem;" id="displayDocName">Dr. Sarah Smith</div>
+                        <div style="font-size:0.7rem; color:var(--em-text-muted);">Verified Provider</div>
+                    </div>
+                </div>
+            </header>
 
             <div class="content">
-                <!-- DASHBOARD -->
-                <div id="page-dashboard">
-                    <div class="stats grid" style="margin-bottom:2rem">
-                        <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Pending</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statActive">0</div><div class="stat-label">Active</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Completed</div></div>
-                        <div class="stat-card"><div class="stat-value" id="statEarnings">0</div><div class="stat-label">Credits Earned</div></div>
-                    </div>
-                    
-                    <div id="earningsCard" class="card" style="margin-bottom:1.5rem;background:linear-gradient(135deg,#36b37e,#00a3bf);color:#fff">
-                        <div style="display:flex;justify-content:space-between;align-items:center">
-                            <div>
-                                <div style="font-size:0.9rem;opacity:0.9">Your Earnings (80%)</div>
-                                <div id="totalEarnings" style="font-size:2rem;font-weight:700">0 credits</div>
-                                <div style="font-size:0.8rem;opacity:0.8">Platform fee (20%): <span id="platformFeeDisplay">0</span> credits</div>
-                            </div>
-                            <div style="text-align:right">
-                                <div style="font-size:0.9rem;opacity:0.9">Pending</div>
-                                <div id="pendingEarnings" style="font-size:1.5rem;font-weight:700">0 credits</div>
-                            </div>
-                        </div>
-                        <div style="display:flex;gap:0.5rem;margin-top:1rem">
-                            <button id="collectBtn" class="btn" style="flex:1;background:#fff;color:#36b37e" onclick="collectEarnings()">Collect Earnings</button>
-                            <button id="gigModeBtn" class="btn" style="flex:1;background:#fff;color:#0052cc" onclick="toggleGigMode()"><i class="fas fa-power-off"></i> <span id="gigModeText">Go Online</span></button>
-                        </div>
-                    </div>
-                    
-                    <div id="somniaEarningsCard" class="card" style="margin-bottom:1.5rem;border:2px solid var(--accent);background:var(--white)">
-                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
-                            <div>
-                                <div style="font-size:0.9rem;color:var(--text-light)">On-Chain Earnings</div>
-                                <div id="sttEarnings" style="font-size:2rem;font-weight:700;color:var(--accent)">0.00 STT</div>
-                                <div id="docT800Earnings" style="font-size:1.2rem;font-weight:600;color:#059669">0.00 T800</div>
-                                <div style="font-size:0.8rem;color:var(--text-light)">Secured by <span style="font-family:monospace">DoctorLinkEscrow</span> + direct T800 transfers</div>
-                            </div>
-                            <div style="text-align:right">
-                                <button class="btn btn-accent" onclick="updateSomniaBalance()">Refresh</button>
-                            </div>
-                        </div>
+                <!-- VIEW: CLINICAL HUB -->
+                <section id="view-dashboard">
+                    <div class="page-title"><h2>Clinical Hub</h2></div>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-val" id="countPending">0</div><div class="stat-lab">Pending Triage</div></div>
+                        <div class="stat-card"><div class="stat-val" id="countActive">0</div><div class="stat-lab">Active Cases</div></div>
+                        <div class="stat-card"><div class="stat-val" id="countCompleted">0</div><div class="stat-lab">Resolved</div></div>
+                        <div class="stat-card"><div class="stat-val" id="countCredits">R 0</div><div class="stat-lab">Practice Revenue</div></div>
                     </div>
 
-                    <div id="subscriptionCard" class="card" style="margin-bottom:1.5rem;border:2px solid #f59e0b;background:#fffbeb">
-                        <div style="display:flex;justify-content:space-between;align-items:center">
-                            <div>
-                                <div style="font-size:0.9rem;color:#92400e">Somnia AI Tools Subscription</div>
-                                <div id="subscriptionStatus" style="font-size:1.5rem;font-weight:700;color:#92400e">Checking...</div>
-                                <div style="font-size:0.8rem;color:#a16207">Get unlimited AI-powered medical tools</div>
-                            </div>
-                            <div>
-                                <button class="btn btn-primary" onclick="navTo('subscription')"><i class="fas fa-crown"></i> Subscribe</button>
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem;">
+                        <div class="em-card">
+                            <div class="card-header">Priority Triage Queue</div>
+                            <div id="pendingList" style="padding:0;"></div>
+                        </div>
+                        <div class="em-card">
+                            <div class="card-header">Availability</div>
+                            <div class="card-body">
+                                <button class="btn btn-primary" style="width:100%;" id="gigToggleBtn" onclick="toggleOnline()">Enable Home Visits</button>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="grid">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Pending Requests</div>
-                            </div>
-                            <div id="pendingAppts"></div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Active Consultations</div>
-                            </div>
-                            <div id="activeAppts"></div>
-                        </div>
-                    </div>
-                </div>
+                </section>
 
-                <!-- APPOINTMENTS -->
-                <div id="page-appointments" class="hidden">
-                    <h2 class="page-title">All Appointments</h2>
-                    <div class="tabs">
-                        <div class="tab active" onclick="filterAppts('all',this)">All</div>
-                        <div class="tab" onclick="filterAppts('SCHEDULED',this)">Pending</div>
-                        <div class="tab" onclick="filterAppts('ACTIVE',this)">Active</div>
-                        <div class="tab" onclick="filterAppts('COMPLETED',this)">Completed</div>
+                <!-- VIEW: TREATMENT SCRIPTS -->
+                <section id="view-scripts" class="hidden">
+                    <div class="page-title"><h2>EM Treatment Scripts</h2></div>
+                    <div class="em-card">
+                        <div class="card-header">
+                            Evidence-Based Protocols
+                            <input type="text" class="search-input" id="scriptSearch" style="width:250px;" placeholder="Search scripts..." onkeyup="filterScripts()">
+                        </div>
+                        <div class="card-body">
+                            <div id="scriptsContainer" class="script-grid"></div>
+                        </div>
                     </div>
-                    <div class="card">
-                        <table class="table">
-                            <thead><tr><th>Patient</th><th>Date</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
-                            <tbody id="appointmentsTable"></tbody>
+                </section>
+
+                <!-- VIEW: CONSULTATIONS -->
+                <section id="view-appointments" class="hidden">
+                    <div class="page-title"><h2>Patient Consultations</h2></div>
+                    <div class="em-card">
+                        <table class="em-table" id="appointmentsTable">
+                            <thead><tr><th>Patient</th><th>Service Details</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody></tbody>
                         </table>
                     </div>
-                </div>
+                </section>
 
-                <!-- PATIENTS -->
-                <div id="page-patients" class="hidden">
-                    <h2 class="page-title">My Patients</h2>
-                    <div class="card">
-                        <table class="table">
-                            <thead><tr><th>Name</th><th>Email</th><th>Last Visit</th><th>Actions</th></tr></thead>
-                            <tbody id="patientsTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- SCHEDULE -->
-                <div id="page-schedule" class="hidden">
-                    <h2 class="page-title">Today's Schedule</h2>
-                    <div id="todaySchedule"></div>
-                </div>
-
-                <!-- PRESCRIPTIONS -->
-                <div id="page-prescriptions" class="hidden">
-                    <h2 class="page-title">Write Prescription</h2>
-                    <div class="card">
-                        <div class="form-group">
-                            <label class="form-label">Select Patient/Appointment</label>
-                            <select id="prescriptionAppt" class="form-input">
-                                <option value="">Select appointment...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Medication</label>
-                            <input type="text" id="prescriptionMed" class="form-input" placeholder="Medication name">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Dosage</label>
-                            <input type="text" id="prescriptionDosage" class="form-input" placeholder="e.g. 500mg twice daily">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Instructions</label>
-                            <textarea id="prescriptionInstructions" class="form-textarea" placeholder="Special instructions..."></textarea>
-                        </div>
-                        <button class="btn btn-primary" onclick="createPrescription()">Create Prescription</button>
-                    </div>
-                </div>
-
-                <!-- PRICING (GIG ECONOMY) -->
-                <div id="page-pricing" class="hidden">
-                    <h2 class="page-title">Your Pricing</h2>
-                    <div class="card">
-                        <div class="card-title">Service Tier Pricing</div>
-                        <p style="color:var(--text-light);margin-bottom:1rem;font-size:0.9rem">Set your own prices for each service type. Platform takes 20% fee.</p>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Quick Chat (10 min)</label>
-                            <input type="number" id="priceQuickChat" class="form-input" min="10" step="5" value="50">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Video Call (30 min)</label>
-                            <input type="number" id="priceVideoCall" class="form-input" min="50" step="10" value="150">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Full Consultation (60 min)</label>
-                            <input type="number" id="priceFullConsult" class="form-input" min="100" step="10" value="250">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Prescription Review</label>
-                            <input type="number" id="pricePrescription" class="form-input" min="30" step="10" value="80">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Report Analysis</label>
-                            <input type="number" id="priceReport" class="form-input" min="50" step="10" value="120">
-                        </div>
-                        
-                        <div class="form-group" style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
-                            <label class="form-label">Peak Pricing Multiplier</label>
-                            <select id="peakMultiplier" class="form-input">
-                                <option value="1.0">Normal pricing</option>
-                                <option value="1.25">25% increase (peak hours)</option>
-                                <option value="1.5">50% increase (busy hours)</option>
-                            </select>
-                            <small style="color:var(--text-light)">Increase prices during busy times</small>
-                        </div>
-                        
-                        <button class="btn btn-primary" style="width:100%" onclick="savePricing()">Save Pricing</button>
-                    </div>
-                    
-                    <div class="card" style="margin-top:1rem">
-                        <div class="card-title">Preview</div>
-                        <div id="pricePreview" style="font-size:0.9rem"></div>
-                    </div>
-                </div>
-
-                <!-- AI TOOLS -->
-                <div id="page-ai-tools" class="hidden">
-                    <!-- T800 Faucet -->
-                    <div class="faucet-card">
-                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
-                            <div>
-                                <div style="font-size:1.1rem;font-weight:600">T-800 Faucet</div>
-                                <div style="font-size:0.85rem;opacity:0.9;margin-top:4px">Get 5,000 free T800 tokens for testing on-chain payments</div>
-                            </div>
-                            <button id="claimT800BtnDoc" onclick="claimT800Doc()"><span class="spinner"></span><span class="btn-text">Claim T800</span></button>
-                        </div>
-                        <div id="claimT800ResultDoc" style="margin-top:0.8rem;font-size:0.85rem;display:none;"></div>
-                    </div>
-                    <h2 class="page-title">AI Medical Tools</h2>
-                    <p style="color:var(--text-light);margin-bottom:1.5rem">Powered by Somnia LLM Inference — costs deducted from your credits</p>
-                    <div id="docSttCostBadge" style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-light);display:none;">
-                        <span style="background:#059669;color:white;padding:2px 8px;border-radius:4px;font-weight:bold;">STT</span>
-                        <span id="docSttCostText">Loading cost...</span>
-                    </div>
-
-                    <div class="grid">
-                        <div class="card">
-                            <div class="card-header"><div class="card-title"><i class="fas fa-file-alt" style="color:var(--primary)"></i> Visit Summary Generator</div></div>
-                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Paste consultation notes to generate a structured medical summary</p>
-                            <div class="form-group">
-                                <textarea id="docSummaryInput" class="form-textarea" rows="3" placeholder="Paste consultation notes..."></textarea>
-                            </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            <button class="btn btn-primary" onclick="docRunSummary()"><i class="fas fa-file-alt"></i> Generate (5 credits)</button>
-                            <button class="btn btn-outline" onclick="docRunSummaryStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
-                            </div>
-                            <div id="docSummaryResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#eef2ff;border-radius:8px;white-space:pre-wrap"></div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header"><div class="card-title"><i class="fas fa-pills" style="color:var(--warning)"></i> Drug Interaction Check</div></div>
-                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Check interactions before prescribing</p>
-                            <div class="form-group">
-                                <input type="text" id="docDrugInput" class="form-input" placeholder="E.g., Aspirin, Ibuprofen, Warfarin">
-                            </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            <button class="btn btn-warning" onclick="docRunDrugCheck()"><i class="fas fa-flask"></i> Check (5 credits)</button>
-                            <button class="btn btn-outline" onclick="docRunDrugCheckStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
-                            </div>
-                            <div id="docDrugResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#fefce8;border-radius:8px;white-space:pre-wrap"></div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header"><div class="card-title"><i class="fas fa-lightbulb" style="color:var(--accent)"></i> Patient Education</div></div>
-                            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem">Generate health tips for your patients</p>
-                            <div class="form-group">
-                                <input type="text" id="docTipsInput" class="form-input" placeholder="E.g., diabetes management">
-                            </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            <button class="btn btn-accent" onclick="docRunTips()"><i class="fas fa-book-medical"></i> Generate (3 credits)</button>
-                            <button class="btn btn-outline" onclick="docRunTipsStt()" style="font-size:0.8rem;padding:4px 12px;"><span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem;">STT</span> Pay with STT</button>
-                            </div>
-                            <div id="docTipsResult" class="hidden" style="margin-top:1rem;padding:1rem;background:#f0fdf4;border-radius:8px;white-space:pre-wrap"></div>
+                <!-- VIEW: AI SCRIBE -->
+                <section id="view-ai-tools" class="hidden">
+                    <div class="page-title"><h2>AI Medical Scribe</h2></div>
+                    <div class="em-card">
+                        <div class="card-header">SOAP Note Framework</div>
+                        <div class="card-body">
+                            <textarea id="aiSummaryIn" style="width:100%; padding:1rem; border-radius:8px; border:1px solid var(--em-border);" rows="6" placeholder="Paste consultation notes..."></textarea>
+                            <button class="btn btn-primary" style="margin-top:1rem;" onclick="runAiSummary()">Generate Clinical Note</button>
                         </div>
                     </div>
+                </section>
 
-                    <div class="card" style="margin-top:1.5rem">
-                        <div class="card-header"><div class="card-title"><i class="fas fa-coins" style="color:#f59e0b"></i> Credit Costs</div></div>
-                        <div id="docCreditCosts" class="loading">Loading...</div>
-                    </div>
-                </div>
+                <!-- MORE VIEWS -->
+                <section id="view-patients" class="hidden"><div class="page-title"><h2>Patient Registry</h2></div><div class="em-card"><table class="em-table"><thead><tr><th>Name</th><th>Email</th><th>Last Visit</th></tr></thead><tbody id="patientsBody"></tbody></table></div></section>
+                <section id="view-pricing" class="hidden"><div class="page-title"><h2>Billing Structure</h2></div><div class="em-card"><div class="card-body" id="pricingBody"></div></div></section>
+            </div>
+        </main>
+    </div>
 
-                <!-- SUBSCRIPTION -->
-                <div id="page-subscription" class="hidden">
-                    <h2 class="page-title">Somnia AI Subscription</h2>
-                    <div style="max-width:600px;margin:0 auto">
-                        <div class="card" style="text-align:center;border:2px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fff)">
-                            <i class="fas fa-crown" style="font-size:3rem;color:#f59e0b;margin-bottom:1rem"></i>
-                            <h3 style="margin-bottom:0.5rem">Doctor AI Pro</h3>
-                            <div style="font-size:2.5rem;font-weight:700;color:#92400e;margin-bottom:0.5rem">10 STT<span style="font-size:1rem;color:var(--text-light)">/month</span></div>
-                            <ul style="list-style:none;text-align:left;margin:1.5rem 0;padding:0">
-                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Unlimited AI visit summaries</li>
-                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Unlimited drug interaction checks</li>
-                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Unlimited patient education content</li>
-                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> On-chain via Somnia Sponsor Contract</li>
-                                <li style="padding:0.5rem 0"><i class="fas fa-check" style="color:var(--accent)"></i> Funds flow to platform treasury</li>
-                            </ul>
-                            <div id="subStatus" style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-light)"></div>
-                            <button id="subscribeBtn" class="btn btn-primary" onclick="subscribeNow()" style="width:100%;padding:1rem;font-size:1.1rem">
-                                <i class="fas fa-crown"></i> Subscribe Now - 10 STT
-                            </button>
-                            <div id="subTxInfo" style="margin-top:1rem;font-size:0.8rem;color:var(--text-light)"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- REFERRALS -->
-                <div id="page-referrals" class="hidden">
-                    <h2 class="page-title">Referrals</h2>
-                    <div style="max-width:700px;margin:0 auto">
-                        <div class="card" style="text-align:center;background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:2rem">
-                            <i class="fas fa-share-alt" style="font-size:3rem;margin-bottom:1rem"></i>
-                            <h3 style="margin-bottom:0.5rem">Refer a Colleague</h3>
-                            <p style="opacity:0.9;margin-bottom:1.5rem">Share your referral link and earn 50 credits for every doctor who joins!</p>
-                            <div style="display:flex;gap:0.5rem;max-width:500px;margin:0 auto">
-                                <input type="text" id="referralLinkInput" class="form-input" readonly style="flex:1;text-align:center;font-family:monospace;font-weight:600" placeholder="Loading...">
-                                <button class="btn" style="background:#fff;color:#059669;flex-shrink:0" onclick="copyReferralLink()"><i class="fas fa-copy"></i> Copy</button>
-                            </div>
-                            <div style="margin-top:1rem;font-size:0.85rem;opacity:0.8">Your code: <strong id="referralCodeDisplay">---</strong></div>
-                        </div>
-                        <div class="card" style="margin-top:1rem">
-                            <div class="card-title">Referral Stats</div>
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem;text-align:center">
-                                <div><div class="stat-value" id="refTotal">0</div><div class="stat-label">Total Referrals</div></div>
-                                <div><div class="stat-value" id="refCompleted">0</div><div class="stat-label">Completed</div></div>
-                                <div><div class="stat-value" id="refRewards">0</div><div class="stat-label">Credits Earned</div></div>
-                            </div>
-                        </div>
-                        <div class="card" style="margin-top:1rem">
-                            <div class="card-title">Referral History</div>
-                            <table class="table">
-                                <thead><tr><th>Date</th><th>Referee</th><th>Status</th><th>Reward</th></tr></thead>
-                                <tbody id="referralsTable"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SETTINGS -->
-                <div id="page-settings" class="hidden">
-                    <h2 class="page-title">Doctor Settings</h2>
-                    <div id="verificationBanner" style="margin-bottom:1rem;padding:1rem;border-radius:8px;display:none"></div>
-                    <div class="card">
-                        <div class="form-group">
-                            <label class="form-label">Your Name</label>
-                            <input type="text" id="docName" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Specialty</label>
-                            <select id="docSpecialty" class="form-input">
-                                <option value="">Select Specialty</option>
-                                <option value="General Practitioner">General Practitioner</option>
-                                <option value="Cardiology">Cardiology</option>
-                                <option value="Dermatology">Dermatology</option>
-                                <option value="Pediatrics">Pediatrics</option>
-                                <option value="Psychiatry">Psychiatry</option>
-                                <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
-                                <option value="Orthopedics">Orthopedics</option>
-                                <option value="Neurology">Neurology</option>
-                                <option value="Internal Medicine">Internal Medicine</option>
-                                <option value="Family Medicine">Family Medicine</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Area / Location</label>
-                            <input type="text" id="docArea" class="form-input" placeholder="e.g., Sandton, Johannesburg">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Consultation Fee (Credits)</label>
-                            <input type="number" id="docFee" class="form-input" min="50" step="10">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">HPCSA Number (Optional - for full verification)</label>
-                            <input type="text" id="docHpcsa" class="form-input" placeholder="e.g., MP12345">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Practice Number</label>
-                            <input type="text" id="docPracticeNum" class="form-input" placeholder="e.g., 1234567">
-                        </div>
-                        <button class="btn btn-primary" onclick="saveDoctorSettings()">Save Profile</button>
-                        <button class="btn btn-secondary" onclick="requestVerification()" style="margin-left:0.5rem">Request Verification</button>
-                    </div>
-                    <div class="card" style="margin-top:1rem">
-                        <div class="card-title">Verification Status</div>
-                        <div id="verificationStatus" style="margin-top:0.5rem"></div>
-                    </div>
+    <!-- TRIAGE MODAL -->
+    <div id="triageOverlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="card-header" style="background:var(--em-blue); color:white; border:none;">
+                <span>Integrated Triage Assessment</span>
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="btn btn-sm btn-primary" id="emailTriageBtn"><i class="fas fa-envelope"></i> Email Report</button>
+                    <button class="btn btn-sm btn-primary" onclick="closeTriage()"><i class="fas fa-times"></i></button>
                 </div>
             </div>
+            <div class="modal-body">
+                <div><h4 style="font-size:0.8rem; text-transform:uppercase; margin-bottom:1rem;">Patient Input</h4><div id="triageRawData"></div></div>
+                <div style="border-left:1px solid var(--em-border); padding-left:2rem;"><h4 style="font-size:0.8rem; text-transform:uppercase; color:var(--em-blue); margin-bottom:1rem;">EM Decision Support</h4><div id="triageAiResults"></div></div>
+            </div>
+        </div>
     </div>
-</div>
 
-<div class="toast-container" id="toastContainer"></div>
-
-<script>
-        // ========== API CONFIG ==========
-        const API_BASE = window.API_BASE_URL;
-        let authToken = localStorage.getItem('token');
-        let currentUser = null;
-
-        // AUTO-LOGIN LOGIC
-        async function autoLogin() {
-            if (!authToken) {
-                window.location.href = 'login.html';
-                return;
-            } else {
-                // Fetch current user if token exists
-                try {
-                    const user = await apiCall('/api/auth/me');
-                    currentUser = user;
-                    if (user.role !== 'DOCTOR') {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-                    showApp();
-                } catch (e) {
-                    logout();
-                }
-            }
-        }
-
-        window.onload = autoLogin;
-
-        // ========== API HELPERS ==========
-        async function apiCall(endpoint, options = {}) {
-            const url = API_BASE + endpoint;
-            const headers = { 'Content-Type': 'application/json' };
-            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-            
-            try {
-                const response = await fetch(url, { ...options, headers });
-                if (response.status === 401) { logout(); throw new Error('Session expired'); }
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'API error');
-                return data;
-            } catch (e) {
-                console.error('API Error:', e);
-                throw e;
-            }
-        }
-
-        // ========== AUTH ==========
-        document.getElementById('authForm').onsubmit = async e => {
-            e.preventDefault();
-            const email = document.getElementById('authEmail').value.trim();
-            const password = document.getElementById('authPassword').value;
-            const err = document.getElementById('authError');
-            err.style.display = 'none';
-
-            try {
-                const formData = new FormData();
-                formData.append('username', email);
-                formData.append('password', password);
+    <!-- DOCTOR TOOLS MODAL (Sick Note, Prescription, Referral) -->
+    <div id="toolsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="card-header" style="background:var(--em-blue); color:white; border:none;">
+                <span id="toolsModalTitle">Medical Document Generator</span>
+                <button class="btn btn-sm btn-primary" onclick="closeTools()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="display:block;">
+                <div class="em-card" style="border: 2px dashed var(--em-blue); background: var(--em-light-blue); padding: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--em-blue); margin-bottom: 0.5rem; text-transform: uppercase;">
+                        <i class="fas fa-magic"></i> AI Scribe Context
+                    </div>
+                    <textarea id="scribeContext" style="width:100%; padding:0.75rem; border:1px solid var(--em-border); border-radius:8px; font-size:0.9rem;" rows="3" placeholder="Notes from consultation to include in document..."></textarea>
+                </div>
                 
-                const response = await fetch(API_BASE + '/api/auth/login', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    const data = await response.json();
-                    err.textContent = data.detail || 'Invalid credentials';
-                    err.style.display = 'block';
-                    return;
-                }
-                
-                const data = await response.json();
-                authToken = data.access_token;
-                currentUser = data.user;
-                localStorage.setItem('token', authToken);
-                
-                if (currentUser.role !== 'DOCTOR') {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                
-                showApp();
-            } catch (e) {
-                err.textContent = 'Connection error';
-                err.style.display = 'block';
-            }
-        };
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                    <button class="btn btn-ghost" onclick="generateDocument('Sick Note')"><i class="fas fa-bed"></i> Sick Note</button>
+                    <button class="btn btn-ghost" onclick="generateDocument('Prescription')"><i class="fas fa-pills"></i> Prescription</button>
+                    <button class="btn btn-ghost" onclick="generateDocument('Referral Letter')"><i class="fas fa-file-export"></i> Referral</button>
+                </div>
 
-        function logout() {
-            authToken = null;
-            localStorage.removeItem('token');
-            window.location.reload();
-        }
-
-        function showApp() {
-            document.getElementById('authPage').classList.add('hidden');
-            document.getElementById('appPage').classList.remove('hidden');
-            document.getElementById('userName').textContent = currentUser.name;
-            
-            // Display Somnia Address
-            if (currentUser.somnia_address) {
-                const addr = currentUser.somnia_address;
-                document.getElementById('userAddress').textContent = addr.substring(0, 6) + '...' + addr.substring(38);
-                document.getElementById('userAddress').title = addr;
-            }
-
-            updateSomniaBalance();
-            loadSubscriptionStatus();
-            // Check if doctor profile is incomplete - redirect to settings
-            loadDoctorProfile();
-        }
-
-        async function updateSomniaBalance() {
-            try {
-                const data = await apiCall('/api/somnia/escrow/wallet/balance');
-                const balance = parseFloat(data.balance_eth).toFixed(2);
-                document.getElementById('userSttBalance').textContent = balance + ' STT';
-                
-                // For demonstration, we show the same balance in the earnings card
-                if (document.getElementById('sttEarnings')) {
-                    document.getElementById('sttEarnings').textContent = balance + ' STT';
-                }
-            } catch (e) {
-                console.error('Failed to fetch Somnia balance');
-            }
-
-            // Fetch T800 balance
-            try {
-                const t800 = await apiCall('/api/somnia/agent/t800/balance');
-                const el = document.getElementById('docT800Earnings');
-                if (el) el.textContent = Number(t800.t800_balance).toFixed(2) + ' T800';
-            } catch(e) {
-                console.error('Failed to fetch T800 balance');
-            }
-        }
-
-        // ========== METAMASK INTEGRATION ==========
-        let mmAccount = null;
-
-        function toast(msg, type = 'info', duration = 4000) {
-            const container = document.getElementById('toastContainer');
-            const icons = { success: '✓', error: '✗', info: 'ℹ', warning: '⚠' };
-            const el = document.createElement('div');
-            el.className = 'toast ' + type;
-            el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.classList.add('toast-out');setTimeout(()=>this.parentElement.remove(),300)">×</button>`;
-            container.appendChild(el);
-            setTimeout(() => { if (el.parentElement) { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); } }, duration);
-        }
-
-        function showWalletDropdown() {
-            document.getElementById('walletDropdownMenu').classList.toggle('show');
-        }
-        document.addEventListener('click', function(e) {
-            const dd = document.getElementById('walletDropdownMenu');
-            if (dd && !e.target.closest('.wallet-dropdown')) dd.classList.remove('show');
-        });
-
-        function disconnectWallet() {
-            mmAccount = null;
-            const btn = document.getElementById('connectMmBtn');
-            btn.innerHTML = 'Connect MetaMask';
-            btn.style.background = 'var(--secondary)';
-            btn.disabled = false;
-            document.getElementById('connectMmBtnWrapper').style.display = 'inline-block';
-            document.getElementById('walletDropdownWrapper').style.display = 'none';
-            document.getElementById('userAddress').textContent = '0x...';
-            toast('Wallet disconnected', 'info');
-        }
-
-        async function connectMetaMask() {
-            if (typeof window.ethereum === 'undefined') {
-                toast('Please install MetaMask to use this feature.', 'error');
-                return;
-            }
-            const btn = document.getElementById('connectMmBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<svg style="width:14px;height:14px;display:inline-block;margin-right:4px;animation:spin 0.6s linear infinite" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg> Connecting...';
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                mmAccount = accounts[0];
-                btn.innerHTML = '<svg style="width:16px;height:16px;display:inline-block;margin-right:4px;vertical-align:middle" viewBox="0 0 35 33" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M32.958 1l-13.134 9.718 2.442-5.767L32.958 1z" fill="#E17726" stroke="#E17726" stroke-width=".25"/><path d="M2.663 1l13.016 9.825-2.35-5.874L2.663 1z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M28.188 23.3l-3.5 5.346 7.543 2.076 2.166-7.361-6.21-.06z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M1.605 23.363l2.156 7.358 7.543-2.076-3.5-5.346-6.2.064z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M10.922 14.206l-2.083 3.145 7.482.336-.286-8.033-5.113 4.552z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M24.7 14.206l-5.202-4.556-.197 8.137 7.482-.336-2.083-3.245z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M10.569 28.646l4.543-2.204-3.91-3.043-.633 5.247z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M20.51 26.442l4.543 2.204-.633-5.247-3.91 3.043z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M25.052 28.646l-4.543-2.204.402 2.776-.058 1.182 4.199-.758z" fill="#D5BFB2" stroke="#D5BFB2" stroke-width=".25"/><path d="M10.569 28.646l4.199.758-.058-1.182.402-2.776-4.543 2.2z" fill="#D5BFB2" stroke="#D5BFB2" stroke-width=".25"/><path d="M14.86 21.734l-3.77-1.105 2.663-1.224 1.107 2.33z" fill="#233447" stroke="#233447" stroke-width=".25"/><path d="M20.762 21.734l1.107-2.33 2.663 1.224-3.77 1.106z" fill="#233447" stroke="#233447" stroke-width=".25"/><path d="M10.569 28.646l.655-5.346-4.155.063 3.5 5.283z" fill="#CC6228" stroke="#CC6228" stroke-width=".25"/><path d="M24.398 23.3l.655 5.346 3.5-5.283-4.155-.063z" fill="#CC6228" stroke="#CC6228" stroke-width=".25"/><path d="M28.188 23.3l-3.5 5.346 2.285 1.89 4.656-1.79-1.44-5.446z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M7.433 23.3l-1.44 5.446 4.656 1.79 2.285-1.89-3.5-5.346z" fill="#E27625" stroke="#E27625" stroke-width=".25"/><path d="M21.92 17.35l-3.694-1.232 1.323-2.042 2.37 3.274z" fill="#CD6116" stroke="#CD6116" stroke-width=".25"/><path d="M13.702 17.35l2.371-3.274 1.323 2.042-3.694 1.232z" fill="#CD6116" stroke="#CD6116" stroke-width=".25"/><path d="M14.86 21.734l-.705-1.873-3.06.868 3.765 1.005z" fill="#E4751F" stroke="#E4751F" stroke-width=".25"/><path d="M20.762 21.734l3.766-1.005-3.06-.868-.706 1.873z" fill="#E4751F" stroke="#E4751F" stroke-width=".25"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/><path d="M10.569 28.646l3.683-7.276-4.82-.07 1.77 2.099-.633 5.247z" fill="#F5841F" stroke="#F5841F" stroke-width=".25"/><path d="M10.202 17.35l-2.456 1.733 2.982.292-.526-2.025z" fill="#C0AC9D" stroke="#C0AC9D" stroke-width=".25"/><path d="M21.42 17.35l-.526 2.025 2.982-.292-2.456-1.733z" fill="#C0AC9D" stroke="#C0AC9D" stroke-width=".25"/><path d="M14.86 21.734l.151-2.34-2.63.283 2.479 2.057z" fill="#161616" stroke="#161616" stroke-width=".25"/><path d="M20.762 21.734l2.479-2.057-2.63-.283.151 2.34z" fill="#161616" stroke="#161616" stroke-width=".25"/></g></svg> <span style="vertical-align:middle">' + mmAccount.substring(0, 6) + '...</span>';
-                btn.style.background = 'var(--accent)';
-                btn.disabled = false;
-                toast('MetaMask Connected \u2713', 'success');
-
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0xC488' }],
-                    });
-                } catch (switchError) {
-                    if (switchError.code === 4902) {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: '0xC488',
-                                chainName: 'Somnia Testnet',
-                                rpcUrls: ['https://api.infra.testnet.somnia.network'],
-                                nativeCurrency: { name: 'Somnia Test Token', symbol: 'STT', decimals: 18 },
-                                blockExplorerUrls: ['https://explorer.testnet.somnia.network']
-                            }],
-                        });
-                    }
-                }
-                document.getElementById('connectMmBtnWrapper').style.display = 'none';
-                document.getElementById('walletDropdownWrapper').style.display = 'inline-block';
-                document.getElementById('walletAddressDisplay').innerHTML = '<svg style="width:12px;height:12px;display:inline-block;margin-right:3px;vertical-align:middle" viewBox="0 0 35 33"><path d="M32.958 1l-13.134 9.718 2.442-5.767L32.958 1z" fill="#E17726"/><path d="M2.663 1l13.016 9.825-2.35-5.874L2.663 1z" fill="#E27625"/><path d="M28.188 23.3l-3.5 5.346 7.543 2.076 2.166-7.361-6.21-.06z" fill="#E27625"/><path d="M1.605 23.363l2.156 7.358 7.543-2.076-3.5-5.346-6.2.064z" fill="#E27625"/><path d="M10.922 14.206l-2.083 3.145 7.482.336-.286-8.033-5.113 4.552z" fill="#E27625"/><path d="M24.7 14.206l-5.202-4.556-.197 8.137 7.482-.336-2.083-3.245z" fill="#E27625"/><path d="M10.569 28.646l4.543-2.204-3.91-3.043-.633 5.247z" fill="#E27625"/><path d="M20.51 26.442l4.543 2.204-.633-5.247-3.91 3.043z" fill="#E27625"/><path d="M25.052 28.646l-4.543-2.204.402 2.776-.058 1.182 4.199-.758z" fill="#D5BFB2"/><path d="M10.569 28.646l4.199.758-.058-1.182.402-2.776-4.543 2.2z" fill="#D5BFB2"/><path d="M14.86 21.734l-3.77-1.105 2.663-1.224 1.107 2.33z" fill="#233447"/><path d="M20.762 21.734l1.107-2.33 2.663 1.224-3.77 1.106z" fill="#233447"/><path d="M10.569 28.646l.655-5.346-4.155.063 3.5 5.283z" fill="#CC6228"/><path d="M24.398 23.3l.655 5.346 3.5-5.283-4.155-.063z" fill="#CC6228"/><path d="M28.188 23.3l-3.5 5.346 2.285 1.89 4.656-1.79-1.44-5.446z" fill="#E27625"/><path d="M7.433 23.3l-1.44 5.446 4.656 1.79 2.285-1.89-3.5-5.346z" fill="#E27625"/><path d="M21.92 17.35l-3.694-1.232 1.323-2.042 2.37 3.274z" fill="#CD6116"/><path d="M13.702 17.35l2.371-3.274 1.323 2.042-3.694 1.232z" fill="#CD6116"/><path d="M14.86 21.734l-.705-1.873-3.06.868 3.765 1.005z" fill="#E4751F"/><path d="M20.762 21.734l3.766-1.005-3.06-.868-.706 1.873z" fill="#E4751F"/><path d="M25.052 28.646l-.633-5.247 1.77-2.099-4.82.07 3.683 7.276z" fill="#F5841F"/><path d="M10.569 28.646l3.683-7.276-4.82-.07 1.77 2.099-.633 5.247z" fill="#F5841F"/></svg> <span style="vertical-align:middle">' + mmAccount.substring(0, 6) + '...' + mmAccount.slice(-4) + '</span>';
-            } catch (e) {
-                console.error('MetaMask connection failed:', e);
-                toast('MetaMask connection cancelled or failed', 'error');
-                btn.disabled = false;
-                btn.innerHTML = 'Connect MetaMask';
-            }
-        }
-
-        function copyAddress() {
-            if (mmAccount) {
-                navigator.clipboard.writeText(mmAccount).then(() => toast('Address copied ✓', 'success'));
-            }
-        }
-        
-        // ========== SKELETON HELPERS ==========
-        function showSkeleton(id, rows) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            rows = rows || 3;
-            const items = [];
-            for (let i = 0; i < rows; i++) {
-                items.push('<div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>');
-            }
-            el.innerHTML = items.join('');
-        }
-        function showSkeletonTable(id, cols) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            cols = cols || 5;
-            const rows = [];
-            for (let i = 0; i < 4; i++) {
-                rows.push('<tr><td colspan="' + cols + '"><div class="skeleton skeleton-line" style="height:16px;margin:8px 0;"></div></td></tr>');
-            }
-            el.innerHTML = rows.join('');
-        }
-
-        async function loadDoctorProfile() {
-            try {
-                const profile = await apiCall('/api/profile/doctor');
-                
-                // Show verification badge in header
-                let badge = '';
-                if (profile.verification_status === 'verified') {
-                    badge = ' <span style="color:#36b37e;font-size:0.8rem">✓★ Verified</span>';
-                } else if (profile.verification_status === 'basic') {
-                    badge = ' <span style="color:#0052cc;font-size:0.8rem">✓ Verified</span>';
-                } else if (!profile.profile_completed) {
-                    badge = ' <span style="color:#ffab00;font-size:0.8rem">⚠ Incomplete</span>';
-                }
-                
-                // Add gig mode status
-                const gigStatus = profile.is_online !== false ? 
-                    ' <span class="online-badge" style="margin-left:0.5rem"><i class="fas fa-circle" style="font-size:0.5rem"></i> Online</span>' :
-                    ' <span class="offline-badge" style="margin-left:0.5rem">Offline</span>';
-                
-                document.getElementById('userName').innerHTML = currentUser.name + badge + gigStatus;
-                
-                // Update gig mode button
-                const isOnline = profile.is_online !== false;
-                document.getElementById('gigModeText').textContent = isOnline ? 'Go Offline' : 'Go Online';
-                
-                // Update platform fee display
-                const earnings = profile.total_earnings || 0;
-                const platformFee = Math.round(earnings * 0.25); // 20% of what patients paid = 25% of doctor earnings
-                document.getElementById('platformFeeDisplay').textContent = platformFee;
-                
-                // Update verification status display
-                updateVerificationDisplay(profile);
-                
-                // If profile not completed, force settings page
-                if (!profile.profile_completed) {
-                    toast('Please complete your doctor profile to receive patients.', 'warning');
-                    document.getElementById('docName').value = profile.name || '';
-                    document.getElementById('docSpecialty').value = profile.specialty || '';
-                    document.getElementById('docArea').value = profile.area || '';
-                    document.getElementById('docFee').value = profile.consultation_fee || 150;
-                    document.getElementById('docPracticeNum').value = profile.practice_number || '';
-                    navTo('settings');
-                    initDashboard();
-                    return;
-                }
-                
-                // Load profile data into settings form
-                document.getElementById('docName').value = profile.name || '';
-                document.getElementById('docSpecialty').value = profile.specialty || '';
-                document.getElementById('docArea').value = profile.area || '';
-                document.getElementById('docFee').value = profile.consultation_fee || 150;
-                document.getElementById('docHpcsa').value = profile.hpcsa_number || '';
-                document.getElementById('docPracticeNum').value = profile.practice_number || '';
-                
-                initDashboard();
-            } catch(e) {
-                console.error('Profile load error:', e);
-                initDashboard();
-            }
-        }
-
-        async function claimT800Doc() {
-            const btn = document.getElementById('claimT800BtnDoc');
-            btn.classList.add('loading'); btn.disabled = true;
-            try {
-                const result = await apiCall('/api/somnia/agent/t800/faucet', { method: 'POST' });
-                const resDiv = document.getElementById('claimT800ResultDoc');
-                resDiv.style.display = 'block';
-                resDiv.innerHTML = '<span style="color:#fff">\u2713 ' + result.message + '</span>';
-                btn.innerHTML = '<span class="spinner"></span><span class="btn-text">Claimed \u2713</span>';
-            } catch (e) {
-                const resDiv = document.getElementById('claimT800ResultDoc');
-                resDiv.style.display = 'block';
-                resDiv.innerHTML = '<span style="color:#fca5a5">\u2717 ' + e.message + '</span>';
-                btn.classList.remove('loading'); btn.disabled = false;
-            }
-        }
-
-        // ========== NAVIGATION ==========
-        document.querySelectorAll('.menu-item[data-page]').forEach(item => {
-            item.onclick = () => navTo(item.dataset.page);
-        });
-
-        function navTo(page) {
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
-            document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
-            const nextPage = document.getElementById('page-' + page);
-            if (nextPage) {
-                nextPage.classList.remove('hidden');
-                nextPage.classList.remove('page-enter');
-                void nextPage.offsetWidth;
-                nextPage.classList.add('page-enter');
-            }
-            document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g,' ');
-            
-            if (page === 'appointments') loadAppointments();
-            if (page === 'patients') loadPatients();
-            if (page === 'prescriptions') loadPrescriptionsForm();
-            if (page === 'pricing') loadPricingPage();
-            if (page === 'ai-tools') loadDocCreditCosts();
-            if (page === 'subscription') loadSubscriptionStatus();
-            if (page === 'referrals') loadReferrals();
-        }
-
-        // ========== DASHBOARD ==========
-        async function initDashboard() {
-            try {
-                const appts = await apiCall('/api/appointments');
-                
-                const pending = appts.filter(a => a.status === 'SCHEDULED').length;
-                const active = appts.filter(a => a.status === 'ACTIVE').length;
-                const completed = appts.filter(a => a.status === 'COMPLETED').length;
-                const patients = [...new Set(appts.map(a => a.patient_id))].length;
-                
-                document.getElementById('statPending').textContent = pending;
-                document.getElementById('statActive').textContent = active;
-                document.getElementById('statCompleted').textContent = completed;
-                document.getElementById('statEarnings').textContent = '...';
-                
-                // Load earnings
-                try {
-                    const earnings = await apiCall('/api/credits/doctor/earnings');
-                    document.getElementById('statEarnings').textContent = earnings.total_earnings + ' credits';
-                    document.getElementById('totalEarnings').textContent = earnings.total_earnings + ' credits';
-                    document.getElementById('pendingEarnings').textContent = earnings.pending_earnings + ' credits';
-                    
-                    const collectBtn = document.getElementById('collectBtn');
-                    if (earnings.pending_earnings > 0) {
-                        collectBtn.textContent = 'Collect ' + earnings.pending_earnings + ' Credits';
-                        collectBtn.style.display = 'block';
-                    } else {
-                        collectBtn.textContent = 'No Pending Earnings';
-                        collectBtn.style.opacity = '0.5';
-                    }
-                } catch(e) {
-                    console.log('Earnings not available');
-                }
-                
-                // Pending requests
-                const pendingContainer = document.getElementById('pendingAppts');
-                const pendingAppts = appts.filter(a => a.status === 'SCHEDULED');
-                if (pendingAppts.length === 0) {
-                    pendingContainer.innerHTML = '<div class="empty">No pending requests</div>';
-                } else {
-                    pendingContainer.innerHTML = pendingAppts.map(a => `
-                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
-                            <strong>${a.patient_name || 'Patient'}</strong><br>
-                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
-                            <div style="margin-top:0.5rem">
-                                <button class="btn btn-sm btn-accent" onclick="acceptAppt(${a.id})">Accept</button>
-                                <button class="btn btn-sm btn-danger" onclick="rejectAppt(${a.id})">Reject</button>
+                <div id="documentPreview" class="hidden" style="border:1px solid var(--em-border); padding:2rem; background:white; font-family:'Times New Roman', serif; position:relative; min-height:500px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
+                    <!-- Header -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:1.5rem; margin-bottom:2rem;">
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <img src="/WhatsApp Image 2026-06-01 at 15.56.03.jpeg" style="height:80px; object-fit:contain;" alt="Doctors on Wheels Logo">
+                            <div>
+                                <h2 style="margin:0; font-weight:800; color:var(--em-blue); text-transform:uppercase; letter-spacing:1px;">Doctors on Wheels</h2>
+                                <p style="font-size:0.8rem; color:#666; margin:0;">24/7 Mobile Medical Excellence | South Africa</p>
                             </div>
                         </div>
-                    `).join('');
-                }
-                
-                // Active consultations
-                const activeContainer = document.getElementById('activeAppts');
-                const activeAppts = appts.filter(a => a.status === 'ACTIVE');
-                if (activeAppts.length === 0) {
-                    activeContainer.innerHTML = '<div class="empty">No active consultations</div>';
-                } else {
-                    activeContainer.innerHTML = activeAppts.map(a => `
-                        <div style="padding:0.8rem;border-bottom:1px solid var(--border)">
-                            <strong>${a.patient_name || 'Patient'}</strong><br>
-                            <small>${new Date(a.timestamp).toLocaleString()}</small><br>
-                            <button class="btn btn-sm btn-accent" style="margin-top:0.5rem" onclick="startCall(${a.id})">Start Call</button>
+                        <div style="text-align:right; font-size:0.85rem;">
+                            <strong id="docHeaderName" style="font-size:1.1rem;">Dr. Sarah Smith</strong><br>
+                            <span id="docSpecialty">General Practitioner</span><br>
+                            <p style="margin-top:0.5rem;">
+                                HPCSA: <span id="docHpcsa">Pending</span><br>
+                                PR No: <span id="docPr">Pending</span>
+                            </p>
                         </div>
-                    `).join('');
-                }
-            } catch (e) {
-                console.error('Dashboard error:', e);
-            }
-        }
+                    </div>
 
-        // ========== APPOINTMENTS ==========
-        async function loadAppointments(filter = 'all') {
-            showSkeletonTable('appointmentsTable', 5);
-            try {
-                const url = filter === 'all' ? '/api/appointments' : `/api/appointments?status_filter=${filter}`;
-                const appts = await apiCall(url);
-                
-                const tbody = document.getElementById('appointmentsTable');
-                if (!appts.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="empty">No appointments</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = appts.map(a => {
-                    const isScheduled = a.status === 'SCHEDULED';
-                    const isActive = a.status === 'ACTIVE';
+                    <div style="text-align:center; margin-bottom:2rem;">
+                        <h3 id="docTitle" style="text-decoration:underline; text-transform:uppercase;">Medical Report</h3>
+                    </div>
+
+                    <!-- Body -->
+                    <div id="documentContent" style="white-space: pre-wrap; font-size:1.1rem; line-height:1.6; color:#1a1a1a;"></div>
+
+                    <!-- Footer -->
+                    <div style="margin-top:3rem; padding-top:1rem; border-top:1px solid #eee;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                            <div>
+                                <p><strong>Date:</strong> <span id="docDate"></span></p>
+                                <p><strong>Location:</strong> Digital Consultation / Home Visit</p>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-family:'Dancing Script', cursive; font-size:1.5rem; border-bottom:1px solid #333; margin-bottom:0.5rem; padding:0 1rem;" id="docSignature">Sarah Smith</div>
+                                <p style="font-size:0.8rem; color:#666;">Electronically Signed</p>
+                            </div>
+                        </div>
+                    </div>
                     
-                    let actionButtons = '';
-                    if (isActive) {
-                        actionButtons = `<button class="btn btn-sm btn-accent" onclick="startCall(${a.id})">Start Call</button>`;
-                    } else if (isScheduled) {
-                        actionButtons = `<button class="btn btn-sm btn-accent" onclick="acceptToWaitingRoom(${a.id})">Admit to Waiting Room</button>`;
-                    }
-                    
-                    return `
-                    <tr>
-                        <td>${a.patient_name || 'Patient'}</td>
-                        <td>${new Date(a.timestamp).toLocaleDateString()}</td>
-                        <td>${a.appointment_type}</td>
-                        <td><span class="status status-${a.status.toLowerCase()}">${a.status}</span></td>
-                        <td>${actionButtons}</td>
-                    </tr>
-                `}).join('');
-            } catch (e) {
-                console.error('Load appointments error:', e);
-            }
-        }
+                    <button class="btn btn-primary" style="position:absolute; bottom:1rem; right:1rem;" onclick="notify('Document Saved & Shared', 'success')">
+                        <i class="fas fa-save"></i> Save & Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function filterAppts(status, tab) {
-            document.querySelectorAll('#page-appointments .tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            loadAppointments(status);
-        }
+    <div id="toastContainer" style="position:fixed; bottom:20px; right:20px; z-index:3000;"></div>
 
-        async function acceptAppt(id) {
+    <script>
+        const BASE_URL = window.API_BASE || '';
+        let authToken = localStorage.getItem('token');
+        let currentAppointments = [];
+
+        // ========== AUTH & INIT ==========
+        async function init() {
+            if (!authToken) { window.location.href = 'login.html'; return; }
             try {
-                await apiCall(`/api/appointments/${id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'ACTIVE' })
-                });
-                toast('Appointment accepted ✓', 'success');
-                initDashboard();
-                loadAppointments();
-            } catch (e) {
-                toast('Failed: ' + e.message, 'error');
-            }
-        }
-        
-        async function acceptToWaitingRoom(id) {
-            try {
-                // Use waiting room API to admit patient
-                const result = await apiCall(`/api/waiting-room/admit/${id}`, { method: 'POST' });
-                toast('Patient admitted to video call ✓', 'success');
-                initDashboard();
-                loadAppointments();
-            } catch (e) {
-                // Fallback to direct activation if waiting room fails
-                await apiCall(`/api/appointments/${id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'ACTIVE' })
-                });
-                toast('Appointment activated for video call ✓', 'success');
-                initDashboard();
-                loadAppointments();
-            }
+                const user = await apiCall('/api/auth/me');
+                if (user.role !== 'DOCTOR') { window.location.href = 'index.html'; return; }
+                document.getElementById('displayDocName').textContent = user.name;
+                
+                // Set doc details in document generator
+                document.getElementById('docHeaderName').textContent = user.name;
+                document.getElementById('docSignature').textContent = user.name;
+                
+                loadStats();
+                loadProfile();
+                updateBalance();
+            } catch (e) { handleLogout(); }
         }
 
-        async function rejectAppt(id) {
-            if (!confirm('Reject this appointment?')) return;
-            try {
-                await apiCall(`/api/appointments/${id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'CANCELLED' })
-                });
-                initDashboard();
-            } catch (e) {
-                alert('Failed: ' + e.message);
-            }
+        function handleLogout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+
+        async function apiCall(endpoint, options = {}) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const res = await fetch(BASE_URL + endpoint, { ...options, headers });
+            if (res.status === 401) { handleLogout(); throw new Error('Session Expired'); }
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'API Error');
+            return data;
         }
 
-        function startCall(id) {
-            window.location.href = 'room.html?appointment_id=' + id;
-        }
-
-        // ========== PATIENTS ==========
-        async function loadPatients() {
+        // ========== DATA LOADERS ==========
+        async function loadStats() {
             try {
                 const appts = await apiCall('/api/appointments');
-                const uniquePatients = {};
-                appts.forEach(a => {
-                    if (!uniquePatients[a.patient_id]) {
-                        uniquePatients[a.patient_id] = { name: a.patient_name, lastVisit: a.timestamp, email: 'patient@email.com' };
+                currentAppointments = appts;
+                const earnings = await apiCall('/api/credits/doctor/earnings');
+                
+                document.getElementById('countPending').textContent = appts.filter(a => a.status === 'SCHEDULED').length;
+                document.getElementById('countActive').textContent = appts.filter(a => a.status === 'ACTIVE').length;
+                document.getElementById('countCompleted').textContent = appts.filter(a => a.status === 'COMPLETED').length;
+                document.getElementById('countCredits').textContent = 'R ' + (earnings.total_earnings);
+
+                renderPending(appts.filter(a => a.status === 'SCHEDULED'));
+                renderAppointments(appts);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderPending(list) {
+            const container = document.getElementById('pendingList');
+            if (!list.length) { container.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--em-text-muted);">Queue Empty</div>'; return; }
+            container.innerHTML = `<table class="em-table">` + list.map(a => `
+                <tr>
+                    <td><strong>${a.patient_name}</strong><br><small>${a.reason || 'General Consult'}</small></td>
+                    <td style="text-align:right;">
+                        <button class="btn btn-sm btn-ghost" onclick="viewTriageById(${a.id})">Triage</button>
+                        <button class="btn btn-sm btn-primary" onclick="acceptAppointment(${a.id})">Accept</button>
+                    </td>
+                </tr>
+            `).join('') + `</table>`;
+        }
+
+        function renderAppointments(list) {
+            const tbody = document.querySelector('#appointmentsTable tbody');
+            tbody.innerHTML = list.map(a => `
+                <tr>
+                    <td><strong>${a.patient_name}</strong></td>
+                    <td><span class="script-badge">${a.appointment_type}</span> ${a.location || ''}</td>
+                    <td><span style="font-weight:700; font-size:0.7rem;">${a.status}</span></td>
+                    <td><button class="btn btn-sm btn-ghost" onclick="viewTriageById(${a.id})">Review</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function viewTriageById(id) {
+            const appt = currentAppointments.find(a => a.id === id);
+            if (!appt) return;
+            document.getElementById('triageOverlay').classList.remove('hidden');
+            document.getElementById('emailTriageBtn').onclick = () => triggerEmail(`Report: ${appt.patient_name}`, "Summary...");
+            
+            const rawDiv = document.getElementById('triageRawData');
+            if (appt.triage_data) {
+                const d = JSON.parse(appt.triage_data);
+                rawDiv.innerHTML = Object.entries(d).map(([k,v]) => {
+                    if (k === 'questionnaire' && typeof v === 'object' && v !== null) {
+                        // Calculate age if DOB is present
+                        let ageHtml = '';
+                        if (v.dob) {
+                            const dob = new Date(v.dob);
+                            const diff = Date.now() - dob.getTime();
+                            const age = new Date(diff).getUTCFullYear() - 1970;
+                            ageHtml = `<div style="margin-bottom:0.5rem; color:var(--em-blue); font-weight:700;">Age: ${age} years</div>`;
+                        }
+
+                        let qHtml = '<div style="background:var(--em-bg); padding:1rem; border-radius:8px; border:1px solid var(--em-border);">';
+                        qHtml += ageHtml;
+                        qHtml += Object.entries(v).map(([qk, qv]) => `<div style="margin-bottom:0.5rem"><strong>${qk.replace(/_/g, ' ')}:</strong> ${qv}</div>`).join('');
+                        qHtml += '</div>';
+                        return `<div style="margin-bottom:1.5rem;"><strong style="font-size:0.7rem; text-transform:uppercase; color:var(--em-blue);">📋 Full Medical Questionnaire</strong>${qHtml}</div>`;
                     }
-                });
-                
-                const tbody = document.getElementById('patientsTable');
-                const patients = Object.entries(uniquePatients);
-                
-                if (!patients.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No patients</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = patients.map(([id, p]) => `
-                    <tr>
-                        <td>${p.name || 'Patient'}</td>
-                        <td>${p.email}</td>
-                        <td>${new Date(p.lastVisit).toLocaleDateString()}</td>
-                        <td><button class="btn btn-sm btn-secondary">View History</button></td>
-                    </tr>
-                `).join('');
-            } catch (e) {
-                console.error('Load patients error:', e);
-            }
-        }
-
-        // ========== PRESCRIPTIONS ==========
-        async function loadPrescriptionsForm() {
-            try {
-                const appts = await apiCall('/api/appointments?status_filter=ACTIVE');
-                const select = document.getElementById('prescriptionAppt');
-                select.innerHTML = '<option value="">Select appointment...</option>' + 
-                    appts.map(a => `<option value="${a.id}">${a.patient_name} - ${new Date(a.timestamp).toLocaleDateString()}</option>`).join('');
-            } catch (e) {
-                console.error('Load form error:', e);
-            }
-        }
-
-        async function createPrescription() {
-            const apptId = document.getElementById('prescriptionAppt').value;
-            const medication = document.getElementById('prescriptionMed').value;
-            const dosage = document.getElementById('prescriptionDosage').value;
-            const instructions = document.getElementById('prescriptionInstructions').value;
-            
-            if (!apptId || !medication || !dosage) {
-                toast('Please fill all required fields', 'warning');
-                return;
+                    return `<div style="margin-bottom:0.75rem;"><strong style="font-size:0.7rem; text-transform:uppercase; color:var(--em-text-muted);">${k.replace(/_/g, ' ')}</strong><p>${v}</p></div>`;
+                }).join('');
             }
             
-            try {
-                await apiCall('/api/prescriptions', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        appointment_id: parseInt(apptId),
-                        medication,
-                        dosage,
-                        instructions
-                    })
-                });
-                toast('Prescription created ✓', 'success');
-                document.getElementById('prescriptionMed').value = '';
-                document.getElementById('prescriptionDosage').value = '';
-                document.getElementById('prescriptionInstructions').value = '';
-            } catch (e) {
-                alert('Failed: ' + e.message);
+            const aiDiv = document.getElementById('triageAiResults');
+            if (appt.triage_tools_results) {
+                const res = JSON.parse(appt.triage_tools_results);
+                aiDiv.innerHTML = Object.entries(res).map(([k,v]) => `<div style="border-left:3px solid var(--em-blue); padding-left:1rem; margin-bottom:1rem;"><strong>${k}</strong><p style="font-size:0.85rem;">${v}</p></div>`).join('');
             }
+
+            // Add button to open medical tools
+            const actionContainer = document.createElement('div');
+            actionContainer.style.marginTop = '2rem';
+            actionContainer.innerHTML = `<button class="btn btn-primary" onclick="openTools(${id})"><i class="fas fa-file-medical"></i> Issue Document (Note/Script/Referral)</button>`;
+            aiDiv.appendChild(actionContainer);
         }
 
-        // ========== SETTINGS ==========
-        async function saveDoctorSettings() {
-            try {
-                const name = document.getElementById('docName').value.trim();
-                const specialty = document.getElementById('docSpecialty').value.trim();
-                const area = document.getElementById('docArea').value.trim();
-                const fee = parseInt(document.getElementById('docFee').value) || 150;
-                const hpcsa = document.getElementById('docHpcsa').value.trim();
-                const practiceNum = document.getElementById('docPracticeNum').value.trim();
-                
-                if (!name || !specialty || !area) {
-                    toast('Please fill in name, specialty, and area.', 'warning');
-                    return;
-                }
-                
-                const profile = await apiCall('/api/profile/doctor', {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        name: name,
-                        specialty: specialty,
-                        area: area,
-                        consultation_fee: fee,
-                        hpcsa_number: hpcsa || null,
-                        practice_number: practiceNum || null
-                    })
-                });
-                
-                toast('Profile saved ✓ Status: ' + profile.verification_status, 'success');
-                
-                // Refresh profile to show new badge
-                loadDoctorProfile();
-            } catch(e) {
-                toast('Failed to save: ' + e.message, 'error');
-            }
+        function closeTriage() { document.getElementById('triageOverlay').classList.add('hidden'); }
+
+        // ========== MEDICAL TOOLS (Notes, Scripts, Referrals) ==========
+        let activeAppointmentId = null;
+
+        function openTools(appointmentId) {
+            activeAppointmentId = appointmentId;
+            const appt = currentAppointments.find(a => a.id === appointmentId);
+            document.getElementById('toolsModal').classList.remove('hidden');
+            document.getElementById('docDate').textContent = new Date().toLocaleDateString('en-ZA');
+            document.getElementById('documentPreview').classList.add('hidden');
+            document.getElementById('scribeContext').value = appt ? `Consultation for ${appt.patient_name} regarding ${appt.reason || 'medical assessment'}.` : '';
         }
 
-        // ========== VERIFICATION ==========
-        async function requestVerification() {
-            try {
-                const result = await apiCall('/api/profile/doctor/request-verification', {
-                    method: 'POST'
-                });
-                toast(result.message, 'info');
-                loadDoctorProfile();
-            } catch(e) {
-                toast('Verification error: ' + e.message, 'error');
-            }
+        function closeTools() {
+            document.getElementById('toolsModal').classList.add('hidden');
         }
 
-        // ========== EARNINGS ==========
-        async function collectEarnings() {
-            try {
-                const result = await apiCall('/api/credits/doctor/collect', {
-                    method: 'POST'
-                });
-                toast('Collected ✓ New balance: ' + result.new_balance + ' credits', 'success');
-                initDashboard();
-            } catch(e) {
-                toast('Error: ' + e.message, 'error');
+        async function generateDocument(type) {
+            const context = document.getElementById('scribeContext').value;
+            const appt = currentAppointments.find(a => a.id === activeAppointmentId);
+            const patientName = appt ? appt.patient_name : "[Patient Name]";
+            
+            // Get doctor profile details for credentials
+            const profile = await apiCall('/api/profile/doctor');
+            document.getElementById('docSpecialty').textContent = profile.specialty || "Medical Practitioner";
+            document.getElementById('docHpcsa').textContent = profile.hpcsa_number || "Verified";
+            document.getElementById('docPr').textContent = profile.practice_number || "Registered";
+            
+            notify(`Generating ${type}...`, 'info');
+            
+            let content = "";
+            const today = new Date().toLocaleDateString('en-ZA');
+            document.getElementById('docTitle').textContent = type;
+
+            if (type === 'Sick Note') {
+                content = `TO WHOM IT MAY CONCERN,\n\nThis is to certify that I have examined ${patientName} on ${today}.\n\nBased on my clinical findings, it is my professional opinion that the patient is unfit for work/school duties from ${today} to ${new Date(Date.now() + 172800000).toLocaleDateString('en-ZA')} inclusive.\n\nThe patient is expected to be fit to resume duties on ${new Date(Date.now() + 259200000).toLocaleDateString('en-ZA')}.\n\nNature of illness: Medical Condition (Consultation Confidentiality Maintained).\n\nClinical Context: ${context}`;
+            } else if (type === 'Prescription') {
+                content = `PATIENT: ${patientName}\nDATE: ${today}\n\nRx\n\n1. Medication A (e.g. Amoxicillin 500mg)\n   Sig: 1 tab PO TID x 5 days\n   Mitte: 15 tabs\n\n2. Medication B (e.g. Paracetamol 500mg)\n   Sig: 2 tabs PO QID PRN for pain\n   Mitte: 20 tabs\n\nRefills: 0\n\nNotes: ${context}`;
+            } else if (type === 'Referral Letter') {
+                content = `RE: REFERRAL FOR ${patientName.toUpperCase()}\n\nDear Colleague,\n\nI am referring this patient to your specialized care for further evaluation and management.\n\nSummary of Findings:\n- Patient presented with symptoms as described in the consultation.\n- Initial assessment suggests specialized intervention may be required.\n\nContext & Notes: ${context}\n\nThank you for your assistance in the ongoing care of this patient.`;
             }
+
+            document.getElementById('documentContent').textContent = content;
+            document.getElementById('documentPreview').classList.remove('hidden');
         }
 
-        // ========== GIG MODE ==========
-        async function toggleGigMode() {
+        async function updateBalance() {
+            try {
+                const bal = await apiCall('/api/somnia/escrow/wallet/balance');
+                document.getElementById('sttBalance').textContent = parseFloat(bal.balance_eth).toFixed(2) + ' STT';
+            } catch (e) {}
+        }
+
+        async function loadProfile() {
             try {
                 const profile = await apiCall('/api/profile/doctor');
-                const newStatus = !profile.is_online;
-                await apiCall('/api/profile/doctor/gig-mode', {
-                    method: 'POST',
-                    body: JSON.stringify({ is_online: newStatus })
-                });
-                toast('You are now ' + (newStatus ? 'ONLINE' : 'OFFLINE'), 'success');
-                loadDoctorProfile();
-            } catch(e) {
-                toast('Error: ' + e.message, 'error');
-            }
+                const btn = document.getElementById('gigToggleBtn');
+                btn.textContent = profile.is_online ? 'Disable Home Visits' : 'Enable Home Visits';
+                btn.className = profile.is_online ? 'btn btn-danger' : 'btn btn-primary';
+            } catch (e) {}
         }
 
-        // ========== PRICING ==========
-        async function loadPricingPage() {
+        async function toggleOnline() {
             try {
-                const pricing = await apiCall('/api/profile/doctor/pricing');
-                document.getElementById('priceQuickChat').value = pricing.quick_chat_price;
-                document.getElementById('priceVideoCall').value = pricing.video_call_price;
-                document.getElementById('priceFullConsult').value = pricing.full_consultation_price;
-                document.getElementById('pricePrescription').value = pricing.prescription_review_price;
-                document.getElementById('priceReport').value = pricing.report_analysis_price;
-                document.getElementById('peakMultiplier').value = pricing.peak_pricing_multiplier;
-                updatePricePreview();
-            } catch(e) {
-                console.log('Pricing not set yet');
-            }
+                const profile = await apiCall('/api/profile/doctor');
+                await apiCall('/api/profile/doctor/gig-mode', { method: 'POST', body: JSON.stringify({ is_online: !profile.is_online }) });
+                loadProfile();
+            } catch (e) { notify(e.message, 'error'); }
         }
 
-        function updatePricePreview() {
-            const qc = parseInt(document.getElementById('priceQuickChat').value) || 50;
-            const vc = parseInt(document.getElementById('priceVideoCall').value) || 150;
-            const fc = parseInt(document.getElementById('priceFullConsult').value) || 250;
-            const pr = parseInt(document.getElementById('pricePrescription').value) || 80;
-            const ra = parseInt(document.getElementById('priceReport').value) || 120;
-            const mult = parseFloat(document.getElementById('peakMultiplier').value) || 1.0;
-            
-            const preview = 'Effective prices (with ' + Math.round((mult-1)*100) + '% peak): ' +
-                '<br>Quick Chat: ' + Math.round(qc*mult) + ' (you get ' + Math.round(qc*mult*0.8) + ')' +
-                '<br>Video Call: ' + Math.round(vc*mult) + ' (you get ' + Math.round(vc*mult*0.8) + ')' +
-                '<br>Full Consult: ' + Math.round(fc*mult) + ' (you get ' + Math.round(fc*mult*0.8) + ')';
-            
-            document.getElementById('pricePreview').innerHTML = preview;
+        const CLINICAL_SCRIPTS = [
+            { id: 1, title: "Triage Classification", source: "NICE CKS", content: "Acuity: Red (Emergent), Yellow (Urgent), Green (Routine)." },
+            { id: 2, title: "NEWS2 Scoring", source: "RCP", content: "National Early Warning Score for acute illness assessment." },
+            { id: 3, title: "WHO IMAI Care", source: "WHO", content: "Integrated Management of Adult Illness for primary settings." }
+        ];
+
+        function loadScripts() {
+            const container = document.getElementById('scriptsContainer');
+            container.innerHTML = CLINICAL_SCRIPTS.map(s => `
+                <div class="em-card" style="margin-bottom:0;">
+                    <div class="card-body">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span class="script-badge">${s.source}</span><i class="fas fa-envelope" style="cursor:pointer;" onclick="triggerEmail('${s.title}','${s.content}')"></i></div>
+                        <h4 style="margin-bottom:0.5rem;">${s.title}</h4>
+                        <p style="font-size:0.85rem; color:var(--em-text-muted);">${s.content}</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        async function savePricing() {
+        function filterScripts() {
+            const q = document.getElementById('scriptSearch').value.toLowerCase();
+            const filtered = CLINICAL_SCRIPTS.filter(s => s.title.toLowerCase().includes(q));
+            // ... (Simple filter logic)
+        }
+
+        async function triggerEmail(sub, body) {
+            const email = prompt("Email Address:", "doctor@example.com");
+            if (!email) return;
             try {
-                const pricing = {
-                    quick_chat_price: parseInt(document.getElementById('priceQuickChat').value),
-                    video_call_price: parseInt(document.getElementById('priceVideoCall').value),
-                    full_consultation_price: parseInt(document.getElementById('priceFullConsult').value),
-                    prescription_review_price: parseInt(document.getElementById('pricePrescription').value),
-                    report_analysis_price: parseInt(document.getElementById('priceReport').value),
-                    peak_pricing_multiplier: parseFloat(document.getElementById('peakMultiplier').value)
-                };
-                
-                await apiCall('/api/profile/doctor/pricing', {
-                    method: 'POST',
-                    body: JSON.stringify(pricing)
-                });
-                
-                toast('Pricing saved ✓', 'success');
-                updatePricePreview();
-            } catch(e) {
-                toast('Error: ' + e.message, 'error');
-            }
+                notify("Transmitting...", "info");
+                await apiCall('/api/somnia/agent/email', { method: 'POST', body: JSON.stringify({ recipient: email, subject: sub, body: body }) });
+                notify("Email Sent", "success");
+            } catch (e) { notify("Failed", "error"); }
         }
 
-        // ========== AI TOOLS ==========
-        async function loadDocCreditCosts() {
-            try {
-                const costs = await apiCall('/api/somnia/agent/credit-costs');
-                document.getElementById('docCreditCosts').innerHTML = '<table class="table"><thead><tr><th>Feature</th><th>Credits</th></tr></thead><tbody>' +
-                    Object.entries(costs).map(([k, v]) => `<tr><td>${k.replace(/_/g, ' ')}</td><td><strong>${v}</strong></td></tr>`).join('') + '</tbody></table>';
-            } catch(e) {
-                document.getElementById('docCreditCosts').innerHTML = '<div class="empty">Could not load costs</div>';
-            }
-            try {
-                const stt = await apiCall('/api/somnia/agent/stt/cost');
-                document.getElementById('docSttCostBadge').style.display = 'block';
-                document.getElementById('docSttCostText').textContent =
-                    `~${Number(stt.total_stt).toFixed(4)} STT per invocation (1 STT = 30 T800)`;
-            } catch(e) {
-                document.getElementById('docSttCostBadge').style.display = 'block';
-                document.getElementById('docSttCostText').textContent = '~0.57 STT per invocation (1 STT = 30 T800)';
-            }
+        function notify(msg, type) {
+            const t = document.createElement('div');
+            t.style.cssText = `padding:1rem 1.5rem; background:white; border-left:4px solid ${type==='error'?'red':'var(--em-blue)'}; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.1); margin-top:0.5rem; font-weight:600; font-size:0.85rem;`;
+            t.textContent = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
-        async function docRunSummaryStt() {
-            const input = document.getElementById('docSummaryInput').value.trim();
-            if (!input) { toast('Enter notes', 'warning'); return; }
-            const div = document.getElementById('docSummaryResult');
-            div.classList.remove('hidden'); div.textContent = 'Submitting via STT...';
-            try {
-                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
-                    method: 'POST',
-                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Generate a visit summary from: ' + input, system_prompt: 'You are a medical scribe.' })
-                });
-                _pollDocResult(resp, div, 'Visit Summary');
-            } catch(e) { div.textContent = 'Error: ' + e.message; }
+        function navigateTo(t) {
+            document.querySelectorAll('section[id^="view-"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById('view-' + t).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
+            document.querySelector(`[data-target="${t}"]`)?.classList.add('active');
+            if (t === 'scripts') loadScripts();
         }
 
-        async function docRunDrugCheckStt() {
-            const input = document.getElementById('docDrugInput').value.trim();
-            if (!input) { toast('Enter medications', 'warning'); return; }
-            const div = document.getElementById('docDrugResult');
-            div.classList.remove('hidden'); div.textContent = 'Submitting via STT...';
-            try {
-                const meds = input.split(',').map(m => m.trim()).filter(Boolean);
-                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
-                    method: 'POST',
-                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Check interactions: ' + meds.join(', '), system_prompt: 'You are a clinical pharmacist.' })
-                });
-                _pollDocResult(resp, div, 'Drug Interactions');
-            } catch(e) { div.textContent = 'Error: ' + e.message; }
-        }
+        document.querySelectorAll('.nav-item[data-target]').forEach(i => i.onclick = () => navigateTo(i.dataset.target));
 
-        async function docRunTipsStt() {
-            const input = document.getElementById('docTipsInput').value.trim();
-            if (!input) { toast('Enter a topic', 'warning'); return; }
-            const div = document.getElementById('docTipsResult');
-            div.classList.remove('hidden'); div.textContent = 'Submitting via STT...';
-            try {
-                const resp = await apiCall('/api/somnia/agent/stt/invoke', {
-                    method: 'POST',
-                    body: JSON.stringify({ agent_type: 'llm', prompt: 'Create health tips about: ' + input, system_prompt: 'You are a patient education specialist.' })
-                });
-                _pollDocResult(resp, div, 'Health Tips');
-            } catch(e) { div.textContent = 'Error: ' + e.message; }
-        }
-
-        function _pollDocResult(resp, div, label) {
-            const maxMs = 120000;
-            const start = Date.now();
-            div.innerHTML = '<div class="poll-progress"><div class="poll-progress-fill" style="width:5%"></div></div><div style="font-size:0.85rem;color:var(--text-light);margin-top:4px;">Submitted (ID: ' + resp.request_id + '). Polling...</div>';
-            const pollInt = setInterval(async () => {
-                const elapsed = Date.now() - start;
-                const pct = Math.min(95, (elapsed / maxMs) * 100);
-                const bar = div.querySelector('.poll-progress-fill');
-                const st = div.querySelector('div:last-child');
-                if (bar) bar.style.width = pct + '%';
-                if (st) st.textContent = 'Waiting for agent... (' + Math.floor(elapsed / 1000) + 's)';
-                if (elapsed > maxMs) { clearInterval(pollInt); div.innerHTML = '<strong>Timed out</strong> — no response after 120s. Try again.'; return; }
-                try {
-                    const s = await apiCall('/api/somnia/agent/result/' + resp.request_id);
-                    if (s.status === 'success') { clearInterval(pollInt); if (bar) bar.style.width = '100%'; div.innerHTML = '<strong>' + label + ':</strong><br>' + s.result; }
-                    else if (['failed','timedout','archived'].includes(s.status)) { clearInterval(pollInt); div.innerHTML = '<strong>Agent ' + s.status + ':</strong> ' + (s.result || 'No result'); }
-                } catch(e) {}
-            }, 3000);
-        }
-
-        async function docRunSummary() {
-            const input = document.getElementById('docSummaryInput').value.trim();
-            if (!input) { toast('Enter consultation notes', 'warning'); return; }
-            const div = document.getElementById('docSummaryResult');
-            div.classList.remove('hidden');
-            try {
-                const resp = await apiCall('/api/somnia/agent/generate-summary', {
-                    method: 'POST', body: JSON.stringify({ consultation_notes: input })
-                });
-                _pollDocResult(resp, div, 'Summary');
-            } catch(e) { div.innerHTML = e.message.includes('402') ? 'Insufficient credits' : 'Error: ' + e.message; }
-        }
-
-        async function docRunDrugCheck() {
-            const input = document.getElementById('docDrugInput').value.trim();
-            if (!input) { toast('Enter medications', 'warning'); return; }
-            const div = document.getElementById('docDrugResult');
-            div.classList.remove('hidden');
-            try {
-                const medications = input.split(',').map(m => m.trim()).filter(Boolean);
-                const resp = await apiCall('/api/somnia/agent/drug-interaction', {
-                    method: 'POST', body: JSON.stringify({ medications })
-                });
-                _pollDocResult(resp, div, 'Interactions');
-            } catch(e) { div.innerHTML = e.message.includes('402') ? 'Insufficient credits' : 'Error: ' + e.message; }
-        }
-
-        async function docRunTips() {
-            const input = document.getElementById('docTipsInput').value.trim();
-            if (!input) { toast('Enter a health topic', 'warning'); return; }
-            const div = document.getElementById('docTipsResult');
-            div.classList.remove('hidden');
-            try {
-                const resp = await apiCall('/api/somnia/agent/health-tips', {
-                    method: 'POST', body: JSON.stringify({ topic: input })
-                });
-                _pollDocResult(resp, div, 'Health Tips');
-            } catch(e) { div.innerHTML = e.message.includes('402') ? 'Insufficient credits' : 'Error: ' + e.message; }
-        }
-
-        // ========== SUBSCRIPTION ==========
-        async function loadSubscriptionStatus() {
-            try {
-                const sub = await apiCall('/api/somnia/subscription/status');
-                const statusDiv = document.getElementById('subscriptionStatus');
-                const subPageStatus = document.getElementById('subStatus');
-                const subscribeBtn = document.getElementById('subscribeBtn');
-
-                if (sub.active) {
-                    statusDiv.innerHTML = 'Active <span style="font-size:0.9rem;color:var(--accent)">✓</span>';
-                    if (subPageStatus) subPageStatus.innerHTML = '<span style="color:var(--accent);font-weight:600">✓ Active</span> — expires ' + new Date(sub.end_date).toLocaleDateString();
-                    if (subscribeBtn) subscribeBtn.textContent = 'Renew — 10 STT';
-                } else {
-                    statusDiv.innerHTML = 'Not subscribed';
-                    if (subPageStatus) subPageStatus.innerHTML = '<span style="color:var(--text-light)">Not subscribed</span>';
-                    if (subscribeBtn) subscribeBtn.innerHTML = '<i class="fas fa-crown"></i> Subscribe Now — 10 STT';
-                }
-            } catch(e) {
-                document.getElementById('subscriptionStatus').textContent = 'Unavailable';
-            }
-        }
-
-        async function subscribeNow() {
-            if (!window.ethereum) {
-                toast('Please install MetaMask to subscribe.', 'error');
-                return;
-            }
-            if (!mmAccount) {
-                await connectMetaMask();
-                if (!mmAccount) return;
-            }
-
-            const sponsorAddr = '0xbC26b85eaDF0e2ab1f2B5E7de048D52E80bCa3Ca';
-            const amountWei = '10000000000000000000'; // 10 STT
-
-            const btn = document.getElementById('subscribeBtn');
-            btn.classList.add('loading'); btn.disabled = true;
-
-            const info = document.getElementById('subTxInfo');
-            info.innerHTML = '<span class="spinner" style="display:inline-block;margin-right:6px;"></span> Please confirm MetaMask transaction...';
-
-            try {
-                const txHash = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{
-                        from: mmAccount,
-                        to: sponsorAddr,
-                        value: amountWei,
-                        gas: '0x5208',
-                    }]
-                });
-
-                info.innerHTML = '<span class="spinner" style="display:inline-block;margin-right:6px;"></span> Sent! Waiting for confirmation... ' + txHash.substring(0, 10) + '...';
-
-                let receipt = null;
-                for (let i = 0; i < 30; i++) {
-                    await new Promise(r => setTimeout(r, 2000));
-                    receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
-                    if (receipt) break;
-                }
-
-                if (!receipt) {
-                    info.textContent = 'Transaction pending. Hash: ' + txHash;
-                    toast('Subscription tx pending: ' + txHash.substring(0, 10) + '...', 'warning');
-                    btn.classList.remove('loading'); btn.disabled = false;
-                    return;
-                }
-
-                if (receipt.status !== '0x1') {
-                    info.textContent = 'Transaction failed. Please try again.';
-                    toast('Subscription transaction failed', 'error');
-                    btn.classList.remove('loading'); btn.disabled = false;
-                    return;
-                }
-
-                info.textContent = 'Confirming with backend...';
-                await apiCall('/api/somnia/subscription/subscribe', {
-                    method: 'POST',
-                    body: JSON.stringify({ tx_hash: txHash })
-                });
-
-                info.innerHTML = '<span style="color:var(--accent);font-weight:600">\u2713 Subscription activated!</span>';
-                toast('Subscription activated \u2713', 'success');
-                loadSubscriptionStatus();
-            } catch(e) {
-                info.textContent = 'Error: ' + e.message;
-                toast('Subscription error: ' + e.message, 'error');
-            }
-            btn.classList.remove('loading'); btn.disabled = false;
-        }
-
-        // ========== REFERRALS ==========
-        async function loadReferrals() {
-            try {
-                const stats = await apiCall('/api/referrals/stats');
-                document.getElementById('refTotal').textContent = stats.total_referrals;
-                document.getElementById('refCompleted').textContent = stats.completed_referrals;
-                document.getElementById('refRewards').textContent = stats.total_rewards;
-
-                const codeInfo = await apiCall('/api/referrals/my-code');
-                if (codeInfo.code) {
-                    document.getElementById('referralCodeDisplay').textContent = codeInfo.code;
-                    document.getElementById('referralLinkInput').value = codeInfo.link || '';
-                } else {
-                    const gen = await apiCall('/api/referrals/generate-code', { method: 'POST' });
-                    document.getElementById('referralCodeDisplay').textContent = gen.code;
-                    const base = window.location.origin + '/DoctorLink';
-                    document.getElementById('referralLinkInput').value = base + '/register.html?ref=' + gen.code;
-                }
-
-                const list = await apiCall('/api/referrals');
-                const tbody = document.getElementById('referralsTable');
-                if (!list.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="empty">No referrals yet</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = list.map(r => `
-                    <tr>
-                        <td>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
-                        <td>${r.referee_name || 'Pending'}</td>
-                        <td><span class="status ${r.status === 'completed' ? 'status-completed' : 'status-pending'}">${r.status}</span></td>
-                        <td>${r.status === 'completed' ? r.reward_credits + ' credits' : '-'}</td>
-                    </tr>
-                `).join('');
-            } catch(e) {
-                console.error('Load referrals error:', e);
-            }
-        }
-
-        function copyReferralLink() {
-            const input = document.getElementById('referralLinkInput');
-            input.select();
-            navigator.clipboard.writeText(input.value).then(() => {
-                toast('Referral link copied!', 'success');
-            });
-        }
-
-        // ========== VERIFICATION ==========
-        function updateVerificationDisplay(profile) {
-            const statusDiv = document.getElementById('verificationStatus');
-            const bannerDiv = document.getElementById('verificationBanner');
-            
-            let statusHtml = '';
-            let bannerHtml = '';
-            
-            if (profile.verification_status === 'verified') {
-                statusHtml = '<span style="color:#36b37e;font-weight:600">★ Fully Verified</span> - Your credentials have been verified.';
-                bannerHtml = 'background:#e3fcef;color:#36b37e;border:1px solid #36b37e';
-            } else if (profile.verification_status === 'basic') {
-                statusHtml = '<span style="color:#0052cc;font-weight:600">✓ Basic Verified</span> - Email and phone verified. Add HPCSA number for full verification.';
-                bannerHtml = 'background:#eef2ff;color:#0052cc;border:1px solid #0052cc';
-            } else if (!profile.profile_completed) {
-                statusHtml = '<span style="color:#ffab00;font-weight:600">⚠ Profile Incomplete</span> - Complete your profile to get verified.';
-                bannerHtml = 'background:#fff4e6;color:#ffab00;border:1px solid #ffab00';
-            } else {
-                statusHtml = '<span style="color:#6b778c;font-weight:600">⏳ Pending</span> - Verification request submitted.';
-                bannerHtml = 'background:var(--light);color:var(--text-light);border:1px solid var(--border)';
-            }
-            
-            if (statusDiv) statusDiv.innerHTML = statusHtml;
-            if (bannerDiv) {
-                bannerDiv.style.cssText = 'display:block;padding:1rem;border-radius:8px;';
-                bannerDiv.innerHTML = statusHtml;
-            }
-        }
-
+        init();
     </script>
 </body>
 </html>

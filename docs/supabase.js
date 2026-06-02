@@ -1,4 +1,4 @@
-// Supabase Client for DoctorLink
+// Supabase Client for Doctors on Wheels
 // Include this in HTML files that need authentication
 
 const SUPABASE_URL = 'https://jvsfhrekkkhijneqngax.supabase.co';
@@ -9,7 +9,7 @@ let currentUser = null;
 let supabaseSession = null;
 
 // Initialize Supabase (mock for static HTML - will be replaced by real client)
-class DoctorLinkSupabase {
+class Doctors on WheelsSupabase {
     constructor() {
         this.authState = null;
     }
@@ -141,7 +141,7 @@ class DoctorLinkSupabase {
 }
 
 // Create global instance
-const supabase = new DoctorLinkSupabase();
+const supabase = new Doctors on WheelsSupabase();
 
 // Check for existing session
 const savedUser = localStorage.getItem('dl_current_user');

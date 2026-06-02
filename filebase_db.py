@@ -4,6 +4,7 @@ Read/write only the affected file per operation.
 """
 
 import json
+import os
 import threading
 from datetime import datetime, date
 from enum import Enum
@@ -94,19 +95,62 @@ def _from_dict(model_class, data):
 
 
 def load_table(model_class):
-    """Fetch a table's JSON from Filebase (or cache), return list of dicts."""
+    """Fetch a table's JSON from Filebase (or local cache/file), return list of dicts."""
     name = _table_name(model_class)
+    local_path = f"local_db/{name}"
+
     with _lock:
         if name in _cache:
             return _cache[name]
+    
+    # Fallback to local files if credentials missing
+    if not ACCESS_KEY or not SECRET_KEY:
+        if os.path.exists(local_path):
+            try:
+                with open(local_path, "r") as f:
+                    data = json.load(f)
+                with _lock:
+                    _cache[name] = data
+                return data
+            except Exception as e:
+                print(f"Error reading local file {local_path}: {e}")
+
+        # If no local file, use seed data or empty
+        with _lock:
+            if name not in _cache:
+                from seed_filebase import DEMO_USERS, DEMO_DOCTORS, DEMO_APPOINTMENTS
+                if name == "Profiles.json":
+                    _cache[name] = DEMO_USERS
+                elif name == "Doctors.json":
+                    _cache[name] = DEMO_DOCTORS
+                elif name == "appointments.json":
+                    _cache[name] = DEMO_APPOINTMENTS
+                else:
+                    _cache[name] = []
+            return _cache[name]
+
     try:
         resp = _client().get_object(Bucket=BUCKET, Key=f"db/{name}")
         data = json.loads(resp["Body"].read())
     except ClientError as e:
-        if e.response["Error"]["Code"] == "NoSuchKey":
-            data = []
+        if e.response["Error"]["Code"] in ("NoSuchKey", "404"):
+            # Also auto-seed demo data if Filebase is empty
+            from seed_filebase import DEMO_USERS, DEMO_DOCTORS, DEMO_APPOINTMENTS
+            if name == "Profiles.json":
+                data = DEMO_USERS
+            elif name == "Doctors.json":
+                data = DEMO_DOCTORS
+            elif name == "appointments.json":
+                data = DEMO_APPOINTMENTS
+            else:
+                data = []
         else:
-            raise
+            print(f"Filebase Error loading {name}: {e}")
+            data = []
+    except Exception as e:
+        print(f"Unexpected Error loading {name}: {e}")
+        data = []
+
     with _lock:
         _cache[name] = data
     return data
@@ -148,8 +192,9 @@ def _make_id(model_class):
 class FilebaseQuery:
     """Replacement for SQLAlchemy Query — supports filter, order_by, first, all, count, delete."""
 
-    def __init__(self, model_class):
+    def __init__(self, model_class, session=None):
         self._model = model_class
+        self._session = session
         self._filters = []
         self._order = []
         self._offset_val = None
@@ -211,7 +256,12 @@ class FilebaseQuery:
         if self._limit_val:
             results = results[:self._limit_val]
 
-        return [_from_dict(self._model, r) for r in results]
+        objs = [_from_dict(self._model, r) for r in results]
+        # Auto-track objects in session
+        if self._session:
+            for obj in objs:
+                self._session.merge(obj)
+        return objs
 
     def all(self):
         return self._rows()
@@ -369,10 +419,10 @@ class FilebaseSession:
     def __init__(self):
         self._new = []
         self._deleted = []
-        self._modified = set()
+        self._modified = {} # (model_class, pk_val) -> obj
 
     def query(self, model_class):
-        return FilebaseQuery(model_class)
+        return FilebaseQuery(model_class, session=self)
 
     @staticmethod
     def _apply_defaults(obj):
@@ -404,7 +454,7 @@ class FilebaseSession:
         pk = _get_pk(obj.__class__)
         pk_val = getattr(obj, pk, None)
         if pk_val is not None:
-            self._modified.add((obj.__class__, pk_val))
+            self._modified[(obj.__class__, pk_val)] = obj
         return obj
 
     def commit(self):
@@ -439,26 +489,39 @@ class FilebaseSession:
             mark_dirty(model)
 
         # 3. Modified objects (from merge)
-        for model_class, pk_val in self._modified:
+        for (model_class, pk_val), obj in self._modified.items():
             name = _table_name(model_class)
+            d = _to_dict(obj)
+            pk = _get_pk(model_class)
             with _lock:
                 rows = _cache.get(name, [])
-            for i, r in enumerate(rows):
-                if r.get(_get_pk(model_class)) == pk_val:
-                    rows[i] = r
-                    break
+                for i, r in enumerate(rows):
+                    if r.get(pk) == pk_val:
+                        rows[i] = d
+                        break
             mark_dirty(model_class)
 
-        # 4. Flush all dirty tables to Filebase
+        # 4. Flush all dirty tables to Filebase (or local files)
         for name in list(_dirty_tables):
             with _lock:
                 data = _cache.get(name, [])
-            body = json.dumps(data, default=str, indent=2).encode("utf-8")
+            body_str = json.dumps(data, default=str, indent=2)
+            
+            if not ACCESS_KEY or not SECRET_KEY:
+                # Save to local file
+                local_path = f"local_db/{name}"
+                try:
+                    with open(local_path, "w") as f:
+                        f.write(body_str)
+                except Exception as e:
+                    print(f"Error saving local file {local_path}: {e}")
+                continue
+
+            body = body_str.encode("utf-8")
             try:
                 _client().put_object(Bucket=BUCKET, Key=f"db/{name}", Body=body)
             except Exception as e:
                 print(f"[Filebase] Commit error for {name}: {e}")
-                raise
 
         with _lock:
             _dirty_tables.clear()

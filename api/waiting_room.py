@@ -7,7 +7,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -46,14 +46,18 @@ def get_waiting_room(
             status_code=status.HTTP_404_NOT_FOUND, detail="Doctor profile not found"
         )
 
-    # Get appointments that are SCHEDULED and at or past their time
+    # Get appointments that are SCHEDULED and patient has joined
+    # We allow seeing them up to 30 mins before their time if they are waiting
     now = datetime.utcnow()
+    buffer = now + timedelta(minutes=30)
+    
     appointments = (
         db.query(Appointment)
         .filter(
             Appointment.doctor_id == doctor.id,
             Appointment.status == "SCHEDULED",
-            Appointment.timestamp <= now,
+            Appointment.teleconsultation_status == "waiting",
+            Appointment.timestamp <= buffer,
         )
         .order_by(Appointment.timestamp.asc())
         .all()
@@ -102,16 +106,18 @@ def join_waiting_room(
     if appointment.status != "SCHEDULED":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Appointment is not in scheduled state",
+            detail=f"Appointment is {appointment.status}, not SCHEDULED",
         )
 
-    # Check if appointment time has arrived or passed
+    # Check if appointment time is too far in future
     now = datetime.utcnow()
-    if appointment.timestamp > now:
+    buffer = now + timedelta(minutes=30)
+    
+    if appointment.timestamp > buffer:
         wait_seconds = (appointment.timestamp - now).total_seconds()
         minutes_until = int(wait_seconds / 60)
         return {
-            "message": f"Appointment starts in {minutes_until} minutes",
+            "message": f"Appointment starts in {minutes_until} minutes. You can join 30 minutes before.",
             "waiting": False,
             "appointment_time": appointment.timestamp.isoformat(),
         }
@@ -127,7 +133,7 @@ def join_waiting_room(
             Appointment.doctor_id == appointment.doctor_id,
             Appointment.status == "SCHEDULED",
             Appointment.teleconsultation_status == "waiting",
-            Appointment.timestamp <= now,
+            Appointment.timestamp <= buffer,
         )
         .all()
     )

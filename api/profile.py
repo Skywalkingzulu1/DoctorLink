@@ -12,10 +12,50 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 
-from database import get_db, Doctor, User
+from database import get_db, Doctor, User, Patient
 from auth import get_current_user
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
+
+class PatientProfileUpdate(BaseModel):
+    preferred_name: str | None = None
+    dob: str | None = None
+    gender: str | None = None
+    pronouns: str | None = None
+    marital_status: str | None = None
+    language: str | None = None
+    address: str | None = None
+    emergency_contact_json: str | None = None
+    insurance_json: str | None = None
+    pharmacy_json: str | None = None
+    referral_json: str | None = None
+    medical_history_json: str | None = None
+    lifestyle_json: str | None = None
+    preventive_json: str | None = None
+    mental_health_json: str | None = None
+
+class PatientProfileResponse(BaseModel):
+    id: int
+    user_id: int
+    email: str | None = None
+    preferred_name: str | None
+    dob: str | None
+    gender: str | None
+    pronouns: str | None
+    marital_status: str | None
+    language: str | None
+    address: str | None
+    emergency_contact_json: str | None
+    insurance_json: str | None
+    pharmacy_json: str | None
+    referral_json: str | None
+    medical_history_json: str | None
+    lifestyle_json: str | None
+    preventive_json: str | None
+    mental_health_json: str | None
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DoctorPricingUpdate(BaseModel):
@@ -349,3 +389,109 @@ def request_verification(
             "message": "Verification request submitted. Please add your HPCSA number for full verification.",
             "status": doctor.verification_status,
         }
+
+@router.get("", response_model=PatientProfileResponse)
+@router.get("/patient", response_model=PatientProfileResponse)
+def get_my_patient_profile(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """Get current patient's profile. Supports both /api/profile and /api/profile/patient."""
+    if current_user.role != "PATIENT":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only patients can access this endpoint",
+        )
+
+    patient = db.query(Patient).filter(Patient.user_id == current_user.id).first()
+    if not patient:
+        # Create it if it doesn't exist for some reason
+        patient = Patient(user_id=current_user.id, preferred_name=current_user.name)
+        db.add(patient)
+        db.commit()
+        db.refresh(patient)
+
+    # Convert created_at to string for response
+    patient_dict = {
+        "id": patient.id,
+        "user_id": patient.user_id,
+        "email": current_user.email,
+        "preferred_name": patient.preferred_name,
+        "dob": patient.dob,
+        "gender": patient.gender,
+        "pronouns": patient.pronouns,
+        "marital_status": patient.marital_status,
+        "language": patient.language,
+        "address": patient.address,
+        "emergency_contact_json": patient.emergency_contact_json,
+        "insurance_json": patient.insurance_json,
+        "pharmacy_json": patient.pharmacy_json,
+        "referral_json": patient.referral_json,
+        "medical_history_json": patient.medical_history_json,
+        "lifestyle_json": patient.lifestyle_json,
+        "preventive_json": patient.preventive_json,
+        "mental_health_json": patient.mental_health_json,
+        "created_at": patient.created_at.isoformat() if patient.created_at else "",
+    }
+    return patient_dict
+
+@router.put("/patient", response_model=PatientProfileResponse)
+def update_patient_profile(
+    request: PatientProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update current patient's profile."""
+    if current_user.role != "PATIENT":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only patients can access this endpoint",
+        )
+
+    patient = db.query(Patient).filter(Patient.user_id == current_user.id).first()
+    if not patient:
+        patient = Patient(user_id=current_user.id, preferred_name=current_user.name)
+        db.add(patient)
+    
+    # Update fields
+    if request.preferred_name is not None: patient.preferred_name = request.preferred_name
+    if request.dob is not None: patient.dob = request.dob
+    if request.gender is not None: patient.gender = request.gender
+    if request.pronouns is not None: patient.pronouns = request.pronouns
+    if request.marital_status is not None: patient.marital_status = request.marital_status
+    if request.language is not None: patient.language = request.language
+    if request.address is not None: patient.address = request.address
+    if request.emergency_contact_json is not None: patient.emergency_contact_json = request.emergency_contact_json
+    if request.insurance_json is not None: patient.insurance_json = request.insurance_json
+    if request.pharmacy_json is not None: patient.pharmacy_json = request.pharmacy_json
+    if request.referral_json is not None: patient.referral_json = request.referral_json
+    if request.medical_history_json is not None: patient.medical_history_json = request.medical_history_json
+    if request.lifestyle_json is not None: patient.lifestyle_json = request.lifestyle_json
+    if request.preventive_json is not None: patient.preventive_json = request.preventive_json
+    if request.mental_health_json is not None: patient.mental_health_json = request.mental_health_json
+
+    db.commit()
+    db.refresh(patient)
+
+    # Convert created_at to string for response
+    patient_dict = {
+        "id": patient.id,
+        "user_id": patient.user_id,
+        "email": current_user.email,
+        "preferred_name": patient.preferred_name,
+        "dob": patient.dob,
+        "gender": patient.gender,
+        "pronouns": patient.pronouns,
+        "marital_status": patient.marital_status,
+        "language": patient.language,
+        "address": patient.address,
+        "emergency_contact_json": patient.emergency_contact_json,
+        "insurance_json": patient.insurance_json,
+        "pharmacy_json": patient.pharmacy_json,
+        "referral_json": patient.referral_json,
+        "medical_history_json": patient.medical_history_json,
+        "lifestyle_json": patient.lifestyle_json,
+        "preventive_json": patient.preventive_json,
+        "mental_health_json": patient.mental_health_json,
+        "created_at": patient.created_at.isoformat() if patient.created_at else ""
+    }
+    return patient_dict

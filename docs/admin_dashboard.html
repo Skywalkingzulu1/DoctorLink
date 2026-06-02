@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>T-800 Admin Dashboard — DoctorLink</title>
-<script src="config.js"></script>
+<title>T-800 Admin Dashboard — Doctors on Wheels</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh; }
@@ -249,7 +248,7 @@ function toast(msg, type = 'info', duration = 4000) {
 }
 
 // ========== FORMAT HELPERS ==========
-const BASE = window.API_BASE_URL + '/api/somnia/admin';
+const BASE = '/api/somnia/admin';
 
 function fmt(n, decimals = 18) {
   if (n === null || n === undefined || n === 0) return '0.00';
