@@ -58,6 +58,8 @@ def initiate_yoco_payment(
     payload = {
         "amount": amount_cents,
         "currency": "ZAR",
+        "successUrl": f"{settings.FRONTEND_URL}/index.html?payment=success&appt={appointment.id}",
+        "cancelUrl": f"{settings.FRONTEND_URL}/index.html?payment=cancel",
         # Including metadata so the webhook can identify the transaction
         "metadata": {
             "transaction_id": str(transaction.id),

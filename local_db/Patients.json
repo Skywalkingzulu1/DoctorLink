@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "preferred_name": "Test Patient",
+    "dob": "1990-01-01",
+    "gender": "Male",
+    "pronouns": "he/him",
+    "marital_status": "Single",
+    "language": "English",
+    "address": "123 Test St",
+    "emergency_contact_json": null,
+    "insurance_json": null,
+    "pharmacy_json": null,
+    "referral_json": null,
+    "medical_history_json": null,
+    "lifestyle_json": null,
+    "preventive_json": null,
+    "mental_health_json": null,
+    "created_at": "2026-05-18T19:46:22"
+  }
+]

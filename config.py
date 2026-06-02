@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     # Base URL for redirects and callbacks
     BASE_URL: str = os.getenv("BASE_URL", "https://doctorlink-knmy.onrender.com")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://skywalkingzulu1.github.io/DoctorLink")
 
     # Security
     SECRET_KEY: str = "EDl0AWauTZ6wPbkcqhmydRpHMXFits2exINC4KzOf9o85vjn"
