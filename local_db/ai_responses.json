@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "request_id": 3996512,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": null,
+    "status": "pending",
+    "created_at": null
+  },
+  {
+    "id": 2,
+    "request_id": 3996686,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": null,
+    "status": "pending",
+    "created_at": null
+  },
+  {
+    "id": 3,
+    "request_id": 3996825,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": null,
+    "status": "pending",
+    "created_at": null
+  },
+  {
+    "id": 4,
+    "request_id": 3996898,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": null,
+    "status": "pending",
+    "created_at": null
+  },
+  {
+    "id": 5,
+    "request_id": 3996950,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": null,
+    "status": "pending",
+    "created_at": null
+  },
+  {
+    "id": 6,
+    "request_id": 4001579,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": "**Triage Assessment:**\n\n1. **Urgency Level:** Low  \n   A headache alone, without other concerning symptoms, is typically not an emergency. However, the urgency level may increase if additional red flags are present (e.g., sudden onset, severe pain, neurological changes, etc.).\n\n2. **Recommended Specialist:** Primary Care Physician or Neurologist (depending on frequency and severity)  \n   If the headache is occasional and not debilitating, a primary care physician can evaluate and manage it. If the headaches are frequent, severe, or accompanied by other symptoms, a neurologist may be appropriate.\n\n3. **Immediate Actions:**  \n   - Stay hydrated and rest in a quiet, dark room if possible.  \n   - Avoid overuse of pain medications (e.g., acetaminophen, ibuprofen) to prevent medication-overuse headaches.  \n   - Monitor for any new or worsening symptoms (e.g., fever, vision changes, confusion, seizures, or neck stiffness).  \n   - Seek immediate medical attention if the headache is sudden and severe (like a \"thunderclap\" headache), or if there are signs of a stroke, meningitis, or brain bleed (e.g., confusion, vomiting, sensitivity to light, neck stiffness, or loss of consciousness).\n\n**Disclaimer:** This is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for an accurate evaluation.",
+    "status": "success",
+    "created_at": "2026-06-02T09:46:17.886143"
+  },
+  {
+    "id": 7,
+    "request_id": 4001781,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": "I'll check for drug interactions, contraindications, and dosage concerns between **Aspirin** and **Relicalm** (which is **clonazepam**, a benzodiazepine).\n\n---\n\n### **1. Aspirin (Acetylsalicylic Acid)**\n- **Class**: Nonsteroidal anti-inflammatory drug (NSAID)\n- **Uses**: Pain relief, fever reduction, anti-inflammatory, and anticoagulant (at low doses)\n- **Mechanism**: Inhibits COX-1 and COX-2 enzymes, reduces platelet aggregation\n\n---\n\n### **2. Clonazepam (Relicalm)**\n- **Class**: Benzodiazepine\n- **Uses**: Anxiety, seizures, panic disorders\n- **Mechanism**: Enhances GABA activity, has sedative, anxiolytic, and anticonvulsant effects\n\n---\n\n## **Drug Interaction Check**\n\n### **1. Central Nervous System (CNS) Depression**\n- **Interaction**: **High Severity**\n- **Mechanism**: Both **aspirin** and **clonazepam** can cause **CNS depression**, though **aspirin** is more commonly associated with **gastrointestinal effects** and **bleeding risk**, while **clonazepam** is more directly sedating.\n- **Risk**: Increased drowsiness, dizziness, impaired coordination, and respiratory depression (especially in elderly or vulnerable patients).\n- **Recommendation**:\n  - Monitor for signs of excessive sedation.\n  - Avoid driving or operating heavy machinery.\n  - Use caution when combining with other CNS depressants (e.g., alcohol, opioids, sedatives).\n\n---\n\n### **2. Increased Risk of Gastrointestinal Bleeding**\n- **Interaction**: **Medium Severity**\n- **Mechanism**: **Aspirin** is an NSAID and can irritate the stomach lining, increasing the risk of **gastric ulcers and bleeding**.\n- **Clonazepam** itself does not increase this risk, but **combined with aspirin**, the risk may be **moderately elevated**, especially in patients with a history of GI issues.\n- **Recommendation**:\n  - Consider **proton pump inhibitor (PPI)** therapy (e.g., omeprazole) to protect the stomach.\n  - Avoid long-term or high-dose aspirin use if GI risk is high.\n  - Monitor for black, tarry stools or abdominal pain.\n\n---\n\n### **3. Bleeding Risk (Platelet Inhibition)**\n- **Interaction**: **Medium Severity**\n- **Mechanism**: **Aspirin** irreversibly inhibits platelet function, increasing the risk of bleeding.\n- **Clonazepam** does not directly affect platelet function, but **combined with aspirin**, there may be an **increased risk of bleeding**, especially in patients with co-morbid conditions or on other anticoagulants.\n- **Recommendation**:\n  - Monitor for signs of bleeding (e.g., bruising, nosebleeds, gum bleeding).\n  - Avoid other NSAIDs or anticoagulants (e.g., warfarin, clopidogrel) if possible.\n  - Use aspirin only as needed and at the lowest effective dose.\n\n---\n\n### **4. Pharmacokinetic Interactions**\n- **Interaction**: **Low Severity**\n- **Mechanism**: No significant **pharmacokinetic interactions** (i.e., no enzyme inhibition or induction) between **aspirin** and **clonazepam**.\n- **Recommendation**:\n  - No dose adjustments are typically required due to this interaction.\n  - However, **clonazepam** is metabolized by the liver (CYP450 system), and **aspirin** is not a strong CYP450 inhibitor, so this is unlikely to be a major issue.\n\n---\n\n## **Summary of Interactions**\n\n| Medication Pair | Interaction Type | Severity | Notes |\n|------------------|------------------|----------|-------|\n| Aspirin + Clonazepam | CNS Depression | **High** | Increased sedation, dizziness, impaired coordination |\n| Aspirin + Clonazepam | GI Bleeding Risk | **Medium** | Aspirin increases GI bleeding risk; clonazepam may contribute indirectly |\n| Aspirin + Clonazepam | Bleeding Risk | **Medium** | Aspirin's antiplatelet effect may be additive |\n| Aspirin + Clonazepam | Pharmacokinetic | **Low** | No significant interaction |\n\n---\n\n## **Recommendations**\n\n1. **Monitor for CNS effects**: Watch for excessive drowsiness, dizziness, or confusion. Avoid activities requiring mental alertness.\n2. **GI protection**: Consider a **PPI** (e.g., omeprazole) if using aspirin for an extended period.\n3. **Bleeding precautions**: Watch for signs of bleeding (e.g., bruising, black stools), especially if using aspirin regularly.\n4. **Avoid alcohol and other sedatives**: These can worsen CNS depression.\n5. **Use aspirin only as needed**: Avoid long-term or high-dose use unless prescribed.\n6. **Consult a healthcare provider** if you experience any unusual symptoms or side effects.\n\n---\n\nLet me know if you'd like to check for interactions with other medications or have specific patient details (e.g., age, liver/kidney function, other drugs).",
+    "status": "success",
+    "created_at": "2026-06-02T09:47:39.163303"
+  },
+  {
+    "id": 8,
+    "request_id": 4003205,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": null,
+    "status": "pending",
+    "created_at": "2026-06-02T09:55:04.150099"
+  },
+  {
+    "id": 9,
+    "request_id": 4003276,
+    "user_id": null,
+    "feature": "invoke",
+    "prompt": "on-chain",
+    "result": "**What is a Migraine?**  \nA migraine is a type of severe headache that can cause intense pain and often comes with other symptoms. It\u2019s more than just a bad headache. Migraines can last for hours or even days and can make it hard to do normal activities.\n\n**What Are the Symptoms of a Migraine?**  \nMigraine symptoms can vary from person to person, but common signs include:\n\n- Severe, throbbing pain, usually on one side of the head\n- Nausea or vomiting\n- Sensitivity to light, sound, or smells\n- Blurred vision or seeing spots or flashes of light\n- Feeling dizzy or weak\n- Some people have a \"warning\" before the headache starts, called an aura. This can include vision changes, tingling in the hands or face, or difficulty speaking.\n\n**How Can You Prevent Migraines?**  \nWhile you can\u2019t always stop a migraine, there are things you can do to reduce how often they happen:\n\n- Keep a regular sleep schedule (try to go to bed and wake up at the same time each day).\n- Stay hydrated and eat regular, balanced meals.\n- Avoid known triggers, such as certain foods (like chocolate, cheese, or processed meats), stress, strong smells, or bright lights.\n- Exercise regularly, but not too much or too hard.\n- Manage stress through relaxation techniques like deep breathing, meditation, or yoga.\n- Keep a headache diary to track when migraines happen and what might be causing them.\n\n**When Should You See a Doctor?**  \nYou should see a doctor if:\n\n- Migraines happen more than once a week.\n- Over-the-counter medicines don\u2019t help.\n- The pain is different from what you\u2019ve had before.\n- You have symptoms like confusion, fever, stiff neck, or trouble speaking.\n- You have a migraine for the first time after age 50.\n- You have a history of head injury or stroke.\n\n**Remember:** Migraines are common, and there are treatments and lifestyle changes that can help. Talk to your doctor to find the best way to manage your migraines.",
+    "status": "success",
+    "created_at": "2026-06-02T09:55:33.663906"
+  }
+]

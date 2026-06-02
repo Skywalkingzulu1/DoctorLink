@@ -1,5 +1,5 @@
 """
-Autonomous agents that run independently on DoctorLink.
+Autonomous agents that run independently on Doctors on Wheels.
 Demonstrates agent-native behavior for the Somnia Agentathon.
 """
 import asyncio

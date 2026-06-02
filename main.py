@@ -1,5 +1,5 @@
 """
-DoctorLink FastAPI Server with WebSocket Signaling and Somnia Agentic L1 Integration.
+Doctors on Wheels FastAPI Server with WebSocket Signaling and Somnia Agentic L1 Integration.
 """
 
 import os
@@ -60,7 +60,7 @@ sio = socketio.AsyncServer(
 
 # Create FastAPI app
 app = FastAPI(
-    title="DoctorLink API",
+    title="Doctors on Wheels API",
     description="South Africa's Healthcare Platform API",
     version="1.0.0",
 )

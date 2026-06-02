@@ -1,5 +1,5 @@
 """
-Authentication utilities for DoctorLink.
+Authentication utilities for Doctors on Wheels.
 """
 
 import os

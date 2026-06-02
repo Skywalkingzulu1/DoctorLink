@@ -1,5 +1,5 @@
 """
-Configuration settings for DoctorLink.
+Configuration settings for Doctors on Wheels.
 """
 
 from pydantic import ConfigDict

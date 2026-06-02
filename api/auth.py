@@ -1,5 +1,5 @@
 """
-Auth API endpoints for DoctorLink.
+Auth API endpoints for Doctors on Wheels.
 Integrated with Somnia Agentic L1 for automatic wallet creation.
 """
 

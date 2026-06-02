@@ -1,5 +1,5 @@
 """
-Referral API endpoints for DoctorLink.
+Referral API endpoints for Doctors on Wheels.
 """
 
 import os
@@ -86,7 +86,7 @@ def get_my_referral_code(
     if not referral:
         return {"code": None, "link": None}
 
-    base_url = os.getenv("FRONTEND_URL", "https://skywalkingzulu1.github.io/DoctorLink")
+    base_url = os.getenv("FRONTEND_URL", "https://skywalkingzulu1.github.io/Doctors on Wheels")
     return {
         "code": referral.code,
         "link": f"{base_url}/register.html?ref={referral.code}",
@@ -144,7 +144,7 @@ def get_referral_stats(
     if referrals:
         referral_code = referrals[0].code
 
-    base_url = os.getenv("FRONTEND_URL", "https://skywalkingzulu1.github.io/DoctorLink")
+    base_url = os.getenv("FRONTEND_URL", "https://skywalkingzulu1.github.io/Doctors on Wheels")
 
     return ReferralStatsResponse(
         total_referrals=len(referrals),

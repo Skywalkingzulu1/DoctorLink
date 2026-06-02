@@ -1,5 +1,5 @@
 """
-Chat API for DoctorLink - persists chat messages.
+Chat API for Doctors on Wheels - persists chat messages.
 """
 
 import os

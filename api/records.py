@@ -1,5 +1,5 @@
 """
-Medical Records API endpoints for DoctorLink.
+Medical Records API endpoints for Doctors on Wheels.
 """
 
 import os

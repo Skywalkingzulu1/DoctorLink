@@ -1,5 +1,5 @@
 """
-Filebase S3 Storage API for DoctorLink.
+Filebase S3 Storage API for Doctors on Wheels.
 Supports avatars, medical reports, prescriptions, and chat media.
 """
 

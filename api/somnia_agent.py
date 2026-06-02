@@ -1,5 +1,5 @@
 """
-Somnia Agent API endpoints for DoctorLink.
+Somnia Agent API endpoints for Doctors on Wheels.
 Provides AI-powered medical features via Somnia Agentic L1.
 """
 import os

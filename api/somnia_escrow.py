@@ -1,5 +1,5 @@
 """
-Somnia Escrow API endpoints for DoctorLink.
+Somnia Escrow API endpoints for Doctors on Wheels.
 Handles on-chain payment escrow for appointments.
 """
 import os

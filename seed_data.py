@@ -17,7 +17,7 @@ def seed_database():
     profile_data = {
         "id": 1, # Using bigint as discovered in audit
         "email": "system.admin@doctorlink.co.za",
-        "name": "DoctorLink Admin",
+        "name": "Doctors on Wheels Admin",
         "role": "ADMIN",
         "credits": 1000
     }

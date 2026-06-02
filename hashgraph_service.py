@@ -1,5 +1,5 @@
 """
-Hashgraph Service for DoctorLink Credit System.
+Hashgraph Service for Doctors on Wheels Credit System.
 
 This is a placeholder for Hedera Hashgraph integration.
 Actual implementation requires Hedera API credentials.

@@ -1,6 +1,6 @@
-# DoctorLink - South Africa's Healthcare Platform
+# Doctors on Wheels - South Africa's Healthcare Platform
 
-DoctorLink is a hybrid Web2/Web3 healthcare platform designed for the South African market. It features real-time telehealth consultations, a "gig economy" model for healthcare providers, and autonomous agents integrated with the **Somnia Agentic L1** blockchain.
+Doctors on Wheels is a hybrid Web2/Web3 healthcare platform designed for the South African market. It features real-time telehealth consultations, a "gig economy" model for healthcare providers, and autonomous agents integrated with the **Somnia Agentic L1** blockchain.
 
 ## 🚀 Key Features
 
@@ -33,7 +33,7 @@ DoctorLink is a hybrid Web2/Web3 healthcare platform designed for the South Afri
 1. **Clone the repository**:
    ```bash
    git clone <repo-url>
-   cd DoctorLink
+   cd Doctors on Wheels
    ```
 
 2. **Install dependencies**:

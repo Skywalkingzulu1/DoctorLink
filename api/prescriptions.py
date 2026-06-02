@@ -1,5 +1,5 @@
 """
-Prescription API endpoints for DoctorLink.
+Prescription API endpoints for Doctors on Wheels.
 Integrated with Somnia Agentic L1 for autonomous drug interaction checking.
 """
 

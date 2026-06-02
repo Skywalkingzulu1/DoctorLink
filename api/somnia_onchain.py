@@ -1,5 +1,5 @@
 """
-Read-only endpoints for DoctorLink's Somnia Agent contracts.
+Read-only endpoints for Doctors on Wheels's Somnia Agent contracts.
 Data from PriceOracle, HealthTips, and SentimentAnalyzer deployed contracts.
 """
 import sys, os, json

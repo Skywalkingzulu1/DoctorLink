@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Initialize the SQLite database with sample data for DoctorLink.
+Initialize the SQLite database with sample data for Doctors on Wheels.
 """
 
 from datetime import datetime, timedelta

@@ -1,4 +1,4 @@
-# API package for DoctorLink
+# API package for Doctors on Wheels
 
 from .auth import router as auth_router
 from .doctors import router as doctors_router

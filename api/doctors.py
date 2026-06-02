@@ -1,5 +1,5 @@
 """
-Doctors API endpoints for DoctorLink.
+Doctors API endpoints for Doctors on Wheels.
 Supports doctor listing, search, and details.
 """
 

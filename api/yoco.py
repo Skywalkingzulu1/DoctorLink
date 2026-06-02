@@ -1,5 +1,5 @@
 """
-Official Yoco Payment Integration for DoctorLink.
+Official Yoco Payment Integration for Doctors on Wheels.
 Handles fiat checkout via Yoco API and automatic on-chain escrow funding.
 """
 import os

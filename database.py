@@ -1,5 +1,5 @@
 """
-Database layer for DoctorLink — backed by Filebase S3 document store.
+Database layer for Doctors on Wheels — backed by Filebase S3 document store.
 Each table is a JSON file in the Filebase bucket.
 No SQLite dependency. No SQLAlchemy engine/connection.
 """

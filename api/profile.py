@@ -1,5 +1,5 @@
 """
-Doctor Profile API endpoints for DoctorLink.
+Doctor Profile API endpoints for Doctors on Wheels.
 Gig Economy: Custom pricing, service tiers, gig mode toggle
 """
 

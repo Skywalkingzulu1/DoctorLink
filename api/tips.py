@@ -1,5 +1,5 @@
 """
-Tip API endpoints for DoctorLink.
+Tip API endpoints for Doctors on Wheels.
 Tips go 100% to the doctor - platform does not take a cut.
 """
 

@@ -1,5 +1,5 @@
 """
-Waiting Room API for DoctorLink.
+Waiting Room API for Doctors on Wheels.
 """
 
 import os

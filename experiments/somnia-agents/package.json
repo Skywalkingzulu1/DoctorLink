@@ -1,7 +1,7 @@
 {
   "name": "doctorlink-somnia-experiments",
   "version": "1.0.0",
-  "description": "Experimenting with Somnia Agents on-chain integration for DoctorLink",
+  "description": "Experimenting with Somnia Agents on-chain integration for Doctors on Wheels",
   "private": true,
   "scripts": {
     "compile": "hardhat compile",

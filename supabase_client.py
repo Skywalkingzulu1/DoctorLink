@@ -1,5 +1,5 @@
 """
-Supabase client configuration for DoctorLink.
+Supabase client configuration for Doctors on Wheels.
 Manages connection to Supabase for Auth, Database, and optional Storage.
 """
 

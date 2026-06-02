@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate a concise technical stack summary and a progress report for the
-DoctorLink project by extracting recent commit activity, open issues,
+Doctors on Wheels project by extracting recent commit activity, open issues,
 and pull‑request metrics via the GitHub REST API.
 """
 
@@ -20,7 +20,7 @@ GITHUB_API = "https://api.github.com"
 # Expected environment variables:
 #   GITHUB_TOKEN - Personal access token with repo scope
 #   REPO_OWNER  - GitHub username or organization
-#   REPO_NAME   - Repository name (e.g., "DoctorLink")
+#   REPO_NAME   - Repository name (e.g., "Doctors on Wheels")
 TOKEN = os.getenv("GITHUB_TOKEN")
 OWNER = os.getenv("REPO_OWNER")
 REPO = os.getenv("REPO_NAME")
@@ -152,7 +152,7 @@ def progress_report() -> str:
     }
 
     # Render as a human‑readable block
-    lines = ["=== DoctorLink Progress Report ==="]
+    lines = ["=== Doctors on Wheels Progress Report ==="]
     for key, value in report.items():
         lines.append(f"{key}: {value}")
     lines.append("=== End of Report ===")

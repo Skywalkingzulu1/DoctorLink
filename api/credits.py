@@ -1,5 +1,5 @@
 """
-Credit and Payment API endpoints for DoctorLink.
+Credit and Payment API endpoints for Doctors on Wheels.
 """
 
 import os
@@ -143,8 +143,8 @@ def initiate_payfast_payment(
         "notify_url": settings.PAYFAST_NOTIFY_URL,
         "m_payment_id": str(transaction.id),
         "amount": str(request.amount),
-        "item_name": f"DoctorLink Credits - {request.amount} credits",
-        "item_description": f"Purchase of {request.amount} credits for DoctorLink",
+        "item_name": f"Doctors on Wheels Credits - {request.amount} credits",
+        "item_description": f"Purchase of {request.amount} credits for Doctors on Wheels",
         "email_confirmation": "1",
         "confirmation_address": current_user.email,
     }

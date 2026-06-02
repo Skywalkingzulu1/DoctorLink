@@ -1,5 +1,5 @@
 """
-Appointment API endpoints for DoctorLink.
+Appointment API endpoints for Doctors on Wheels.
 Gig Economy Model: 20% platform fee, 80% to doctor, tips 100% to doctor.
 Integrated with Somnia Agentic L1 for on-chain escrow and AI-powered features.
 """
@@ -643,7 +643,7 @@ def _get_platform_account(db: Session) -> User:
     if not platform:
         from auth import hash_password
         platform = User(
-            name="DoctorLink Platform",
+            name="Doctors on Wheels Platform",
             email="platform@doctorlink.co.za",
             password_hash=hash_password("platform-admin-2026"),
             role="PATIENT",

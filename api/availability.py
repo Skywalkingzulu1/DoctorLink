@@ -1,5 +1,5 @@
 """
-Doctor Availability API for DoctorLink.
+Doctor Availability API for Doctors on Wheels.
 """
 
 import os

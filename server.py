@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple static file server for DoctorLink.
+Simple static file server for Doctors on Wheels.
 Serves the static HTML/JS/CSS files directly without any backend.
 """
 
@@ -18,7 +18,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "static"))
-print(f"Serving DoctorLink at http://localhost:{PORT}")
+print(f"Serving Doctors on Wheels at http://localhost:{PORT}")
 print("Open your browser to use the app!")
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
