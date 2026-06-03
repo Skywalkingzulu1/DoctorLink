@@ -225,6 +225,7 @@
 
         @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <!-- AUTH PAGE -->
@@ -649,7 +650,7 @@
 
 <script>
         // ========== API CONFIG ==========
-        const API_BASE = '';
+        const API_BASE = window.API_BASE || 'https://doctorlink-knmy.onrender.com';
         let authToken = localStorage.getItem('token');
         let currentUser = null;
         let selectedDoctor = null;
@@ -1010,30 +1011,25 @@
                 // Populate specialty dropdown
                 const specialties = [...new Set(doctors.map(d => d.specialty))];
                 const select = document.getElementById('docSpecialty');
-                select.innerHTML = '<option value="">All Specialties</option>' + 
-                    specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+                if (select) {
+                    select.innerHTML = '<option value="">All Specialties</option>' + 
+                        specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+                }
             } catch (e) {
                 console.error('Load doctors error:', e);
             }
         }
 
-        async function searchDoctors() {
-            const query = document.getElementById('docSearch').value;
-            const specialty = document.getElementById('docSpecialty').value;
-            showSkeleton('doctorsGrid', 3);
-            try {
-                const params = new URLSearchParams();
-                if (query) params.set('q', query);
-                if (specialty) params.set('specialty', specialty);
-                const doctors = await apiCall('/api/doctors?' + params);
-                
-                const grid = document.getElementById('doctorsGrid');
-                if (!doctors.length) {
-                    grid.innerHTML = '<div class="empty">No doctors found</div>';
-                    return;
-                }
-                
-                grid.innerHTML = doctors.map(d => {
+        function renderDoctors(doctors) {
+            const grid = document.getElementById('doctorsGrid');
+            if (!grid) return;
+            
+            if (!doctors || !doctors.length) {
+                grid.innerHTML = '<div class="empty">No doctors found</div>';
+                return;
+            }
+            
+            grid.innerHTML = doctors.map(d => {
                 // Verification badge
                 let badge = '';
                 if (d.verification_status === 'verified') {
@@ -1045,17 +1041,30 @@
                 }
                 
                 return `
-                <div class="card">
-                    <div style="text-align:center;padding:1rem"><i class="fas fa-user-md" style="font-size:3rem;color:var(--text-light)"></i></div>
-                    ${badge}
-                    <h3 style="margin:0.5rem 0">${d.name}</h3>
-                    <div class="meta"><i class="fas fa-stethoscope"></i> ${d.specialty}</div>
-                    <div class="meta"><i class="fas fa-map-marker-alt"></i> ${d.area}</div>
-                    <div class="meta"><i class="fas fa-star"></i> ${d.rating} (${d.review_count} reviews)</div>
-                    <div class="meta"><i class="fas fa-coins"></i> ${d.consultation_fee} credits <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">≈ ${d.consultation_fee * 10} T800</span></div>
-                    <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="openBookModal(${d.id})">Book Appointment</button>
-                </div>
-            `}).join('');
+                    <div class="card">
+                        <div style="text-align:center;padding:1rem"><i class="fas fa-user-md" style="font-size:3rem;color:var(--text-light)"></i></div>
+                        ${badge}
+                        <h3 style="margin:0.5rem 0">${d.name}</h3>
+                        <div class="meta"><i class="fas fa-stethoscope"></i> ${d.specialty}</div>
+                        <div class="meta"><i class="fas fa-map-marker-alt"></i> ${d.area}</div>
+                        <div class="meta"><i class="fas fa-star"></i> ${d.rating} (${d.review_count} reviews)</div>
+                        <div class="meta"><i class="fas fa-coins"></i> ${d.consultation_fee} credits <span style="background:#059669;color:white;padding:1px 6px;border-radius:3px;font-weight:bold;font-size:0.7rem">≈ ${d.consultation_fee * 10} T800</span></div>
+                        <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="openBookModal(${d.id})">Book Appointment</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function searchDoctors() {
+            const query = document.getElementById('docSearch').value;
+            const specialty = document.getElementById('docSpecialty').value;
+            showSkeleton('doctorsGrid', 3);
+            try {
+                const params = new URLSearchParams();
+                if (query) params.set('q', query);
+                if (specialty) params.set('specialty', specialty);
+                const doctors = await apiCall('/api/doctors?' + params);
+                renderDoctors(doctors);
             } catch (e) {
                 console.error('Search doctors error:', e);
             }
