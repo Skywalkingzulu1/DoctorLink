@@ -38,12 +38,14 @@
             <button type="submit">Sign In</button>
         </form>
         <div style="margin-top:2rem; font-size:0.8rem; color: #6b778c; border-top: 1px solid var(--border); padding-top: 1rem;">
-            Demo: doc@docmail.com / test123
+            Demo Doctor: sam@docmail.com / test123<br>
+            Demo Patient: test3@test.com / pass
         </div>
     </div>
 
     <script>
         const BASE_URL = window.API_BASE || '';
+        console.log('Connecting to API at:', BASE_URL);
         
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
