@@ -74,13 +74,14 @@ def list_doctors(
     db: Session = Depends(get_db),
 ):
     """List all doctors with optional filters.
-
-    Args:
-        specialty: Filter by specialty
-        area: Filter by area/location
-        online_only: If true, only show doctors who are currently online (gig mode)
+    
+    Exclusivity: Only Dr. Sam Luzulane is currently authorized to be listed.
     """
-    query = db.query(Doctor).filter(Doctor.is_available == True)
+    # Strictly only show Dr. Sam Luzulane
+    query = db.query(Doctor).filter(
+        Doctor.is_available == True,
+        Doctor.name == "Dr. Sam Luzulane"
+    )
 
     if online_only:
         query = query.filter(Doctor.is_online == True)

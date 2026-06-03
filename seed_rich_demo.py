@@ -34,12 +34,12 @@ async def seed_rich_demo():
             db.commit()
             print(f"Created patient: {patient_email}")
 
-        # 2. Get Demo Doctor
-        doc_email = "doc_sarah@test.com"
+        # 2. Get Dr. Sam Luzulane
+        doc_email = "sam@docmail.com"
         doctor = db.query(Doctor).join(User).filter(User.email == doc_email).first()
         if not doctor:
             doc_user = User(
-                name="Dr. Sarah Smith",
+                name="Dr. Sam Luzulane",
                 email=doc_email,
                 password_hash=hash_password("test123"),
                 role="DOCTOR",
@@ -52,14 +52,15 @@ async def seed_rich_demo():
                 doctor = Doctor(
                     user_id=doc_user.id,
                     name=doc_user.name,
-                    specialty="General Practitioner",
-                    area="Johannesburg",
+                    specialty="Emergency Medicine",
+                    area="Gauteng",
                     is_online=True,
-                    video_call_price=150
+                    video_call_price=800,
+                    consultation_fee=800
                 )
                 db.add(doctor)
                 db.commit()
-            print(f"Created doctor: {doc_email}")
+            print(f"Created/Found doctor: {doc_email}")
 
         # 3. Create Rich Triage Data
         triage_data = {
