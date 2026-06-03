@@ -78,27 +78,33 @@ def list_doctors(
     Exclusivity: Only Dr. Sam Luzulane is currently authorized to be listed.
     """
     # Strictly only show Dr. Sam Luzulane
-    query = db.query(Doctor).filter(
-        Doctor.is_available == True,
-        Doctor.name == "Dr. Sam Luzulane"
-    )
+    # Using case-insensitive match and stripping to be robust
+    doctors = db.query(Doctor).filter(Doctor.is_available == True).all()
+    filtered_doctors = [
+        doc for doc in doctors 
+        if doc.name and "sam luzulane" in doc.name.lower()
+    ]
 
     if online_only:
-        query = query.filter(Doctor.is_online == True)
+        filtered_doctors = [doc for doc in filtered_doctors if doc.is_online]
 
     if specialty:
-        query = query.filter(Doctor.specialty.ilike(f"%{specialty}%"))
+        filtered_doctors = [
+            doc for doc in filtered_doctors 
+            if specialty.lower() in doc.specialty.lower()
+        ]
     if area:
-        query = query.filter(Doctor.area.ilike(f"%{area}%"))
-
-    doctors = query.all()
+        filtered_doctors = [
+            doc for doc in filtered_doctors 
+            if area.lower() in doc.area.lower()
+        ]
 
     # Add avatar URLs
-    for doc in doctors:
+    for doc in filtered_doctors:
         if doc.user_id:
             doc.avatar_url = get_doctor_avatar_url(doc.user_id)
 
-    return doctors
+    return filtered_doctors
 
 
 @router.get("/{doctor_id}", response_model=DoctorDetailResponse)

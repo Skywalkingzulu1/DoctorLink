@@ -206,12 +206,12 @@ def login(
     # Get avatar URL from bucket
     avatar_url = get_avatar_url(user.id, user.role)
 
-    # Ensure user has a wallet
-    from somnia.wallet import ensure_user_wallet
-    ensure_user_wallet(user.id)
-
-    # Re-fetch user to get updated wallet address
-    db.refresh(user)
+    # Ensure user has a wallet only if missing (speed optimization)
+    if not user.somnia_address:
+        from somnia.wallet import ensure_user_wallet
+        ensure_user_wallet(user.id)
+        # Re-fetch user to get updated wallet address
+        db.refresh(user)
 
     return {
         "access_token": access_token,
@@ -234,12 +234,12 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get current user information."""
-    # Ensure user has a wallet
-    from somnia.wallet import ensure_user_wallet
-    ensure_user_wallet(current_user.id)
-    
-    # Refresh current_user to get updated somnia_address
-    db.refresh(current_user)
+    # Ensure user has a wallet only if missing
+    if not current_user.somnia_address:
+        from somnia.wallet import ensure_user_wallet
+        ensure_user_wallet(current_user.id)
+        # Refresh current_user to get updated somnia_address
+        db.refresh(current_user)
 
     # Get avatar URL from bucket
     avatar_url = get_avatar_url(current_user.id, current_user.role)
