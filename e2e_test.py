@@ -28,14 +28,21 @@ def setup_db():
     db.add(patient)
     db.add(doctor_user)
     db.commit()
+    
+    # Refresh to get IDs
+    patient = db.query(User).filter(User.email == "test@patient.com").first()
+    doctor_user = db.query(User).filter(User.email == "test@doctor.com").first()
     db.close()
 
     # Create doctor profile
     db2 = FilebaseSession()
     doctor = Doctor(name="Dr. Test", specialty="General", area="Test Area", user_id=doctor_user.id,
-                    consultation_fee=150, is_available=True)
+                    consultation_fee=150, is_available=True, is_online=True, gig_mode_enabled=True,
+                    profile_completed=True, verification_status="verified")
     db2.add(doctor)
     db2.commit()
+    # Refresh to get ID
+    doctor = db2.query(Doctor).filter(Doctor.user_id == doctor_user.id).first()
     db2.close()
 
     return patient, doctor_user, doctor

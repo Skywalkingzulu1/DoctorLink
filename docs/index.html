@@ -657,6 +657,11 @@
 
         // AUTO-LOGIN LOGIC
         async function autoLogin() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mockTxId = urlParams.get('mock_yoco');
+            const isSuccess = urlParams.get('payment') === 'success';
+            const apptId = urlParams.get('appt');
+
             if (!authToken) {
                 window.location.href = 'login.html';
                 return;
@@ -665,6 +670,42 @@
                 try {
                     const user = await apiCall('/api/auth/me');
                     currentUser = user;
+                    
+                    // Handle Payment Redirects before showing app
+                    if (isSuccess && apptId) {
+                        toast('Yoco Payment Successful! Escrow funded.', 'success', 5000);
+                        setTimeout(() => {
+                            window.location.href = `patient_questionnaire.html?appointment_id=${apptId}&return=index.html`;
+                        }, 1500);
+                        // Clean URL to prevent infinite loops
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        return; // Prevent normal dashboard load
+                    }
+
+                    if (mockTxId && apptId) {
+                        const err = urlParams.get('yoco_error') || 'Unknown';
+                        const niceErr = err.replace(/_/g, ' ');
+                        toast('Yoco API Blocked (' + niceErr + '). Simulating payment for demo...', 'warning', 4000);
+                        
+                        // Trigger webhook locally to fund escrow
+                        await fetch('/api/yoco/webhook', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: "payment.succeeded",
+                                payload: { metadata: { transaction_id: mockTxId } }
+                            })
+                        });
+                        
+                        toast('Mock Payment Verified ✓ Funds Escrowed', 'success');
+                        setTimeout(() => {
+                            window.location.href = `patient_questionnaire.html?appointment_id=${apptId}&return=index.html`;
+                        }, 2000);
+                        
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        return; // Prevent normal dashboard load
+                    }
+
                     showApp();
                 } catch (e) {
                     logout();

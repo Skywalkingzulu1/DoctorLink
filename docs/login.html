@@ -44,52 +44,34 @@
     </div>
 
     <script>
-        // Use window.API_BASE from config.js, with a hardcoded production fallback
-        const BASE_URL = window.API_BASE || 'https://doctorlink-knmy.onrender.com';
-        console.log('Doctors on Wheels - API Connection:', BASE_URL);
+        const BASE_URL = window.API_BASE || '';
+        console.log('Connecting to API at:', BASE_URL);
         
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
             const errorDiv = document.getElementById('error');
-            
-            btn.disabled = true;
-            btn.textContent = 'Authenticating...';
             errorDiv.style.display = 'none';
             
             try {
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
-                
-                console.log('Attempting login for:', email);
-                
                 const formData = new FormData();
-                formData.append('username', email);
-                formData.append('password', password);
+                formData.append('username', document.getElementById('email').value);
+                formData.append('password', document.getElementById('password').value);
                 
                 const res = await fetch(BASE_URL + '/api/auth/login', {
                     method: 'POST',
                     body: formData
                 });
                 
-                if (!res.ok) {
-                    const data = await res.json();
-                    throw new Error(data.detail || 'Login failed');
-                }
-                
                 const data = await res.json();
-                console.log('Login successful, received token.');
+                if (!res.ok) throw new Error(data.detail || 'Login failed');
+                
                 localStorage.setItem('token', data.access_token);
                 
-                // Fetch full user info to confirm session and role
+                // Check role for redirect
                 const userRes = await fetch(BASE_URL + '/api/auth/me', {
                     headers: { 'Authorization': 'Bearer ' + data.access_token }
                 });
-                
-                if (!userRes.ok) throw new Error('Failed to retrieve user profile');
-                
                 const user = await userRes.json();
-                console.log('User profile loaded:', user.name, 'Role:', user.role);
                 
                 if (user.role === 'DOCTOR') {
                     window.location.href = 'doctor_dashboard.html';
@@ -97,11 +79,8 @@
                     window.location.href = 'index.html';
                 }
             } catch (err) {
-                console.error('Login error:', err);
                 errorDiv.textContent = err.message;
                 errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.textContent = 'Sign In';
             }
         };
     </script>

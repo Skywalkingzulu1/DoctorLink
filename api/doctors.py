@@ -73,17 +73,15 @@ def list_doctors(
     online_only: bool = False,
     db: Session = Depends(get_db),
 ):
-    """List all doctors with optional filters.
+    """List all doctors with optional filters."""
+    # Only show available doctors
+    query = db.query(Doctor).filter(Doctor.is_available == True)
     
-    Exclusivity: Only Dr. Sam Luzulane is currently authorized to be listed.
-    """
-    # Strictly only show Dr. Sam Luzulane
-    # Using case-insensitive match and stripping to be robust
-    doctors = db.query(Doctor).filter(Doctor.is_available == True).all()
-    filtered_doctors = [
-        doc for doc in doctors 
-        if doc.name and "sam luzulane" in doc.name.lower()
-    ]
+    # Filter by Dr. Sam Luzulane or Somnia AI Doctor (as per platform focus)
+    # but allow other doctors if they are available
+    doctors = query.all()
+    
+    filtered_doctors = doctors # Show all for now to restore platform availability
 
     if online_only:
         filtered_doctors = [doc for doc in filtered_doctors if doc.is_online]
