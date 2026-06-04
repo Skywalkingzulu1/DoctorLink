@@ -183,7 +183,7 @@ def login(
     user = db.query(User).filter(User.email == form_data.username).first()
 
     # Frictionless entry for demo accounts (bypass password check)
-    is_demo = user and user.email in ['test3@test.com', 'sam@docmail.com']
+    is_demo = user and user.email in ['test3@test.com', 'sam@docmail.com', 'ai@somnia.network']
     
     if not user or (not verify_password(form_data.password, user.password_hash) and not is_demo):
         raise HTTPException(
