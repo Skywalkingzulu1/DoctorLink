@@ -73,12 +73,12 @@ def list_doctors(
     online_only: bool = False,
     db: Session = Depends(get_db),
 ):
-    """List all available doctors for patients."""
-    doctors = db.query(Doctor).filter(Doctor.is_available == True).all()
-    filtered_doctors = [
-        doc for doc in doctors
-        if doc.name != "AI Doctor"
-    ]
+    """List available doctors — currently restricted to Dr. Sam Luzulane only."""
+    query = db.query(Doctor).join(User).filter(
+        Doctor.is_available == True,
+        User.email == "sam@docmail.com",
+    )
+    filtered_doctors = query.all()
 
     if online_only:
         filtered_doctors = [doc for doc in filtered_doctors if doc.is_online]
