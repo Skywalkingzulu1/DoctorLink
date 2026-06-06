@@ -113,6 +113,37 @@
     </div>
 
     <script>
+        const SESSION_KEY = 'dow_register_draft';
+        
+        function saveDraft() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const role = document.getElementById('role').value;
+            if (name || email) {
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name, email, role }));
+            }
+        }
+        
+        function restoreDraft() {
+            const raw = sessionStorage.getItem(SESSION_KEY);
+            if (!raw) return;
+            try {
+                const draft = JSON.parse(raw);
+                if (draft.name) document.getElementById('name').value = draft.name;
+                if (draft.email) document.getElementById('email').value = draft.email;
+                if (draft.role) document.getElementById('role').value = draft.role;
+            } catch (e) {}
+        }
+        
+        function clearDraft() {
+            sessionStorage.removeItem(SESSION_KEY);
+        }
+        
+        document.getElementById('registerForm').addEventListener('input', saveDraft);
+        document.getElementById('registerForm').addEventListener('change', saveDraft);
+        
+        restoreDraft();
+        
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
@@ -157,6 +188,7 @@
                 }
                 
                 // Redirect based on role
+                clearDraft();
                 if (role === 'PATIENT') {
                     window.location.href = 'patient_onboarding.html';
                 } else {

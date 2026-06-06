@@ -389,12 +389,70 @@
         const API_BASE = window.API_BASE || '';
         let currentStep = 1;
         const totalSteps = 5;
+        const SESSION_KEY = 'dow_onboarding_draft';
 
         const nextBtn = document.getElementById('nextBtn');
         const prevBtn = document.getElementById('prevBtn');
         const submitBtn = document.getElementById('submitBtn');
         const dots = document.querySelectorAll('.step-dot');
         const steps = document.querySelectorAll('.form-step');
+
+        function gatherFormData() {
+            const data = {};
+            const form = document.getElementById('onboardForm');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(el => {
+                if (!el.id) return;
+                if (el.type === 'checkbox') {
+                    if (!data[el.id]) data[el.id] = [];
+                    if (el.checked) data[el.id].push(el.value);
+                } else {
+                    data[el.id] = el.value;
+                }
+            });
+            return data;
+        }
+
+        function applyFormData(data) {
+            if (!data) return;
+            Object.keys(data).forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.type === 'checkbox') {
+                    const vals = Array.isArray(data[id]) ? data[id] : [data[id]];
+                    el.checked = vals.includes(el.value);
+                } else {
+                    el.value = data[id];
+                }
+            });
+        }
+
+        function saveDraft() {
+            const payload = {
+                step: currentStep,
+                fields: gatherFormData()
+            };
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+        }
+
+        function restoreDraft() {
+            const raw = sessionStorage.getItem(SESSION_KEY);
+            if (!raw) return;
+            try {
+                const payload = JSON.parse(raw);
+                if (payload.step && payload.step > 1) {
+                    currentStep = payload.step;
+                }
+                if (payload.fields) {
+                    applyFormData(payload.fields);
+                }
+                updateStep();
+            } catch (e) {}
+        }
+
+        function clearDraft() {
+            sessionStorage.removeItem(SESSION_KEY);
+        }
 
         function updateStep() {
             steps.forEach(s => s.classList.remove('active'));
@@ -416,9 +474,12 @@
             }
         }
 
+        restoreDraft();
+        
         nextBtn.addEventListener('click', () => {
             if (currentStep < totalSteps) {
                 currentStep++;
+                saveDraft();
                 updateStep();
             }
         });
@@ -426,9 +487,13 @@
         prevBtn.addEventListener('click', () => {
             if (currentStep > 1) {
                 currentStep--;
+                saveDraft();
                 updateStep();
             }
         });
+        
+        document.getElementById('onboardForm').addEventListener('input', saveDraft);
+        document.getElementById('onboardForm').addEventListener('change', saveDraft);
 
         document.getElementById('onboardForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -518,6 +583,7 @@
                 }
 
                 alert('Onboarding complete! Redirecting to dashboard...');
+                clearDraft();
                 window.location.href = 'index_v2.html';
             } catch (err) {
                 document.getElementById('error-message').textContent = err.message;

@@ -48,7 +48,30 @@
 
     <script>
         const BASE_URL = window.API_BASE || '';
-        console.log('Connecting to API at:', BASE_URL);
+        const SESSION_KEY = 'dow_login_draft';
+        
+        function saveDraft() {
+            const email = document.getElementById('email').value;
+            if (email) sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email }));
+        }
+        
+        function restoreDraft() {
+            const raw = sessionStorage.getItem(SESSION_KEY);
+            if (!raw) return;
+            try {
+                const draft = JSON.parse(raw);
+                if (draft.email) document.getElementById('email').value = draft.email;
+            } catch (e) {}
+        }
+        
+        function clearDraft() {
+            sessionStorage.removeItem(SESSION_KEY);
+        }
+        
+        document.getElementById('email').addEventListener('input', saveDraft);
+        document.getElementById('email').addEventListener('change', saveDraft);
+        
+        restoreDraft();
         
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
@@ -69,6 +92,7 @@
                 if (!res.ok) throw new Error(data.detail || 'Login failed');
                 
                 localStorage.setItem('token', data.access_token);
+                clearDraft();
                 
                 // Check role for redirect
                 const userRes = await fetch(BASE_URL + '/api/auth/me', {

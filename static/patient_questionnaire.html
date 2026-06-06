@@ -174,6 +174,89 @@
         const appointmentId = urlParams.get('appointment_id');
         const returnUrl = urlParams.get('return') || 'index_v2.html';
         const authToken = localStorage.getItem('token');
+        const SESSION_KEY = 'dow_questionnaire_draft';
+        const SESSION_FORM_KEY = 'dow_questionnaire_form';
+
+        function serializeForm() {
+            const form = document.getElementById('questionnaireForm');
+            if (!form) return null;
+            const data = {};
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(el => {
+                if (!el.name) return;
+                if (el.type === 'checkbox') {
+                    if (!data[el.name]) data[el.name] = [];
+                    if (el.checked) data[el.name].push(el.value);
+                } else {
+                    data[el.name] = el.value;
+                }
+            });
+            return data;
+        }
+
+        function deserializeForm(data) {
+            if (!data) return;
+            Object.keys(data).forEach(name => {
+                const el = document.querySelector(`[name="${name}"]`);
+                if (!el) return;
+                if (el.type === 'checkbox') {
+                    const vals = Array.isArray(data[name]) ? data[name] : [data[name]];
+                    el.checked = vals.includes(el.value);
+                } else {
+                    el.value = data[name];
+                }
+            });
+        }
+
+        function saveDraft() {
+            const formData = serializeForm();
+            if (!formData) return;
+            sessionStorage.setItem(SESSION_FORM_KEY, JSON.stringify(formData));
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+                appointmentId,
+                returnUrl,
+                savedAt: Date.now()
+            }));
+        }
+
+        function restoreDraft() {
+            const raw = sessionStorage.getItem(SESSION_FORM_KEY);
+            if (!raw) return false;
+            try {
+                const data = JSON.parse(raw);
+                deserializeForm(data);
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function clearDraft() {
+            sessionStorage.removeItem(SESSION_FORM_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
+        }
+
+        document.getElementById('questionnaireForm').addEventListener('input', saveDraft);
+        document.getElementById('questionnaireForm').addEventListener('change', saveDraft);
+
+        window.onload = () => {
+            const userData = JSON.parse(localStorage.getItem('user') || '{}');
+            if (userData.name) document.querySelector('[name="full_name"]').value = userData.name;
+            
+            if (!authToken) {
+                alert('Please login to submit this form.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const hasDraft = sessionStorage.getItem(SESSION_FORM_KEY);
+            if (hasDraft && !appointmentId) {
+                const confirmed = confirm('You have a saved questionnaire draft. Would you like to resume it?');
+                if (confirmed) {
+                    restoreDraft();
+                } else {
+                    clearDraft();
+                }
+            }
+        };
 
         document.getElementById('questionnaireForm').addEventListener('submit', async function(e) {
             e.preventDefault();
