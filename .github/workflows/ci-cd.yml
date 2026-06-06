@@ -33,7 +33,7 @@ jobs:
           fi
 
       - name: Deploy to Staging
-        if: github.ref == 'refs/heads/main' && success()
+        if: github.ref == 'refs/heads/master' && success()
         env:
           STAGING_SERVER: ${{ secrets.STAGING_SERVER }}
           STAGING_USER: ${{ secrets.STAGING_USER }}
