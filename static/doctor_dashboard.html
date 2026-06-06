@@ -243,11 +243,11 @@
                             </div>
                         </div>
                         <div style="text-align:right; font-size:0.85rem;">
-                            <strong id="docHeaderName" style="font-size:1.1rem;">Dr. Sarah Smith</strong><br>
-                            <span id="docSpecialty">General Practitioner</span><br>
+                            <strong id="docHeaderName" style="font-size:1.1rem;"></strong><br>
+                            <span id="docSpecialty"></span><br>
                             <p style="margin-top:0.5rem;">
-                                HPCSA: <span id="docHpcsa">Pending</span><br>
-                                PR No: <span id="docPr">Pending</span>
+                                HPCSA: <span id="docHpcsa"></span><br>
+                                PR No: <span id="docPr"></span>
                             </p>
                         </div>
                     </div>
@@ -295,13 +295,7 @@
                 const user = await apiCall('/api/auth/me');
                 if (user.role !== 'DOCTOR') { window.location.href = 'index.html'; return; }
                 document.getElementById('displayDocName').textContent = user.name;
-                
-                // Set doc details in document generator
-                document.getElementById('docHeaderName').textContent = user.name;
-                document.getElementById('docSignature').textContent = user.name;
-                
-                loadStats();
-                loadProfile();
+                await loadProfile();
                 updateBalance();
             } catch (e) { handleLogout(); }
         }
@@ -464,6 +458,13 @@
                 const btn = document.getElementById('gigToggleBtn');
                 btn.textContent = profile.is_online ? 'Disable Home Visits' : 'Enable Home Visits';
                 btn.className = profile.is_online ? 'btn btn-danger' : 'btn btn-primary';
+
+                document.getElementById('displayDocName').textContent = profile.name || '';
+                document.getElementById('docHeaderName').textContent = profile.name || '';
+                document.getElementById('docSignature').textContent = profile.name ? profile.name.split(' ').slice(-1)[0] : '';
+                document.getElementById('docSpecialty').textContent = profile.specialty || 'Medical Practitioner';
+                document.getElementById('docHpcsa').textContent = profile.hpcsa_number || 'Verified';
+                document.getElementById('docPr').textContent = profile.practice_number || 'Registered';
             } catch (e) {}
         }
 
