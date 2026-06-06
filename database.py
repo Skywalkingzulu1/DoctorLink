@@ -418,8 +418,22 @@ class AiResponse(Base):
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(Integer, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=True)
-    feature = Column(String, nullable=True) # symptom_check, scribe, etc.
+    feature = Column(String, nullable=True)
     prompt = Column(Text, nullable=True)
     result = Column(Text, nullable=True)
     status = Column(String, default="success")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    doctor_id = Column(Integer, ForeignKey("Doctors.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("Profiles.id"), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    doctor = relationship("Doctor", backref="reviews")
+    user = relationship("User", backref="reviews")

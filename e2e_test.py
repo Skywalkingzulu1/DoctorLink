@@ -2,7 +2,7 @@ import os
 import sys
 import pytest
 from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -49,7 +49,7 @@ def setup_db():
 
 
 def make_token(email: str):
-    payload = {"sub": email, "exp": datetime.utcnow() + timedelta(hours=1)}
+    payload = {"sub": email, "exp": datetime.now(timezone.utc) + timedelta(hours=1)}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -92,7 +92,7 @@ def test_appointment_flow():
     assert len(doctors) > 0
 
     # Book appointment
-    tomorrow = datetime.utcnow() + timedelta(days=1)
+    tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
     resp = client.post("/api/appointments", json={
         "doctor_id": doctor.id,
         "timestamp": tomorrow.isoformat(),

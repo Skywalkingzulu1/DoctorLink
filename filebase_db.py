@@ -90,7 +90,7 @@ def _from_dict(model_class, data):
                                 except (ValueError, TypeError):
                                     pass
                                 break
-        setattr(inst, col.name, val)
+            setattr(inst, col.name, val)
     return inst
 
 

@@ -5,6 +5,7 @@ Doctors on Wheels FastAPI Server with WebSocket Signaling and Somnia Agentic L1 
 import os
 import sys
 import asyncio
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -416,7 +417,7 @@ async def chat_message(sid, data):
             "message": message,
             "sender": user_info.get("name", "Participant"),
             "sender_id": user_info.get("id"),
-            "timestamp": str(int(sio.time()) * 1000),
+            "timestamp": str(int(time.time()) * 1000),
         },
         to=str(appointment_id),
     )

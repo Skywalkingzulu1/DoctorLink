@@ -9,6 +9,7 @@ import string
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -115,7 +116,7 @@ def use_referral_code(
 
     referral.referee_id = current_user.id
     referral.status = "completed"
-    referral.completed_at = __import__("datetime").datetime.utcnow()
+    referral.completed_at = datetime.now(timezone.utc)
 
     # Credit referrer
     referrer = db.query(User).filter(User.id == referral.referrer_id).first()

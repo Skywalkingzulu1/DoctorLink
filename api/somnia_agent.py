@@ -420,13 +420,6 @@ def invoke_stt_paid(
         "message": f"Agent invoked. Cost: {cost:.4f} STT. Poll /result/{request_id} for results.",
     }
 
-    cost = get_stt_invocation_cost()
-    return {
-        "request_id": request_id,
-        "stt_cost": cost,
-        "message": f"Agent invoked. Cost: {cost:.4f} STT. Poll /result/{request_id} for results.",
-    }
-
 
 @router.get("/t800/balance")
 def get_t800_balance(

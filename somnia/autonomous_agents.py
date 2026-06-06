@@ -94,7 +94,6 @@ class AutonomousFollowUpScheduler:
         while True:
             db = None
             try:
-                await asyncio.sleep(self.check_interval)
                 db = next(get_db())
                 # Clean old entries from processed set (keep last 1000)
                 if len(self.processed) > 1000:

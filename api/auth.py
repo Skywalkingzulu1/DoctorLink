@@ -80,6 +80,29 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     if existing_user:
         # Return existing user (idempotent register)
         avatar_url = get_avatar_url(existing_user.id, existing_user.role)
+        # Ensure profile exists based on role
+        if existing_user.role == "DOCTOR":
+            doctor = db.query(Doctor).filter(Doctor.user_id == existing_user.id).first()
+            if not doctor:
+                doctor = Doctor(
+                    user_id=existing_user.id,
+                    name=existing_user.name,
+                    specialty="General Practitioner",
+                    area="",
+                    is_available=True,
+                    verification_status="basic",
+                    profile_completed=False,
+                    is_online=True,
+                    gig_mode_enabled=True,
+                )
+                db.add(doctor)
+                db.commit()
+        elif existing_user.role == "PATIENT":
+            patient = db.query(Patient).filter(Patient.user_id == existing_user.id).first()
+            if not patient:
+                patient = Patient(user_id=existing_user.id, preferred_name=existing_user.name)
+                db.add(patient)
+                db.commit()
         return UserResponse(
             id=existing_user.id,
             email=existing_user.email,
@@ -185,7 +208,7 @@ def login(
     # Frictionless entry for demo accounts (bypass password check)
     is_demo = user and user.email in ['test3@test.com', 'sam@docmail.com', 'ai@somnia.network']
     
-    if not user or (not verify_password(form_data.password, user.password_hash) and not is_demo):
+    if not user or (not is_demo and not verify_password(form_data.password, user.password_hash)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

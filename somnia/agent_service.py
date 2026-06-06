@@ -5,7 +5,7 @@ Agent fees paid from sponsor contract pool. Credit deduction per invocation.
 import json
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from web3 import Web3
 from web3.exceptions import ContractCustomError
@@ -203,7 +203,7 @@ def save_ai_response(request_id: int, user_id: Optional[int], feature: str, prom
             if result:
                 existing.result = result
             existing.status = status
-            existing.created_at = datetime.utcnow()
+            existing.created_at = datetime.now(timezone.utc)
         else:
             resp = AiResponse(
                 request_id=request_id,

@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
@@ -435,12 +435,12 @@ def update_appointment(
         if request.status == "ACTIVE":
             # Call started - move to HELD
             appointment.escrow_status = EscrowStatus.HELD
-            appointment.started_at = datetime.utcnow()
+            appointment.started_at = datetime.now(timezone.utc)
 
         elif request.status == "COMPLETED":
             # Call completed - release escrow to doctor
             appointment.escrow_status = EscrowStatus.RELEASED
-            appointment.ended_at = datetime.utcnow()
+            appointment.ended_at = datetime.now(timezone.utc)
 
             # Calculate duration
             if appointment.started_at:
@@ -737,7 +737,7 @@ def complete_appointment(
         return {"message": "Already completed"}
 
     appointment.status = AppointmentStatus.COMPLETED
-    appointment.ended_at = datetime.utcnow()
+    appointment.ended_at = datetime.now(timezone.utc)
     if appointment.started_at:
         duration = (appointment.ended_at - appointment.started_at).total_seconds() / 60
         appointment.duration_minutes = int(duration)

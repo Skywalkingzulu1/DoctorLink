@@ -6,7 +6,7 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Body
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -70,7 +70,7 @@ def subscribe(
         raise HTTPException(status_code=400, detail=f"Must send at least {SUBSCRIPTION_PRICE_STT} STT")
 
     # Record subscription
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     end_date = now + timedelta(days=SUBSCRIPTION_DURATION_DAYS)
 
     setattr(doctor, "subscription_active", True)
@@ -101,7 +101,7 @@ def get_subscription_status(
     active = getattr(doctor, "subscription_active", False)
 
     # Auto-expire
-    if active and end_date and end_date < datetime.utcnow():
+    if active and end_date and end_date < datetime.now(timezone.utc):
         setattr(doctor, "subscription_active", False)
         db.commit()
         active = False

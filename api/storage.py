@@ -301,28 +301,3 @@ async def delete_file(path: str):
         return StorageResponse(success=True, message="File deleted successfully")
     except ClientError as e:
         raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
-
-
-@router.post("/upload/avatar")
-async def upload_avatar(
-    user_id: int = Query(..., description="User ID"), file: UploadFile = File(...)
-):
-    """Upload user avatar."""
-    try:
-        key = f"avatars/{user_id}.jpg"
-        content = await file.read()
-
-        s3 = get_s3_client()
-        s3.put_object(
-            Bucket=BUCKET_NAME,
-            Key=key,
-            Body=content,
-            ContentType=file.content_type or "image/jpeg",
-        )
-
-        url = get_public_url(key)
-        return StorageResponse(
-            success=True, key=key, url=url, message="Avatar uploaded successfully"
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")

@@ -7,7 +7,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -48,7 +48,7 @@ def get_waiting_room(
 
     # Get appointments that are SCHEDULED and patient has joined
     # We allow seeing them up to 30 mins before their time if they are waiting
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     buffer = now + timedelta(minutes=30)
     
     appointments = (
@@ -110,7 +110,7 @@ def join_waiting_room(
         )
 
     # Check if appointment time is too far in future
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     buffer = now + timedelta(minutes=30)
     
     if appointment.timestamp > buffer:
