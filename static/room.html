@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Consultation - Doctors on Wheels</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root { --primary: #0052cc; --accent: #36b37e; --bg: #172b4d; --white: #fff; --danger: #de350b; }
@@ -239,7 +240,7 @@
 
     <script>
         // ========== CONFIG ==========
-        const API_BASE = '';
+        const API_BASE = window.API_BASE || '';
         let authToken = localStorage.getItem('token');
         
         // ========== STATE ==========

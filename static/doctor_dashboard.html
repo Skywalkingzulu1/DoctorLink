@@ -95,12 +95,35 @@
             .main-stage { margin-left: 0; }
             .header { padding: 0 1rem; }
             .hamburger { display: flex !important; }
-            .search-bar { display: none; }
-        }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
+.search-bar { display: none; }
+         }
+
+         /* Splash Screen */
+         .splash-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--em-dark-blue),var(--em-blue));display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s ease}
+         .splash-screen.hidden{opacity:0;pointer-events:none}
+         .splash-content{text-align:center;color:#fff}
+         .splash-content i{font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s ease-in-out infinite}
+         .splash-content h2{font-size:1.8rem;margin-bottom:0.5rem}
+         .loading-dots{font-size:1.2rem}
+         .loading-dots span{animation:blink 1.5s infinite;opacity:0}
+         .loading-dots span:nth-child(2){animation-delay:0.25s}
+         .loading-dots span:nth-child(3){animation-delay:0.5s}
+         @keyframes blink{0%,100%{opacity:0}50%{opacity:1}}
+         @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+         .sidebar{transition:transform 0.3s ease}
+     </style>
+    </head>
+    <body>
+        <!-- Loading Splash Screen -->
+        <div id="splashScreen" class="splash-screen">
+            <div class="splash-content">
+                <i class="fas fa-notes-medical"></i>
+                <h2>Doctors on Wheels</h2>
+                <div class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></div>
+            </div>
+        </div>
+        <div class="app-shell">
         <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -304,19 +327,26 @@
         let authToken = localStorage.getItem('token');
         let currentAppointments = [];
 
-        // ========== AUTH & INIT ==========
+// ========== AUTH & INIT ==========
         async function init() {
-            if (!authToken) { window.location.href = 'login.html'; return; }
+            if (!authToken) { document.getElementById('splashScreen').classList.add('hidden'); window.location.href = 'login.html'; return; }
             try {
                 const user = await apiCall('/api/auth/me');
-                if (user.role !== 'DOCTOR') { window.location.href = 'index.html'; return; }
+                if (user.role !== 'DOCTOR') { document.getElementById('splashScreen').classList.add('hidden'); window.location.href = 'index.html'; return; }
                 document.getElementById('displayDocName').textContent = user.name;
+                document.getElementById('splashScreen').classList.add('hidden');
                 await loadProfile();
                 updateBalance();
+                loadStats();
             } catch (e) { handleLogout(); }
         }
 
-        function handleLogout() { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+        function handleLogout() {
+            authToken = null;
+            localStorage.removeItem('token');
+            document.getElementById('splashScreen').classList.remove('hidden');
+            window.location.href = 'login.html';
+        }
 
         async function apiCall(endpoint, options = {}) {
             const headers = { 'Content-Type': 'application/json' };
@@ -547,17 +577,21 @@
         function toggleMobileMenu() {
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.querySelector('.sidebar-overlay');
-            const isOpen = sidebar.classList.toggle('mobile-open');
-            overlay.classList.toggle('active', isOpen);
-            document.body.style.overflow = isOpen ? 'hidden' : '';
+            if (sidebar && overlay) {
+                const isOpen = sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active', isOpen);
+                document.body.style.overflow = isOpen ? 'hidden' : '';
+            }
         }
 
         function closeMobileMenu() {
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.querySelector('.sidebar-overlay');
-            sidebar.classList.remove('mobile-open');
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
+            if (sidebar && overlay) {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         }
 
         window.addEventListener('resize', () => {

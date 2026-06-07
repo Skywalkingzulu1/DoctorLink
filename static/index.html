@@ -12,7 +12,7 @@
         
         /* Layout */
         .app{display:flex;min-height:100vh}
-        .sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto}
+        .sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);position:fixed;height:100vh;overflow-y:auto;transition:transform 0.3s ease,margin-left 0.3s ease}
         .sidebar-header{padding:1.5rem;border-bottom:1px solid var(--border)}
         .sidebar-header h1{font-size:1.3rem;color:var(--primary);font-weight:800}
         .sidebar-header h1 span{color:var(--secondary)}
@@ -28,8 +28,7 @@
         .wallet{background:var(--accent);color:#fff;padding:0.3rem 1rem;border-radius:20px;font-weight:600;font-size:0.9rem}
         .hamburger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:none;background:transparent;color:var(--text);font-size:1.4rem;cursor:pointer;border-radius:8px}
         .hamburger:hover{background:var(--light)}
-        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900}
-        .sidebar-overlay.active{display:block}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;transition:opacity 0.3s ease;opacity:0}.sidebar-overlay.active{opacity:1;display:block}
         
         .content{padding:2rem}
         .page-title{font-size:1.8rem;margin-bottom:1.5rem}
@@ -107,9 +106,21 @@
         /* Hidden */
         .hidden{display:none!important}
         
-        /* Loading */
+/* Loading */
         .loading{text-align:center;padding:2rem;color:var(--text-light)}
-        
+
+        /* Splash Screen */
+        .splash-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s ease}
+        .splash-screen.hidden{opacity:0;pointer-events:none}
+        .splash-content{text-align:center;color:#fff}
+        .splash-content i{font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s ease-in-out infinite}
+        .splash-content h2{font-size:1.8rem;margin-bottom:0.5rem}
+        .loading-dots{font-size:1.2rem}
+        .loading-dots span{animation:blink 1.5s infinite;opacity:0}
+        .loading-dots span:nth-child(2){animation-delay:0.25s}
+        .loading-dots span:nth-child(3){animation-delay:0.5s}
+        @keyframes blink{0%,100%{opacity:0}50%{opacity:1}}
+
         /* Skeleton */
         @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
         .skeleton{background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:6px;}
@@ -228,18 +239,26 @@
         .sidebar-header::after{content:'';position:absolute;top:-50%;right:-30%;width:100px;height:200px;background:rgba(255,255,255,0.05);transform:rotate(25deg)}
 
         @media(max-width:768px){
-            .sidebar{display:none}
+            .sidebar{display:none;transform:translateX(-100%)}
             .sidebar.mobile-open{display:flex !important;transform:translateX(0) !important}
             .main{margin-left:0}
             .stats{grid-template-columns:repeat(2,1fr)}
             .grid-2{grid-template-columns:1fr}
             .hamburger{display:flex !important}
-            .sidebar-overlay.active{display:block !important}
+            .sidebar-overlay.active{opacity:1;display:block !important}
         }
     </style>
     <script src="config.js"></script>
 </head>
 <body>
+    <!-- Loading Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <i class="fas fa-heartbeat pulse"></i>
+            <h2>Doctors on Wheels</h2>
+            <div class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></div>
+        </div>
+    </div>
     <!-- AUTH PAGE -->
     <div id="authPage" class="auth-page">
         <div class="auth-card">
@@ -698,6 +717,7 @@
             const apptId = urlParams.get('appt');
 
             if (!authToken) {
+                document.getElementById('splashScreen').classList.add('hidden');
                 window.location.href = 'login.html';
                 return;
             } else {
@@ -846,10 +866,12 @@
             authToken = null;
             currentUser = null;
             localStorage.removeItem('token');
+            document.getElementById('splashScreen').classList.remove('hidden');
             window.location.reload();
         }
 
         function showApp() {
+            document.getElementById('splashScreen').classList.add('hidden');
             document.getElementById('authPage').classList.add('hidden');
             document.getElementById('appPage').classList.remove('hidden');
             document.getElementById('userName').textContent = currentUser.name;

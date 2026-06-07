@@ -69,12 +69,42 @@
          .tab:hover,.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
          .hamburger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:none;background:transparent;color:var(--text);font-size:1.4rem;cursor:pointer;border-radius:8px}
          .hamburger:hover{background:var(--light)}
-         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900}
-         .sidebar-overlay.active{display:block}
-     </style>
-</head>
-<body>
-    <div id="authPage" class="auth-page">
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;transition:opacity 0.3s ease;opacity:0}.sidebar-overlay.active{opacity:1;display:block}
+          .sidebar{transition:transform 0.3s ease}
+
+          /* Splash Screen */
+          .splash-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s ease}
+          .splash-screen.hidden{opacity:0;pointer-events:none}
+          .splash-content{text-align:center;color:#fff}
+          .splash-content i{font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s ease-in-out infinite}
+          .splash-content h2{font-size:1.8rem;margin-bottom:0.5rem}
+          .loading-dots{font-size:1.2rem}
+          .loading-dots span{animation:blink 1.5s infinite;opacity:0}
+          .loading-dots span:nth-child(2){animation-delay:0.25s}
+          .loading-dots span:nth-child(3){animation-delay:0.5s}
+          @keyframes blink{0%,100%{opacity:0}50%{opacity:1}}
+          @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+          @media(max-width:768px){
+              .sidebar{display:none;transform:translateX(-100%)}
+              .sidebar.mobile-open{display:flex !important;transform:translateX(0) !important}
+              .main{margin-left:0}
+              .stats{grid-template-columns:repeat(2,1fr)}
+              .grid-2{grid-template-columns:1fr}
+              .hamburger{display:flex !important}
+          }
+      </style>
+    </head>
+    <body>
+        <!-- Loading Splash Screen -->
+        <div id="splashScreen" class="splash-screen">
+            <div class="splash-content">
+                <i class="fas fa-heartbeat"></i>
+                <h2>Doctors on Wheels</h2>
+                <div class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></div>
+            </div>
+        </div>
+        <div id="authPage" class="auth-page">
         <div class="auth-card">
             <h1>Doctors on <span>Wheels</span></h1>
             <p>Login to your account</p>
@@ -272,7 +302,7 @@
     </div>
 
     <script>
-    const API_BASE = '';
+    const API_BASE = window.API_BASE || 'https://doctorlink-knmy.onrender.com';
     let authToken = localStorage.getItem('token');
     let currentUser = null;
     let selectedDoctor = null;
@@ -332,6 +362,7 @@
     };
 
     function showApp() {
+        document.getElementById('splashScreen').classList.add('hidden');
         document.getElementById('authPage').classList.add('hidden');
         document.getElementById('appPage').classList.remove('hidden');
         document.getElementById('userName').textContent = currentUser.name;
@@ -371,22 +402,43 @@
     function toggleMobileMenu() {
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
-        const isOpen = sidebar.classList.toggle('mobile-open');
-        overlay.classList.toggle('active', isOpen);
-        document.body.style.overflow = isOpen ? 'hidden' : '';
+        if (sidebar && overlay) {
+            const isOpen = sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        }
     }
 
     function closeMobileMenu() {
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
+        if (sidebar && overlay) {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     }
 
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) closeMobileMenu();
     });
+
+    // Auto-init on load
+    async function autoInit() {
+        if (authToken) {
+            try {
+                currentUser = await apiCall('/api/auth/me');
+                showApp();
+            } catch (e) {
+                localStorage.removeItem('token');
+                document.getElementById('splashScreen').classList.add('hidden');
+            }
+        } else {
+            document.getElementById('splashScreen').classList.add('hidden');
+        }
+    }
+    
+    autoInit();
 
     async function loadDashboard() {
         const [appts, doctors] = await Promise.all([apiCall('/api/appointments'), apiCall('/api/doctors')]);
@@ -653,11 +705,8 @@
 
     function logout() {
         localStorage.removeItem('token');
+        document.getElementById('splashScreen').classList.remove('hidden');
         location.reload();
-    }
-
-    if (authToken) {
-        apiCall('/api/auth/me').then(user => { currentUser = user; showApp(); }).catch(() => { localStorage.removeItem('token'); });
     }
     </script>
 </body>

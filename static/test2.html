@@ -10,12 +10,13 @@
         body { font-family: -apple-system, sans-serif; background: #f4f5f7; padding: 2rem; }
         h1 { color: var(--primary); }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <h1>Doctors on Wheels</h1>
     <p>Loading...</p>
     <script>
-        const API_BASE = '';
+        const API_BASE = window.API_BASE || '';
         let authToken = localStorage.getItem('token');
         let currentUser = null;
         
