@@ -54,21 +54,24 @@
         .hidden{display:none}
         .empty{text-align:center;padding:2rem;color:var(--text-light)}
         .table{width:100%;border-collapse:collapse}
-        .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
-        .table th{background:var(--light);font-weight:600;color:var(--text-light)}
-        .online-badge{background:#36b37e;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
-        .offline-badge{background:#6b778c;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
-        .discount-badge{background:#ffab00;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600;margin-left:0.5rem}
-        .service-tier{border:1px solid var(--border);padding:0.8rem;margin:0.3rem 0;border-radius:8px;cursor:pointer;transition:all 0.2s}
-        .service-tier:hover,.service-tier.selected{background:#eef2ff;border-color:var(--primary)}
-        .service-tier-name{font-weight:600}
-        .service-tier-desc{font-size:0.8rem;color:var(--text-light)}
-        .service-tier-price{font-weight:700;color:var(--primary);float:right}
-        .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
-        .tab{padding:1rem 1.5rem;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;transition:all 0.2s}
-        .tab:hover,.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
-        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
-    </style>
+         .table th,.table td{padding:1rem;text-align:left;border-bottom:1px solid var(--border)}
+         .table th{background:var(--light);font-weight:600;color:var(--text-light)}
+         .online-badge{background:#36b37e;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
+         .offline-badge{background:#6b778c;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600}
+         .discount-badge{background:#ffab00;color:#fff;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.7rem;font-weight:600;margin-left:0.5rem}
+         .service-tier{border:1px solid var(--border);padding:0.8rem;margin:0.3rem 0;border-radius:8px;cursor:pointer;transition:all 0.2s}
+         .service-tier:hover,.service-tier.selected{background:#eef2ff;border-color:var(--primary)}
+         .service-tier-name{font-weight:600}
+         .service-tier-desc{font-size:0.8rem;color:var(--text-light)}
+         .service-tier-price{font-weight:700;color:var(--primary);float:right}
+         .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+         .tab{padding:1rem 1.5rem;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;transition:all 0.2s}
+         .tab:hover,.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+         .hamburger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:none;background:transparent;color:var(--text);font-size:1.4rem;cursor:pointer;border-radius:8px}
+         .hamburger:hover{background:var(--light)}
+         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900}
+         .sidebar-overlay.active{display:block}
+     </style>
 </head>
 <body>
     <div id="authPage" class="auth-page">
@@ -91,6 +94,7 @@
     </div>
 
     <div id="appPage" class="app hidden">
+        <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
         <div class="sidebar">
             <div class="sidebar-header">
                 <h1>Doctors on <span>Wheels</span></h1>
@@ -106,7 +110,8 @@
 
         <div class="main">
             <div class="top-bar">
-                <div style="font-weight:600" id="pageTitle">Dashboard</div>
+                <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+                <div id="pageTitle" style="font-weight:600">Dashboard</div>
                 <div class="user-info">
                     <span id="userName">User</span>
                     <span class="wallet" id="userCredits" style="margin-left:1rem;color:var(--accent)">0 Credits</span>
@@ -357,9 +362,30 @@
             const page = item.dataset.page;
             document.getElementById('page-' + page).classList.remove('hidden');
             document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            if (window.innerWidth <= 768) closeMobileMenu();
             if (page === 'appointments') loadAppointments();
             if (page === 'credits') loadCreditsPage();
         }
+    });
+
+    function toggleMobileMenu() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const isOpen = sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('active', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    function closeMobileMenu() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) closeMobileMenu();
     });
 
     async function loadDashboard() {

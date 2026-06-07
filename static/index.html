@@ -26,6 +26,10 @@
         .top-bar{background:var(--white);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
         .top-bar .user-info{display:flex;align-items:center;gap:1rem}
         .wallet{background:var(--accent);color:#fff;padding:0.3rem 1rem;border-radius:20px;font-weight:600;font-size:0.9rem}
+        .hamburger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:none;background:transparent;color:var(--text);font-size:1.4rem;cursor:pointer;border-radius:8px}
+        .hamburger:hover{background:var(--light)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900}
+        .sidebar-overlay.active{display:block}
         
         .content{padding:2rem}
         .page-title{font-size:1.8rem;margin-bottom:1.5rem}
@@ -223,7 +227,15 @@
         .sidebar-header h1,.sidebar-header h1 span{-webkit-text-fill-color:#fff}
         .sidebar-header::after{content:'';position:absolute;top:-50%;right:-30%;width:100px;height:200px;background:rgba(255,255,255,0.05);transform:rotate(25deg)}
 
-        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+        @media(max-width:768px){
+            .sidebar{display:none}
+            .sidebar.mobile-open{display:flex !important;transform:translateX(0) !important}
+            .main{margin-left:0}
+            .stats{grid-template-columns:repeat(2,1fr)}
+            .grid-2{grid-template-columns:1fr}
+            .hamburger{display:flex !important}
+            .sidebar-overlay.active{display:block !important}
+        }
     </style>
     <script src="config.js"></script>
 </head>
@@ -264,6 +276,7 @@
 
     <!-- MAIN APP -->
     <div id="appPage" class="app hidden">
+        <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
         <div class="sidebar">
             <div class="sidebar-header">
                 <h1>Doctors on <span>Wheels</span></h1>
@@ -284,7 +297,8 @@
 
         <div class="main">
             <div class="top-bar">
-                <div style="font-weight:600" id="pageTitle">Dashboard</div>
+                <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+                <div id="pageTitle" style="font-weight:600">Dashboard</div>
                 <div class="user-info">
                     <div id="somniaWalletInfo" style="text-align:right;margin-right:1rem;font-size:0.8rem;color:var(--text-light)">
                         <div style="display:flex;align-items:center;gap:5px;justify-content:flex-end">
@@ -655,6 +669,27 @@
         let currentUser = null;
         let selectedDoctor = null;
 
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('mobile-open') ? 'hidden' : '';
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close mobile menu on window resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) closeMobileMenu();
+        });
+
         // AUTO-LOGIN LOGIC
         async function autoLogin() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -988,6 +1023,8 @@
                 nextPage.classList.add('page-enter');
             }
             document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g,' ');
+            
+            if (window.innerWidth <= 768) closeMobileMenu();
             
             if (page === 'appointments') loadAppointments();
             if (page === 'records') loadRecords();

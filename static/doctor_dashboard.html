@@ -83,10 +83,25 @@
         .modal-body { padding: 2rem; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 
         .hidden { display: none !important; }
+
+        /* Mobile */
+        .hamburger { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border: none; background: transparent; color: var(--em-text-main); font-size: 1.4rem; cursor: pointer; border-radius: 8px; }
+        .hamburger:hover { background: var(--em-light-blue); color: var(--em-blue); }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); z-index: 800; }
+        .sidebar-overlay.active { display: block; }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .sidebar.mobile-open { display: flex !important; transform: translateX(0) !important; }
+            .main-stage { margin-left: 0; }
+            .header { padding: 0 1rem; }
+            .hamburger { display: flex !important; }
+            .search-bar { display: none; }
+        }
     </style>
 </head>
 <body>
     <div class="app-shell">
+        <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-notes-medical"></i>
@@ -112,6 +127,7 @@
 
         <main class="main-stage">
             <header class="header">
+                <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Find guidance, drugs, or patient files...">
@@ -525,7 +541,28 @@
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
             document.querySelector(`[data-target="${t}"]`)?.classList.add('active');
             if (t === 'scripts') loadScripts();
+            if (window.innerWidth <= 768) closeMobileMenu();
         }
+
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const isOpen = sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) closeMobileMenu();
+        });
 
         document.querySelectorAll('.nav-item[data-target]').forEach(i => i.onclick = () => navigateTo(i.dataset.target));
 
