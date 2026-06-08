@@ -92,6 +92,7 @@ class AutonomousFollowUpScheduler:
 
     async def run(self):
         while True:
+            await asyncio.sleep(self.check_interval)
             db = None
             try:
                 db = next(get_db())

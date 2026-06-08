@@ -5,6 +5,11 @@ FastAPI router for Review related endpoints.
 All endpoints require JWT authentication; the user is injected as current_user.
 """
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from datetime import datetime, timezone
 from typing import Optional
 
