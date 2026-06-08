@@ -42,6 +42,7 @@ from api.yoco import router as yoco_router
 from api.somnia_admin import router as somnia_admin_router
 from api.somnia_onchain import router as somnia_onchain_router
 from api.referrals import router as referrals_router
+from api.reviews import router as reviews_router
 
 # Import autonomous agents
 from somnia.autonomous_agents import (
@@ -109,6 +110,7 @@ app.include_router(yoco_router, prefix="")
 app.include_router(somnia_admin_router, prefix="")
 app.include_router(somnia_onchain_router, prefix="")
 app.include_router(referrals_router, prefix="")
+app.include_router(reviews_router, prefix="")
 
 
 @app.on_event("startup")
