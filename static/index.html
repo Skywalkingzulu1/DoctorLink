@@ -21,6 +21,8 @@
         .menu-item:hover,.menu-item.active{background:var(--light);color:var(--primary);border-left:3px solid var(--primary)}
         .menu-item i{width:20px}
         .menu-badge{background:var(--accent);color:#fff;padding:0.1rem 0.5rem;border-radius:10px;font-size:0.7rem;margin-left:auto}
+        .sidebar-close{display:none;position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.25rem;color:var(--text-light);cursor:pointer;padding:0.5rem;border-radius:8px}
+        .sidebar-close:hover{background:var(--light);color:var(--text)}
         
         .main{flex:1;margin-left:260px}
         .top-bar{background:var(--white);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
@@ -110,8 +112,8 @@
         .loading{text-align:center;padding:2rem;color:var(--text-light)}
 
         /* Splash Screen */
-        .splash-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s ease}
-        .splash-screen.hidden{opacity:0;pointer-events:none}
+        .splash-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--primary-dark),var(--primary));display:flex;align-items:center;justify-content:center;z-index:9999}
+        .splash-screen.hidden{display:none!important}
         .splash-content{text-align:center;color:#fff}
         .splash-content i{font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s ease-in-out infinite}
         .splash-content h2{font-size:1.8rem;margin-bottom:0.5rem}
@@ -239,14 +241,30 @@
         .sidebar-header::after{content:'';position:absolute;top:-50%;right:-30%;width:100px;height:200px;background:rgba(255,255,255,0.05);transform:rotate(25deg)}
 
         @media(max-width:768px){
-            .sidebar{display:none;transform:translateX(-100%)}
+            .sidebar{display:none;transform:translateX(-100%);flex-direction:column;z-index:950}
             .sidebar.mobile-open{display:flex !important;transform:translateX(0) !important}
             .main{margin-left:0}
             .stats{grid-template-columns:repeat(2,1fr)}
             .grid-2{grid-template-columns:1fr}
             .hamburger{display:flex !important}
-            .sidebar-overlay.active{opacity:1;display:block !important}
+            .sidebar-overlay{display:none;opacity:0}
+            .sidebar-overlay.active{display:block !important;opacity:1}
+            .sidebar-close{display:block}
+            .content{padding-bottom:100px}
+            .bottom-nav{display:flex !important}
+            .main-content{padding-bottom:80px}
         }
+        
+        /* Bottom Tab Bar */
+        .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);z-index:1000;padding:0.5rem 0 max(0.5rem,env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(0,0,0,0.05)}
+        .bottom-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:600px;margin:0 auto}
+        .bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0.4rem 0.2rem;color:var(--text-light);text-decoration:none;font-size:0.7rem;font-weight:500;transition:all 0.2s;min-width:0;background:none;border:none;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;position:relative;gap:2px}
+        .bottom-nav-item i{font-size:1.3rem;margin-bottom:2px;transition:transform 0.2s}
+        .bottom-nav-item.active{color:var(--primary)}
+        .bottom-nav-item.active i{transform:scale(1.1)}
+        .bottom-nav-item:active{transform:scale(0.95)}
+        .bottom-nav-badge{position:absolute;top:0;right:50%;transform:translateX(calc(50% + 10px));background:var(--danger);color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:10px;font-weight:700;min-width:16px;text-align:center;line-height:1.3}
+        .bottom-nav-divider{width:1px;height:24px;background:var(--border);align-self:center}
     </style>
     <script src="config.js"></script>
 </head>
@@ -260,7 +278,7 @@
         </div>
     </div>
     <!-- AUTH PAGE -->
-    <div id="authPage" class="auth-page">
+    <div id="authPage" class="auth-page hidden">
         <div class="auth-card">
             <h1>Doctors on <span>Wheels</span></h1>
             <p id="authSubtitle">South Africa's Leading Healthcare Platform</p>
@@ -299,6 +317,7 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <h1>Doctors on <span>Wheels</span></h1>
+                <button class="sidebar-close" onclick="closeMobileMenu()" aria-label="Close menu"><i class="fas fa-times"></i></button>
             </div>
             <div class="sidebar-menu">
                 <div class="menu-item active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</div>
@@ -310,15 +329,20 @@
                 <div class="menu-item" data-page="health-tools"><i class="fas fa-robot"></i> Health Tools</div>
                 <div class="menu-item" data-page="payments"><i class="fas fa-credit-card"></i> Credits & T-800</div>
                 <div class="menu-item" data-page="profile"><i class="fas fa-user"></i> My Profile</div>
-                <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+                <div class="menu-item" data-page="logout"><i class="fas fa-sign-out-alt"></i> Logout</div>
             </div>
         </div>
 
-        <div class="main">
-            <div class="top-bar">
+        <div class="main" id="mainContent">
+            <div class="mobile-top-bar" id="mobileTopBar">
+                <button class="hamburger" id="mobileHamburgerBtn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar"><i class="fas fa-bars"></i></button>
+                <div class="page-title" id="mobilePageTitle">Dashboard</div>
+                <div style="width:44px"></div>
+            </div>
+            <div class="top-bar" id="desktopTopBar">
                 <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
                 <div id="pageTitle" style="font-weight:600">Dashboard</div>
-                <div class="user-info">
+                <div class="user-info" id="desktopUserInfo">
                     <div id="somniaWalletInfo" style="text-align:right;margin-right:1rem;font-size:0.8rem;color:var(--text-light)">
                         <div style="display:flex;align-items:center;gap:5px;justify-content:flex-end">
                             <i class="fas fa-shield-alt" style="color:var(--accent)"></i>
@@ -1033,6 +1057,13 @@
         });
 
         function navTo(page) {
+            // Handle logout
+            if (page === 'logout') {
+                closeMobileMenu();
+                logout();
+                return;
+            }
+            
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
             const prevPage = document.querySelector('[id^="page-"]:not(.hidden)');
@@ -1934,15 +1965,6 @@
             }
         });
 
-        // Check session on load
-        if (authToken) {
-            apiCall('/api/auth/me').then(user => {
-                currentUser = user;
-                showApp();
-            }).catch(() => {
-                localStorage.removeItem('token');
-            });
-        }
-    </script>
+        </script>
 </body>
 </html>
