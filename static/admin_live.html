@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Master Admin | DoctorLink</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<script src="config.js"></script>
+<style>
+:root{--bg:#0f172a;--panel:#111827;--panel-2:#1f2937;--border:#374151;--text:#f9fafb;--muted:#9ca3af;--accent:#2563eb;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--sidebar:260px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.5}
+.app{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:#030712;border-right:1px solid var(--border);position:fixed;inset:0 auto auto 0;display:flex;flex-direction:column;z-index:50;transition:transform .3s ease}
+.brand{padding:1.1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;color:var(--text)}
+.brand i{color:var(--accent);font-size:1.4rem}
+.snav{padding:.6rem 0;flex:1;overflow-y:auto}
+.snav-group{padding:.6rem 1.2rem .25rem;font-size:.65rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.snav-item{padding:.65rem 1.2rem;display:flex;align-items:center;gap:.8rem;color:var(--muted);cursor:pointer;font-size:.88rem;font-weight:500;border-left:3px solid transparent;transition:background .15s,color .15s,border-color .15s}
+.snav-item:hover,.snav-item.active{color:var(--text);background:#0f172a66;border-left-color:var(--accent)}
+.snav-item i{width:1.1rem;text-align:center}
+.badge{margin-left:auto;background:var(--red);color:#fff;padding:.15rem .45rem;border-radius:999px;font-size:.65rem;font-weight:800;line-height:1.4}
+.sfoot{padding:.9rem 1.2rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.7rem}
+.avatar{width:34px;height:34px;border-radius:999px;background:linear-gradient(135deg,var(--accent),#0ea5e9);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.78rem}
+.sfoot-name{font-size:.82rem;font-weight:700}
+.sfoot-role{font-size:.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.main{flex:1;margin-left:var(--sidebar);display:flex;flex-direction:column;min-width:0}
+.topbar{position:sticky;top:0;z-index:40;background:#0f172acc;backdrop-filter:saturate(140%) blur(14px);border-bottom:1px solid var(--border);padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.9rem}
+.hamburger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border-radius:.5rem;background:transparent;border:1px solid transparent;cursor:pointer}
+.hamburger:hover{background:#ffffff0d;border-color:#ffffff12}
+.title{font-weight:800;font-size:1.05rem;letter-spacing:-.2px}
+.live{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:700;color:var(--green)}
+.pulse{width:8px;height:8px;border-radius:999px;background:var(--green);box-shadow:0 0 0 0 rgba(34,197,94,.55);animation:livePulse 2s infinite}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}50%{box-shadow:0 0 0 10px rgba(34,197,94,0)}}
+.content{padding:1.6rem;flex:1}
+.section{margin-bottom:2rem}
+.section-head{margin-bottom:1rem}
+.section-head h2{font-size:1.3rem;font-weight:800;margin:0}
+.section-head p{margin:.2rem 0 0;color:var(--muted);font-size:.88rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat{background:linear-gradient(180deg,#0b1220,#0f172a);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;position:relative;overflow:hidden}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:1rem;background:#2563eb1f;color:var(--accent);margin-bottom:.45rem}
+.stat:nth-child(2) .stat-icon{background:#0ea5e91f;color:#0ea5e9}
+.stat:nth-child(3) .stat-icon{background:#22c55e1f;color:var(--green)}
+.stat:nth-child(4) .stat-icon{background:#ef44441f;color:var(--red)}
+.stat:nth-child(5) .stat-icon{background:#f59e0b1f;color:var(--amber)}
+.stat:nth-child(6) .stat-icon{background:#a855f71f;color:#a855f7}
+.stat-val{font-size:1.75rem;font-weight:800;line-height:1;letter-spacing:-.3px;margin:.25rem 0 .15rem}
+.stat-lab{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.4rem}
+.panel-header{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:#ffffff03;font-weight:700;font-size:.92rem}
+.panel-body{padding:1rem 1.1rem}
+.panel-body.flat{padding:0}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:.7rem 1rem;color:var(--muted);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+.tbl td{padding:.8rem 1rem;border-bottom:1px solid var(--border);font-size:.82rem;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#ffffff06}
+.pill{display:inline-flex;align-items:center;gap:.25rem;padding:.22rem .6rem;border-radius:999px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.pill-scheduled{background:rgba(59,130,246,.14);color:#93c5fd}
+.pill-active{background:rgba(16,185,129,.14);color:#6ee7b7}
+.pill-completed{background:rgba(148,163,184,.14);color:#cbd5e1}
+.pill-cancelled{background:rgba(239,68,68,.14);color:#fca5a5}
+.pill-pending{background:rgba(245,158,11,.14);color:#fcd34d}
+.pill-held{background:rgba(245,158,11,.14);color:#fcd34d}
+.pill-funded{background:rgba(59,130,246,.14);color:#93c5fd}
+.pill-released{background:rgba(16,185,129,.14);color:#6ee7b7}
+.pill-refunded{background:rgba(239,68,68,.14);color:#fca5a5}
+.pill-doctor{background:#2563eb1f;color:#93c5fd}
+.pill-patient{background:#ec48991f;color:#f9a8d4}
+.pill-admin{background:#a855f71f;color:#d8b4fe}
+.pill-positive{background:#22c55e1f;color:#86efac}
+.pill-negative{background:#ef44441f;color:#fca5a5}
+.btn{padding:.5rem .9rem;border-radius:.5rem;font-weight:700;cursor:pointer;border:none;font-size:.78rem;display:inline-flex;align-items:center;gap:.4rem;font-family:inherit;transition:transform .08s ease,filter .15s ease}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,.45)}
+.btn-sm{padding:.32rem .65rem;font-size:.72rem;border-radius:.4rem}
+.inp{padding:.55rem .8rem;background:var(--panel-2);border:1px solid var(--border);border-radius:.5rem;color:var(--text);outline:none;font:inherit;font-size:.82rem}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px #2563eb18}
+.empty{text-align:center;padding:2.2rem;color:var(--muted)}
+.empty i{font-size:2.2rem;opacity:.28;display:block;margin-bottom:.4rem}
+.overlay{display:none;position:fixed;inset:0;background:#0009;backdrop-filter:blur(3px);z-index:45}
+.overlay.active{display:block}
+.toasts{position:fixed;top:16px;right:16px;z-index:100;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:360px;width:calc(100vw - 32px)}
+.toast{pointer-events:auto;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:slideIn .25s ease both;display:flex;align-items:flex-start;gap:10px;font-size:.82rem;position:relative;overflow:hidden}
+.toast.out{animation:slideOut .25s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(50px)}}
+.toast-success{border-left:4px solid var(--green)}
+.toast-error{border-left:4px solid var(--red)}
+.toast-info{border-left:4px solid var(--accent)}
+.toast-warning{border-left:4px solid var(--amber)}
+.hidden{display:none!important}
+@media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:860px){.two-col{grid-template-columns:1fr!important}}
+@media(max-width:760px){.sidebar{display:none;transform:translateX(-100%)}.sidebar.open{display:flex;transform:translateX(0)}.main{margin-left:0}.hamburger{display:inline-grid}.content{padding:1rem}.stats{grid-template-columns:repeat(2,1fr)}.topbar{padding:.75rem 1rem}.inp{width:100%}}
+@media(max-width:420px){.stats{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="splash" style="position:fixed;inset:0;background:radial-gradient(circle at top left,#1e293b,#030712);display:flex;align-items:center;justify-content:center;z-index:200;transition:opacity .3s ease">
+<div style="text-align:center"><i class="fas fa-shield-halved" style="font-size:3rem;color:var(--accent);display:block;margin-bottom:1rem"></i><div style="font-weight:800;font-size:1.15rem">Master Admin</div><div style="color:var(--muted);font-size:.82rem">Initializing secure access...</div></div>
+</div>
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+<div class="brand"><i class="fas fa-shield-halved"></i><div><div><strong>DoctorLink</strong> <span style="color:var(--accent)">Admin</span></div><div class="sfoot-role">Master Control</div></div></div>
+<nav class="snav">
+<div class="snav-group">Master</div>
+<div class="snav-item active" data-page="system" onclick="go('system',this)"><i class="fas fa-gauge-high"></i> System Overview</div>
+<div class="snav-item" data-page="users" onclick="go('users',this)"><i class="fas fa-users"></i> All Users</div>
+<div class="snav-item" data-page="doctors" onclick="go('doctors',this)"><i class="fas fa-user-md"></i> Doctors</div>
+<div class="snav-item" data-page="appointments" onclick="go('appointments',this)"><i class="fas fa-calendar-check"></i> Appointments <span class="badge hidden" id="apptBadge">0</span></div>
+<div class="snav-item" data-page="payments" onclick="go('payments',this)"><i class="fas fa-credit-card"></i> Payments</div>
+<div class="snav-item" data-page="broadcast" onclick="go('broadcast',this)"><i class="fas fa-bullhorn"></i> Broadcast</div>
+<div class="snav-group">Platform</div>
+<div class="snav-item" data-page="filebase" onclick="go('filebase',this)"><i class="fas fa-database"></i> Filebase</div>
+</nav>
+<div class="sfoot"><div class="avatar" id="footAvatar">A</div><div style="min-width:0"><div class="sfoot-name" id="footName">Admin</div><div class="sfoot-role">Master</div></div><button class="btn btn-sm btn-ghost" onclick="logout()" style="margin-left:auto" title="Logout"><i class="fas fa-right-from-bracket"></i></button></div>
+</aside>
+<main class="main">
+<div class="topbar">
+<div class="topbar-left"><button class="hamburger" onclick="openMenu()" aria-label="Open menu"><i class="fas fa-bars"></i></button><div class="title" id="title">System Overview</div></div>
+<div class="topbar-right"><div class="live"><span class="pulse"></span><strong>Live</strong></div><div class="avatar" id="topAvatar">A</div></div>
+</div>
+<div class="content">
+<section id="page-system" class="section">
+<div class="section-head"><h2>System Overview</h2><p>Real-time platform health and aggregate metrics</p></div>
+<div class="stats" id="sysStats"></div>
+<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:1rem" class="two-col">
+<div class="panel"><div class="panel-header"><span><i class="fas fa-bolt" style="color:var(--amber);margin-right:6px"></i> Live Activity</span></div><div class="panel-body flat"><table class="tbl"><thead><tr><th>Type</th><th>Count</th><th>Share</th></tr></thead><tbody id="activityBody"><tr><td colspan="3" class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-header"><span><i class="fas fa-bell" style="color:var(--accent);margin-right:6px"></i> Notifications</span><span class="pulse"></span></div><div class="panel-body" id="notifPanel" style="max-height:420px;overflow-y:auto"><div class="empty"><i class="fas fa-bell-slash"></i><p>No broadcasts yet.</p></div></div></div>
+</div>
+</section>
+<section id="page-users" class="section hidden">
+<div class="section-head"><h2>All Users</h2><p>Complete user database with live search</p></div>
+<div class="panel"><div class="panel-header"><span>User Directory</span><input class="inp" id="userSearch" placeholder="Search name, email, phone..." oninput="loadUsers()" style="width:260px" /></div><div class="panel-body flat"><table class="tbl"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Credits</th><th>T800</th><th>Status</th><th>Joined</th></tr></thead><tbody id="usersTable"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody></table></div></div>
+</section>
+<section id="page-doctors" class="section hidden">
+<div class="section-head"><h2>Doctors</h2><p>Verification status, earnings, and availability</p></div>
+<div class="panel"><div class="panel-body flat"><table class="tbl"><thead><tr><th>ID</th><th>Name</th><th>Specialty</th><th>Online</th><th>Verified</th><th>Earnings</th><th>Pending</th><th>Fee</th></tr></thead><tbody id="docsTable"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody></table></div></div>
+</section>
+<section id="page-appointments" class="section hidden">
+<div class="section-head"><h2>Appointments</h2><p>All bookings with escrow and status tracking</p></div>
+<div class="panel"><div class="panel-header"><span>All Appointments</span><select class="inp" id="apptFilter" onchange="loadAppts()" style="width:auto"><option value="">All Statuses</option><option value="SCHEDULED">Scheduled</option><option value="ACTIVE">Active</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option></select></div><div class="panel-body flat"><table class="tbl"><thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Service</th><th>Time</th><th>Status</th><th>Escrow</th><th>Price</th></tr></thead><tbody id="apptsTable"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody></table></div></div>
+</section>
+<section id="page-payments" class="section hidden">
+<div class="section-head"><h2>Payments & Transactions</h2><p>Revenue, platform fees, and transaction ledger</p></div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem">
+<div class="stat"><div class="stat-icon"><i class="fas fa-wallet"></i></div><div class="stat-val" id="pBal">-</div><div class="stat-lab">Total Credits</div></div>
+<div class="stat"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-val" id="pRev">-</div><div class="stat-lab">Revenue (R)</div></div>
+<div class="stat"><div class="stat-icon"><i class="fas fa-building-columns"></i></div><div class="stat-val" id="pFee">-</div><div class="stat-lab">Platform Fees (R)</div></div>
+</div>
+<div class="panel"><div class="panel-header">Recent Transactions</div><div class="panel-body flat"><table class="tbl"><thead><tr><th>ID</th><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>When</th></tr></thead><tbody id="txnTable"><tr><td colspan="6" class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody></table></div></div>
+</section>
+<section id="page-broadcast" class="section hidden">
+<div class="section-head"><h2>Push Notifications</h2><p>Send live alerts to users via dashboard</p></div>
+<div class="panel" style="max-width:720px"><div class="panel-body"><div style="margin-bottom:.9rem"><label style="font-size:.78rem;font-weight:800;display:block;margin-bottom:.3rem">Title</label><input class="inp" style="width:100%" id="bTitle" placeholder="e.g. System maintenance tonight" /></div><div style="margin-bottom:.9rem"><label style="font-size:.78rem;font-weight:800;display:block;margin-bottom:.3rem">Message</label><textarea class="inp" style="width:100%;min-height:100px;padding:.75rem;border-radius:.5rem" id="bBody" placeholder="Message to broadcast..."></textarea></div><div style="display:flex;gap:.6rem;flex-wrap:wrap"><button class="btn btn-primary" onclick="broadcast('all')"><i class="fas fa-paper-plane"></i> Send to All</button><button class="btn btn-ghost" onclick="broadcast('patients')"><i class="fas fa-user"></i> Patients</button><button class="btn btn-ghost" onclick="broadcast('doctors')"><i class="fas fa-user-md"></i> Doctors</button></div></div></div>
+<div class="panel" style="max-width:720px"><div class="panel-header">Recent Broadcasts</div><div class="panel-body" id="broadcastLog"><div class="empty"><p>No broadcasts yet</p></div></div></div>
+</section>
+<section id="page-filebase" class="section hidden">
+<div class="section-head"><h2>Filebase Storage</h2><p>S3 object store health and usage</p></div>
+<div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem">
+<div class="stat"><div class="stat-icon"><i class="fas fa-bucket"></i></div><div class="stat-val" id="fbBucket">-</div><div class="stat-lab">Bucket</div></div>
+<div class="stat"><div class="stat-icon"><i class="fas fa-file"></i></div><div class="stat-val" id="fbObjects">-</div><div class="stat-lab">Objects</div></div>
+<div class="stat"><div class="stat-icon"><i class="fas fa-server"></i></div><div class="stat-val" id="fbStatus">-</div><div class="stat-lab">Endpoint</div></div>
+</div>
+<div class="panel"><div class="panel-header">Recent Objects</div><div class="panel-body flat"><table class="tbl"><thead><tr><th>Key</th><th>Size</th><th>Last Modified</th></tr></thead><tbody id="fbTable"><tr><td colspan="3" class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></td></tr></tbody></table></div></div>
+</section>
+</div>
+</main>
+</div>
+<div class="toasts" id="toasts"></div>
+<script>
+const BASE=window.API_BASE||'';
+let token=localStorage.getItem('token');
+let me=null;
+let ws=null;
+let timer=null;
+function toast(msg,type='info'){const el=document.createElement('div');el.className='toast toast-'+type;el.innerHTML='<div style="flex:1"><div style="font-weight:800;font-size:.82rem">'+((type==='success'?'Success':type==='error'?'Error':type==='warning'?'Warning':'Info'))+'</div><div style="color:var(--muted);font-size:.78rem">'+msg+'</div></div><button onclick="this.parentElement.classList.add(\\'out\\');setTimeout(()=>this.remove(),250)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:4px">&times;</button>';document.getElementById('toasts').appendChild(el);setTimeout(()=>{if(el.parentElement){el.classList.add('out');setTimeout(()=>el.remove(),250)}},4500)}
+async function api(path,opts={}){const h={'Content-Type':'application/json','Authorization':'Bearer '+token};const r=await fetch(BASE+path,{...opts,headers:h});if(r.status===401){logout();throw new Error('Unauthorized')}if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Error')}return r.json()}
+async function init(){if(!token){window.location.href='login.html';return}try{me=await api('/api/auth/me');if(me.role!=='ADMIN'){window.location.href='index.html';return}document.getElementById('footName').textContent=me.name;document.getElementById('footAvatar').textContent=me.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();document.getElementById('topAvatar').textContent=document.getElementById('footAvatar').textContent;await refresh();const proto=location.protocol==='https:'?'wss:':'ws:';ws=new WebSocket(proto+'//'+location.host+'/socket.io/?token='+encodeURIComponent(token));ws.onmessage=e=>{try{const d=JSON.parse(e.data);if(d&&d.type){addLog(d);toast(d.title||'Update',d.type==='error'?'error':'success')}}catch(_){}};ws.onclose=()=>setTimeout(()=>{if(token)init()},3000);timer=setInterval(refresh,12000);document.getElementById('splash').style.opacity='0';setTimeout(()=>document.getElementById('splash').style.display='none',300)}catch(_){logout()}}
+function logout(){token=null;localStorage.removeItem('token');if(ws)ws.close();if(timer)clearInterval(timer);window.location.href='login.html'}
+function go(p,btn){document.querySelectorAll('[id^="page-"]').forEach(el=>el.classList.add('hidden'));document.getElementById('page-'+p).classList.remove('hidden');document.querySelectorAll('.snav-item[data-page]').forEach(el=>el.classList.remove('active'));if(btn)btn.classList.add('active');document.getElementById('title').textContent=p.charAt(0).toUpperCase()+p.slice(1);if(window.innerWidth<=760)closeMenu()}
+function openMenu(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('active');document.body.style.overflow='hidden'}
+function closeMenu(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('active');document.body.style.overflow=''}
+window.addEventListener('resize',()=>{if(window.innerWidth>760)closeMenu()});
+async function refresh(){await Promise.all([loadSys(),loadUsers(),loadDoctors(),loadAppts(),loadTxns(),loadFilebase()])}
+async function loadSys(){try{const s=await api('/api/dashboard/admin/system-stats');const cards=[{id:'sUsers',val:s.total_users,label:'Total Users',icon:'fa-users'},{id:'sAppts',val:s.total_appointments,label:'Appointments',icon:'fa-calendar-check'},{id:'sDocs',val:s.total_doctors,label:'Doctors',icon:'fa-user-md'},{id:'sOnline',val:s.online_doctors,label:'Doctors Online',icon:'fa-wifi'},{id:'sRev',val:'R '+((s.total_revenue_cents||0)/100).toLocaleString('en-ZA',{minimumFractionDigits:2}),label:'Revenue',icon:'fa-coins'},{id:'sCredits',val:(s.total_credits_in_system||0).toLocaleString(),label:'Credits in System',icon:'fa-credit-card'}];document.getElementById('sysStats').innerHTML=cards.map(c=>'<div class="stat"><div class="stat-icon"><i class="fas '+c.icon+'"></i></div><div class="stat-val" id="'+c.id+'">'+c.val+'</div><div class="stat-lab">'+c.label+'</div></div>').join('');document.getElementById('apptBadge').textContent=s.appointments_scheduled||0;const act=document.getElementById('activityBody');const rows=[];['scheduled','active','completed','cancelled'].forEach(k=>{const n=s['appointments_'+k]||0;rows.push('<tr><td><span class="pill pill-'+k+'">'+k+'</span></td><td>'+n+'</td><td><small>'+((n/Math.max(s.total_appointments,1))*100).toFixed(1)+'%</small></td></tr>')});act.innerHTML=rows.join('')}catch(_){}}
+async function loadUsers(){try{const q=(document.getElementById('userSearch')?.value||'').trim();const users=await api('/api/dashboard/admin/users'+(q?'?q='+encodeURIComponent(q):''));document.getElementById('usersTable').innerHTML=users.map(u=>'<tr><td>'+u.id+'</td><td><strong>'+(u.name||'-')+'</strong></td><td>'+(u.email||'-')+'</td><td><span class="pill pill-'+(u.role||'').toLowerCase()+'">'+(u.role||'-')+'</span></td><td>'+(u.credits||0).toLocaleString()+'</td><td>'+(u.t800_balance||0).toLocaleString()+'</td><td>'+(u.is_active?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--red)">Inactive</span>')+'</td><td><small>'+(u.created_at?new Date(u.created_at).toLocaleDateString('en-ZA'):'-')+'</small></td></tr>').join('')||'<tr><td colspan="8" class="empty"><p>No users</p></td></tr>'}catch(_){}}
+async function loadDoctors(){try{const docs=await api('/api/dashboard/admin/doctors');document.getElementById('docsTable').innerHTML=docs.map(d=>'<tr><td>'+d.id+'</td><td><strong>'+(d.name||'-')+'</strong></td><td>'+(d.specialty||'-')+'</td><td>'+(d.is_online?'<span class="pulse" style="display:inline-block"></span>':'Offline')+'</td><td><span class="pill pill-'+(d.verification_status==="verified"?"released":"pending")+'">'+(d.verification_status||'pending')+'</span></td><td>R '+(d.total_earnings||0).toLocaleString()+'</td><td>R '+(d.pending_earnings||0).toLocaleString()+'</td><td>R '+(d.consultation_fee||0).toLocaleString()+'</td></tr>').join('')||'<tr><td colspan="8" class="empty"><p>No doctors</p></td></tr>'}catch(_){}}
+async function loadAppts(){try{const f=(document.getElementById('apptFilter')?.value||'').trim();const list=await api('/api/dashboard/admin/appointments'+(f?'?status='+f:''));document.getElementById('apptsTable').innerHTML=list.map(a=>'<tr><td>#'+a.id+'</td><td>'+(a.patient_name||'-')+'<br><small style="color:var(--muted)">'+(a.patient_email||'')+'</small></td><td>'+(a.doctor_name||'-')+'<br><small style="color:var(--muted)">'+(a.doctor_specialty||'')+'</small></td><td><span class="pill pill-'+(a.service_tier||a.appointment_type||'VIDEO').toLowerCase()+'">'+(a.service_tier||a.appointment_type||'VIDEO')+'</span></td><td><small>'+(a.timestamp?new Date(a.timestamp).toLocaleString('en-ZA'):'-')+'</small></td><td>'+statusPill(a.status)+'</td><td>'+statusPill(a.escrow_status)+'</td><td><strong>R '+(a.base_price||0).toLocaleString()+'</strong></td></tr>').join('')||'<tr><td colspan="8" class="empty"><p>No appointments</p></td></tr>'}catch(_){}}}
+async function loadTxns(){try{const txns=await api('/api/dashboard/admin/transactions');document.getElementById('txnTable').innerHTML=txns.slice(0,50).map(t=>'<tr><td>'+t.id+'</td><td>'+(t.user_name||t.user_id||'-')+'</td><td>'+(t.transaction_type||'-')+'</td><td><strong style="color:var(--green)">R '+(t.amount||0).toLocaleString()+'</strong></td><td><span class="pill pill-funded">'+(t.payment_status||'completed')+'</span></td><td><small>'+(t.created_at?new Date(t.created_at).toLocaleDateString('en-ZA'):'-')+'</small></td></tr>').join('')||'<tr><td colspan="6" class="empty"><p>No transactions</p></td></tr>';const bal=await api('/api/credits/balance');document.getElementById('pBal').textContent=(bal.credits||0).toLocaleString()}catch(_){}}}
+async function loadFilebase(){try{document.getElementById('fbBucket').textContent='skyhealth';document.getElementById('fbStatus').textContent=(location.protocol==='https:'?'Secure ':'')+'S3';let count=0;try{const r=await api('/api/storage/list?prefix=');count=(r.objects||[]).length}catch(_){}document.getElementById('fbObjects').textContent=(count||0).toLocaleString();const rows=[];try{const r=await api('/api/storage/list?prefix=');for(const o of(r.objects||[]).slice(0,20))rows.push('<tr><td>'+(o.key||o.Key||'-')+'</td><td>'+(o.size||0)+'</td><td><small>'+(o.last_modified||'-')+'</small></td></tr>')}catch(_){}document.getElementById('fbTable').innerHTML=rows.length?rows.join(''):'<tr><td colspan="3" class="empty"><p>No recent uploads</p></td></tr>'}catch(_){}}}
+function statusPill(s){const c={SCHEDULED:'pill-scheduled',ACTIVE:'pill-active',COMPLETED:'pill-completed',CANCELLED:'pill-cancelled',PENDING:'pill-pending',HELD:'pill-held',FUNDED:'pill-funded',RELEASED:'pill-released',REFUNDED:'pill-refunded'};return s?'<span class="pill '+(c[s]||'pill-pending')+'">'+s+'</span>':'-'}
+async function broadcast(target){const title=document.getElementById('bTitle').value.trim();const body=document.getElementById('bBody').value.trim();if(!title||!body){toast('Fill in title and message','warning');return}await api('/api/dashboard/admin/notify-all',{method:'POST',body:JSON.stringify({title,body,target})});toast('Broadcast sent','success');const log=document.getElementById('broadcastLog');const row=document.createElement('div');row.style.cssText='padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.82rem';row.innerHTML='<div style="font-weight:800">'+title+'</div><div style="color:var(--muted)">'+body+'</div><small style="color:var(--muted)">'+new Date().toLocaleString('en-ZA')+' -> '+target+'</small>';log.insertBefore(row,log.firstChild)}
+function addLog(d){const p=document.getElementById('notifPanel');const row=document.createElement('div');row.style.cssText='padding:.65rem 0;border-bottom:1px solid var(--border);display:flex;gap:.75rem;align-items:flex-start';const color=d.type==='error'?'var(--red)':d.type==='warning'?'var(--amber)':'var(--accent)';row.innerHTML='<div style="width:8px;height:8px;border-radius:50%;background:'+color+';margin-top:6px;flex-shrink:0"></div><div style="flex:1"><div style="font-weight:800;font-size:.82rem">'+(d.title||'Update')+'</div><div style="font-size:.78rem;color:var(--muted)">'+(d.body||'')+'</div><small style="color:var(--muted)">'+new Date().toLocaleTimeString('en-ZA')+'</small></div>';p.insertBefore(row,p.firstChild)}
+window.addEventListener('DOMContentLoaded',init);
+setTimeout(()=>{const s=document.getElementById('splash');if(s&&s.style.opacity!=='0'){s.style.opacity='0';setTimeout(()=>{if(s.style.display!=='none')s.style.display='none'},300)}},4000);
+</script>
+</body>
+</html>
