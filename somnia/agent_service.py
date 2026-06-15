@@ -148,6 +148,43 @@ SPONSOR_ABI = [
         "stateMutability": "view",
         "type": "function",
     },
+    {
+        "inputs": [
+            {"internalType": "uint256", "name": "agentId", "type": "uint256"},
+            {"internalType": "bytes", "name": "payload", "type": "bytes"},
+        ],
+        "name": "invokeAgent",
+        "outputs": [{"internalType": "uint256", "name": "requestId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "bytes", "name": "payload", "type": "bytes"},
+        ],
+        "name": "invokeLLMAgent",
+        "outputs": [{"internalType": "uint256", "name": "requestId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "bytes", "name": "payload", "type": "bytes"},
+        ],
+        "name": "invokeJsonApiAgent",
+        "outputs": [{"internalType": "uint256", "name": "requestId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "bytes", "name": "payload", "type": "bytes"},
+        ],
+        "name": "invokeParseWebsiteAgent",
+        "outputs": [{"internalType": "uint256", "name": "requestId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
 ]
 
 platform = somnia.w3.eth.contract(
@@ -249,23 +286,84 @@ def _get_deposit() -> int:
     return floor + per_agent * SOMNIA_SUBCOMMITTEE_SIZE
 
 
-def _send_agent_tx(agent_id: int, payload: bytes) -> int:
-    """Invoke agent via platform.createRequest directly from deployer wallet.
+def _send_agent_tx_via_sponsor(agent_id: int, payload: bytes) -> int:
+    """Invoke agent through the sponsor contract so sponsor STT pays the deposit."""
+    if not sponsor:
+        raise RuntimeError("Sponsor contract not configured")
 
-    Uses the sponsor contract address as callback (validators need a contract
-    to submit responses). The deployer wallet pays the deposit fee.
+    account = somnia.get_account()
+    sponsor_function = sponsor.functions.invokeAgent(agent_id, payload)
+
+    try:
+        sponsor_function.call({"from": account.address})
+    except ContractCustomError as e:
+        raise RuntimeError(f"Sponsor invokeAgent reverted: {e}")
+    except ValueError as e:
+        msg = str(e)
+        if "execution reverted" in msg.lower() or "revert" in msg.lower() or "BadFunctionCallOutput" in msg:
+            raise RuntimeError(f"Sponsor invokeAgent failed: {msg[:300]}")
+        raise
+
+    nonce = somnia.w3.eth.get_transaction_count(account.address)
+    tx = sponsor_function.build_transaction({
+        "from": account.address,
+        "value": 0,
+        "nonce": nonce,
+        "gas": settings.SOMNIA_GAS_LIMIT,
+        "gasPrice": somnia._gas_price(),
+        "chainId": somnia.chain_id,
+    })
+
+    receipt = somnia.send_tx(tx)
+
+    for log in receipt.get("logs", []):
+        topics = log.get("topics", [])
+        if topics and topics[0] == AGENT_INVOKED_SIG_BYTES and len(topics) >= 2:
+            try:
+                request_id = int.from_bytes(topics[1], byteorder="big")
+                _start_polling(request_id)
+                save_ai_response(request_id, None, "invoke", "on-chain", None, "pending")
+                return request_id
+            except (ValueError, IndexError):
+                continue
+
+    for log in receipt.get("logs", []):
+        topics = log.get("topics", [])
+        if topics and topics[0] == REQUEST_CREATED_SIG_BYTES and len(topics) >= 2:
+            try:
+                request_id = int.from_bytes(topics[1], byteorder="big")
+                _start_polling(request_id)
+                save_ai_response(request_id, None, "invoke", "on-chain", None, "pending")
+                return request_id
+            except (ValueError, IndexError):
+                continue
+
+    raise RuntimeError(
+        "Sponsor invokeAgent tx confirmed but no AgentInvoked/RequestCreated event. "
+        f"Tx hash: {receipt.transactionHash.hex() if hasattr(receipt, 'transactionHash') else 'unknown'}"
+    )
+
+
+def _send_agent_tx(agent_id: int, payload: bytes) -> int:
+    """Invoke agent, preferring sponsor-funded sponsor.invokeAgent().
+
+    Falls back to platform.createRequest only if the configured sponsor does not
+    expose invokeAgent().
     """
+    if sponsor:
+        try:
+            return _send_agent_tx_via_sponsor(agent_id, payload)
+        except Exception as e:
+            print(f"[Somnia] Sponsor invokeAgent failed, falling back to platform direct: {e}")
+
     account = somnia.get_account()
     deposit = _get_deposit()
 
-    # Use sponsor contract as callback (needs a contract address for validators)
     callback = somnia.sponsor_contract_address or account.address
-    # handleResponse selector from the sponsor contract
     callback_selector = Web3.keccak(
         text="handleResponse(uint256,(address,bytes,uint8,uint256,uint256,uint256)[],uint8,(uint256,address,address,bytes4,address[],(address,bytes,uint8,uint256,uint256,uint256)[],uint256,uint256,uint256,uint256,uint256,uint256,uint8,uint8,uint256,uint256))"
     )[:4]
 
-    # Simulate first to catch revert reasons
     try:
         platform.functions.createRequest(
             agent_id,
@@ -302,7 +400,6 @@ def _send_agent_tx(agent_id: int, payload: bytes) -> int:
 
     receipt = somnia.send_tx(tx)
 
-    # Look for RequestCreated event
     for log in receipt.get("logs", []):
         topics = log.get("topics", [])
         if not topics:
@@ -311,10 +408,7 @@ def _send_agent_tx(agent_id: int, payload: bytes) -> int:
             try:
                 request_id = int.from_bytes(topics[1], byteorder="big")
                 _start_polling(request_id)
-                
-                # Pre-save pending state
                 save_ai_response(request_id, None, "invoke", "on-chain", None, "pending")
-                
                 return request_id
             except (ValueError, IndexError):
                 continue
