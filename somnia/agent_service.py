@@ -292,7 +292,12 @@ def _send_agent_tx_via_sponsor(agent_id: int, payload: bytes) -> int:
         raise RuntimeError("Sponsor contract not configured")
 
     account = somnia.get_account()
-    sponsor_function = sponsor.functions.invokeAgent(agent_id, payload)
+    if agent_id == AGENT_ID_LLM:
+        sponsor_function = sponsor.functions.invokeLLMAgent(payload)
+    elif agent_id == AGENT_ID_JSON:
+        sponsor_function = sponsor.functions.invokeJsonApiAgent(payload)
+    else:
+        sponsor_function = sponsor.functions.invokeAgent(agent_id, payload)
 
     try:
         sponsor_function.call({"from": account.address})
