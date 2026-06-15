@@ -75,9 +75,9 @@ class AutonomousPrescriptionReviewer:
         if not request_id:
             return None
         result = get_agent_result(request_id)
-        if result.status == "completed":
+        if result.status == "success":
             del self.pending_reviews[prescription_id]
-            return {"prescription_id": prescription_id, "review": result.result, "safe": "SAFE" in result.result.upper()}
+            return {"prescription_id": prescription_id, "review": result.result, "safe": "SAFE" in (result.result or "").upper()}
         return None
 
 
@@ -238,7 +238,7 @@ class AutonomousAIDoctorAgent:
                         await asyncio.sleep(5) 
                         result = get_agent_result(request_id)
                         
-                        if result.status == "completed":
+                        if result.status == "success" and result.result:
                             appt.notes = f"AI Consultation Result: {result.result}"
                             appt.somnia_agent_results = result.result
                             appt.status = AppointmentStatus.COMPLETED

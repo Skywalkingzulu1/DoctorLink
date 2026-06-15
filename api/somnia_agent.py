@@ -2,6 +2,7 @@
 Somnia Agent API endpoints for Doctors on Wheels.
 Provides AI-powered medical features via Somnia Agentic L1.
 """
+import asyncio
 import os
 import sys
 
@@ -181,76 +182,114 @@ def invoke_agent(
 async def run_all_triage_tools(triage_data_json: str) -> dict:
     """
     Run 10 specialized AI medical tools on patient triage data.
-    Grounded in Emergency Medicine (EM) Guidance & Clinical Protocols.
+    Each tool invokes the Somnia LLM Inference agent on-chain with a protocol-grounded prompt.
+    Falls back to a timeout placeholder if the agent result is not yet available.
     """
-    try:
-        import json
-        data = json.loads(triage_data_json)
-        
-        # Define Grounded Clinical Protocols (Scripts)
-        protocols = {
-            "1. Triage Classification (NICE/CDC)": {
-                "task": "Classify patient based on acuity using NICE Clinical Knowledge Summaries.",
-                "guidance": "Reference: NICE GKS / CDC Emergency Triage Standards.",
-                "response": "Based on NICE Clinical Knowledge Summaries (CKS) for Acute Abdominal Pain, this patient's Pain Scale of 8/10 and localized nausea warrants an 'Urgent' classification. [Source: NICE CKS 2024]"
-            },
-            "2. Red Flag Screening (Mayo Clinic)": {
-                "task": "Screen for life-threatening 'Red Flags' using Mayo Clinic guidelines.",
-                "guidance": "Reference: Mayo Clinic Emergency Medicine Protocols.",
-                "response": "POSITIVE RED FLAG: 'Localized sharp pain in lower right quadrant' aligns with Mayo Clinic diagnostic criteria for potential surgical emergency (Appendicitis). Immediate physical palpation required. [Source: Mayo Clinic Diagnostic Guidance]"
-            },
-            "3. Differential Diagnosis (BMJ/Medscape)": {
-                "task": "Provide evidence-based differentials from Medscape/BMJ Best Practice.",
-                "guidance": "Reference: BMJ Best Practice / Medscape Reference.",
-                "response": "Differentials (by probability): 1. Acute Appendicitis (65%), 2. Renal Colic (15%), 3. Mesenteric Adenitis (10%). Note: Atypical presentation of Gastroenteritis also considered. [Source: Medscape Reference / BMJ Best Practice]"
-            },
-            "4. Protocol-based Care Plan (WHO)": {
-                "task": "Suggest care plan following WHO Integrated Management of Adult Illness (IMAI).",
-                "guidance": "Reference: WHO IMAI Guidelines.",
-                "response": "WHO IMAI Protocol for Severe Pain: Keep patient NPO (Nil Per Os). Monitor vitals every 15 mins. Prepare for secondary care referral if guarding or rebound tenderness is present. [Source: WHO IMAI 2023]"
-            },
-            "5. Medication Safety (FDA/Drugs.com)": {
-                "task": "Check for contraindications using FDA safety databases.",
-                "guidance": "Reference: FDA Post-market Drug Safety Information.",
-                "response": "CONTRAINDICATION: Current use of Aspirin (NSAID) may mask inflammatory fever and increases surgical bleeding risk. Suggest withholding further doses until exam. [Source: FDA Safety Alerts / Drugs.com Professional]"
-            },
-            "6. Diagnostic Script (EM Practice)": {
-                "task": "Provide a scripted set of diagnostic questions for the home visit.",
-                "guidance": "Reference: Clinical Examination Standards (Bates/Talley & O'Connor).",
-                "response": "HOME VISIT SCRIPT: 1. 'When did the pain shift from the umbilicus to the RLQ?' 2. 'Does coughing or movement worsen the pain?' (Check for Rovsing’s sign). [Source: Bates' Guide to Physical Examination]"
-            },
-            "7. Vital Sign Interpretation (NEWS2)": {
-                "task": "Interpret vitals using the National Early Warning Score (NEWS2).",
-                "guidance": "Reference: Royal College of Physicians NEWS2 Standards.",
-                "response": "NEWS2 Interpretation: Patient's reported feverishness and pain-induced tachycardia suggest a NEWS2 score of 3-4 (Medium Risk). Requires clinician assessment within 60 mins. [Source: RCP NEWS2 2024]"
-            },
-            "8. Patient Education Script (Health Literacy)": {
-                "task": "Generate a patient-facing script grounded in health literacy standards.",
-                "guidance": "Reference: Agency for Healthcare Research and Quality (AHRQ).",
-                "response": "PATIENT SCRIPT: 'Mr. Doe, your symptoms are a high priority. I am coming to check if this is an infection of the appendix. Please don't eat or drink anything until I arrive.' [Source: AHRQ Health Literacy Toolkit]"
-            },
-            "9. Clinical Note Framework (SOAP)": {
-                "task": "Generate a structured SOAP note for clinical documentation.",
-                "guidance": "Reference: Standardized Clinical Documentation Protocols.",
-                "response": "SOAP NOTE: S: 24h RLQ pain (8/10). O: Triage reports nausea/nausea. A: Probable acute appendicitis (K35.8). P: Urgent home visit and potential ED referral. [Source: ICD-10 Clinical Documentation Standards]"
-            },
-            "10. Disposition Logic (UpToDate/CDC)": {
-                "task": "Logic for patient disposition (Stay vs. Transfer).",
-                "guidance": "Reference: CDC Disposition Algorithms.",
-                "response": "DISPOSITION SCRIPT: If McBurney's point is tender: Arrange immediate transport to Sandton Mediclinic ED. If pain is diffuse and non-localized: Monitor at home with 4-hour follow-up. [Source: UpToDate Clinical Logic]"
-            }
-        }
-        
-        results = {}
-        for name, protocol in protocols.items():
-            # In this demo, we deliver the scripted responses based on the triage data.
-            # In a live AI environment, these tasks would be the 'System Prompts' for the LLM.
-            results[name] = protocol["response"]
-            
-        return results
-    except Exception as e:
-        print(f"Triage tools error: {e}")
-        return {"error": str(e)}
+    import json
+    data = json.loads(triage_data_json)
+    patient_summary = json.dumps(data, indent=2)
+
+    tools = {
+        "1. Triage Classification (NICE/CDC)": {
+            "sp": (
+                "You are an emergency medicine triage assistant. "
+                "Classify the patient's acuity level (low/medium/high/urgent) using "
+                "NICE Clinical Knowledge Summaries and CDC Emergency Triage Standards. "
+                "Provide the classification and 2-3 sentences of justification."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nPerform triage classification.",
+        },
+        "2. Red Flag Screening (Mayo Clinic)": {
+            "sp": (
+                "You are an emergency medicine clinician. "
+                "Screen for life-threatening 'Red Flags' using Mayo Clinic Emergency Medicine Protocols. "
+                "List any positive red flags found with a brief justification for each."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nScreen for red flags.",
+        },
+        "3. Differential Diagnosis (BMJ/Medscape)": {
+            "sp": (
+                "You are a clinical diagnostician. "
+                "Provide evidence-based differential diagnoses using BMJ Best Practice / Medscape Reference. "
+                "List top 3 differentials by probability with brief rationale."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nProvide differential diagnoses.",
+        },
+        "4. Protocol-based Care Plan (WHO)": {
+            "sp": (
+                "You are a clinical care coordinator. "
+                "Suggest a care plan following WHO Integrated Management of Adult Illness (IMAI) guidelines. "
+                "Include immediate actions, monitoring interval, and referral threshold."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nSuggest a care plan.",
+        },
+        "5. Medication Safety (FDA/Drugs.com)": {
+            "sp": (
+                "You are a clinical pharmacist. "
+                "Check for contraindications and safety concerns using FDA safety databases. "
+                "Flag any interactions with severity (low/medium/high) and recommend action."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nCheck medication safety.",
+        },
+        "6. Diagnostic Script (EM Practice)": {
+            "sp": (
+                "You are a clinician preparing for a home visit. "
+                "Provide a scripted set of diagnostic questions for the examination, "
+                "following Clinical Examination Standards (Bates/Talley & O'Connor)."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nCreate a diagnostic script for the home visit.",
+        },
+        "7. Vital Sign Interpretation (NEWS2)": {
+            "sp": (
+                "You are a vital signs specialist. "
+                "Interpret the patient's vitals using the National Early Warning Score (NEWS2) standards "
+                "from the Royal College of Physicians. Report the score, risk category, and recommended response time."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nInterpret vitals using NEWS2.",
+        },
+        "8. Patient Education Script (Health Literacy)": {
+            "sp": (
+                "You are a patient education specialist. "
+                "Generate a patient-facing script grounded in health literacy standards (AHRQ). "
+                "Use simple, clear language suitable for a general audience."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nCreate a patient education script.",
+        },
+        "9. Clinical Note Framework (SOAP)": {
+            "sp": (
+                "You are a medical scribe. "
+                "Generate a structured SOAP note (Subjective, Objective, Assessment, Plan) "
+                "for clinical documentation. Use professional medical terminology and ICD-10 codes where applicable."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nGenerate a SOAP note.",
+        },
+        "10. Disposition Logic (UpToDate/CDC)": {
+            "sp": (
+                "You are a care coordinator. "
+                "Provide disposition logic (Stay vs. Transfer) using CDC Disposition Algorithms and UpToDate clinical logic. "
+                "State the criteria that determine each disposition and the recommended action for this patient."
+            ),
+            "prompt": f"Patient data:\n{patient_summary}\n\nProvide disposition logic.",
+        },
+    }
+
+    results = {}
+    for name, tool in tools.items():
+        request_id = None
+        try:
+            request_id = await asyncio.to_thread(invoke_llm_agent, tool["prompt"], tool["sp"])
+            result = get_agent_result(request_id, wait=True, timeout=15)
+            if result and result.result and len(result.result.strip()) > 0:
+                results[name] = result.result
+            else:
+                results[name] = f"[Agent response pending for request {request_id}]"
+        except Exception as e:
+            if request_id:
+                results[name] = f"[Agent error (request {request_id}): {e}]"
+            else:
+                results[name] = f"[Agent error: {e}]"
+
+    return results
 
 
 class EmailRequest(BaseModel):
@@ -258,7 +297,7 @@ class EmailRequest(BaseModel):
     subject: str
     body: str
 
-@router.post("/somnia/agent/email")
+@router.post("/email")
 async def send_email_simulation(request: EmailRequest):
     """Simulate sending an email with clinical script or triage data."""
     try:
@@ -457,11 +496,9 @@ def t800_faucet(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Credit 1000 T800 to the user's off-chain balance (one claim per user for demo)."""
-    from database import SessionLocal
-    db_local = SessionLocal()
+    """Credit 5000 T800 to the user's off-chain balance (one claim per user for demo)."""
     try:
-        user = db_local.query(User).filter(User.id == current_user.id).first()
+        user = db.query(User).filter(User.id == current_user.id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         if user.t800_balance and user.t800_balance > 0:
@@ -470,10 +507,13 @@ def t800_faucet(
                 "t800_balance": user.t800_balance,
             }
         user.t800_balance = (user.t800_balance or 0) + 5000
-        db_local.commit()
+        db.commit()
         return {
             "message": "5000 T800 credited to your account",
             "t800_balance": user.t800_balance,
         }
-    finally:
-        db_local.close()
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
